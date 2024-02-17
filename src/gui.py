@@ -31,14 +31,27 @@ class App(customtkinter.CTk):
     # preset aspect ratio of application display
     ASPECT_RATIO = 16/9
     # preset width of GUI dislay
-    WIDTH = 900
+    WIDTH = 1200
     # preset height of GUI display (dependent on WIDTH and ASPECT_RATIO)
     HEIGHT = int(WIDTH/ASPECT_RATIO)
     # preset local port that is hosting the map server
     MAP_SERVER_PORT = 8080
     # preset default input values
     DEFAULT_VALUES = {
-        "Sensor 1 MGRS": "11SNV4178910362"
+        "Sensor 1 MGRS": "11SNV4178910362",
+        "Sensor 1 PWR Received": -75,
+        "Sensor 1 LOB": 105,
+        "Sensor 2 MGRS": "11SNV4314711067",
+        "Sensor 2 PWR Received": -78,
+        "Sensor 2 LOB": 165,
+        "Sensor 3 MGRS": "X",
+        "Sensor 3 PWR Received": -79,
+        "Sensor 3 LOB": 275,
+        "Frequency":32,
+        "Min ERP":0.005,
+        "Max ERP":50,
+        "Path-Loss Coefficient":4,
+        "Path-Loss Coefficient Description":"Moderate Foliage"
     }
 
     def __init__(self, *args, **kwargs):
@@ -58,20 +71,20 @@ class App(customtkinter.CTk):
         self.bind("<Control-q>", self.on_closing)
         # add Apple MAC compatability to quit command
         self.createcommand('tk::mac::Quit', self.on_closing)
-        # start map server thread if map server is not currently running
-        if not is_port_in_use(App.MAP_SERVER_PORT):
-            # create map server thread
-            self.map_server_thread = threading.Thread(target=self.map_server)
-            # set daemon attribute to True
-            self.map_server_thread.daemon = True
-            # start map server thread
-            self.map_server_thread.start()
         # define source file directory
         self.src_directory = os.path.dirname(os.path.abspath(__file__))
         # define icon file directory
         self.icon_directory = "\\".join(self.src_directory.split('\\')[:-1])+"\\icons"
         # define map tile directory
         self.tile_directory = "\\".join(self.src_directory.split('\\')[:-1])+"\\maptiles\\ESRI"
+        # start map server thread if map server is not currently running
+        if not is_port_in_use(App.MAP_SERVER_PORT):
+            # create map server thread
+            self.map_server_thread = threading.Thread(target=self.map_server,args=([self.tile_directory]))
+            # set daemon attribute to True
+            self.map_server_thread.daemon = True
+            # start map server thread
+            self.map_server_thread.start()
         # define target image icon
         self.target_image = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "suspected_hostile.png")).resize((40, 40)))
         # define generic EWT icon
@@ -818,171 +831,320 @@ class App(customtkinter.CTk):
         """
         Function to calculate target location given EWT input(s)
         """
-        # set single lob boolean value to TRUE
-        self.single_lob_bool = True
+        # resets single lob boolean value to FALSE, allowing multiple EWT input
+        self.single_lob_bool = False
         # delete all previous polygons from map widget
         self.map_widget.delete_all_polygon()
         # delete all previous EWTs from map widget
         self.clear_ewt_markers()
         # delete all previous target markers from map widget
         self.clear_target_markers()
-        # try to read sensor 1 mgrs value
-        try:
-            # get input from sensor1_mgrs input field
-            sensor1_mgrs = str(self.sensor1_mgrs.get()).strip()
-            # assess whether the input MGRS value is valid
-            if sensor1_mgrs[2:5].isalpha() and sensor1_mgrs[:2].isdigit() and sensor1_mgrs[5:].isdigit() and len(sensor1_mgrs[5:]) % 2 == 0:
-                # if MGRS value is valid, pass on to next portion of function code
-                pass
-            else:
-                # if MGRS is invalid, give user the option to re-input or use default value
-                choice = self.input_error(category='Sensor 1 Grid',msg=f'Invalid Input {sensor1_mgrs}')
-                # assess if user wishes to use the default value
-                if choice:
-                    # clear the previous sensor 1 MGRS input
-                    self.sensor1_mgrs.delete(0,END)
-                    # insert the default sensor 1 MGRS value
-                    self.sensor1_mgrs.insert(0,App.DEFAULT_VALUES['Sensor 1 MGRS'])
-                else:
-                    return 0
-        except ValueError:
-            sensor1_mgrs = None
-        try:
-            sensor1_grid_azimuth = int(self.sensor1_lob.get())
-        except ValueError:
-            choice = self.input_error(category='Sensor 1 Grid Azimuth',msg=f'Invalid Input')
-            if choice:
-                sensor1_grid_azimuth = 100
-                self.sensor1_lob.delete(0,END)
-                self.sensor1_lob.insert(0,sensor1_grid_azimuth)
-            else:
-                return 0
-        try:
-            sensor1_power_received_dBm = int(self.sensor1_Rpwr.get())
-        except ValueError:
-            choice = self.input_error(category='Sensor 1 Power Received',msg=f'Invalid Input')
-            if choice:
-                sensor1_power_received_dBm = -70
-                self.sensor1_Rpwr.delete(0,END)
-                self.sensor1_Rpwr.insert(0,sensor1_power_received_dBm)
-            else:
-                return 0
-        
-        try:
-            if self.single_lob_bool:
-                sensor2_mgrs = str(self.sensor2_mgrs.get()).strip()
-                if sensor2_mgrs[2:5].isalpha() and sensor2_mgrs[:2].isdigit() and sensor2_mgrs[5:].isdigit() and len(sensor2_mgrs[5:]) % 2 == 0:
-                    pass
-                else:
-                    choice = self.input_error(category='Sensor 2 Grid',msg=f'Invalid Input {sensor2_mgrs}',single_lob_option=True)
-                    if choice == True:
-                        sensor2_mgrs = "11SNV4314711067"
-                        self.sensor2_mgrs.delete(0,END)
-                        self.sensor2_mgrs.insert(0,sensor2_mgrs)
-                    elif choice == False:
-                        return 0
-                    elif choice == 'SL':
-                        self.single_lob_bool = False
-                        sensor2_mgrs = None
-                        self.sensor2_mgrs.delete(0,END)
-            else:
-                sensor2_mgrs = None
-                sensor2_grid_azimuth = None
-                sensor2_power_received_dBm = None
-                self.sensor2_mgrs.delete(0,END) 
-                self.sensor2_lob.delete(0,END)
-                self.sensor2_Rpwr.delete(0,END)            
-        except ValueError:
-            sensor2_mgrs = None
-        if self.single_lob_bool:
-            try:
-                sensor2_grid_azimuth = int(self.sensor2_lob.get())
-            except ValueError:
-                choice = self.input_error(category='Sensor 2 Grid Azimuth',msg=f'Invalid Input',single_lob_option=True)
-                if choice == True:
-                    sensor2_grid_azimuth = 165
-                    self.sensor2_lob.delete(0,END)
-                    self.sensor2_lob.insert(0,sensor2_grid_azimuth)                
-                elif choice == False:
-                    return 0
-                elif choice == 'SL':
-                    self.single_lob_bool = False
-                    sensor2_grid_azimuth = None
-                    self.sensor2_lob.delete(0,END)
-        else:
-            sensor2_mgrs = None
-            sensor2_grid_azimuth = None
-            sensor2_power_received_dBm = None
-            self.sensor2_mgrs.delete(0,END) 
-            self.sensor2_lob.delete(0,END)
-            self.sensor2_Rpwr.delete(0,END)                  
-        if self.single_lob_bool:
-            try:
-                sensor2_power_received_dBm = int(self.sensor2_Rpwr.get())
-            except ValueError:
-                choice = self.input_error(category='Sensor 2 Power Received',msg=f'Invalid Input',single_lob_option=True)
-                if choice == True:
-                    sensor2_power_received_dBm = -70
-                    self.sensor2_Rpwr.delete(0,END)
-                    self.sensor2_Rpwr.insert(0,sensor2_power_received_dBm)                  
-                elif choice == False:
-                    return 0
-                elif choice == 'SL':
-                    self.single_lob_bool = False
-                    sensor2_power_received_dBm = None
-                    self.sensor2_Rpwr.delete(0,END)
-        else:
-            sensor2_mgrs = None
-            sensor2_grid_azimuth = None
-            sensor2_power_received_dBm = None
-            self.sensor2_mgrs.delete(0,END) 
-            self.sensor2_lob.delete(0,END)
-            self.sensor2_Rpwr.delete(0,END)   
-        try:
-            frequency_MHz = float(self.frequency.get())
-        except ValueError:
-            choice = self.input_error(category='Frequency',msg=f'Invalid Input')
-            if choice:
-                frequency_MHz = 32
-                self.frequency.delete(0,END)
-                self.frequency.insert(0,frequency_MHz)
-            else:
-                return 0 
-        try:
-            min_wattage = float(self.min_ERP.get())
-        except ValueError:
-            choice = self.input_error(category='Minimum ERP',msg=f'Invalid Input')
-            if choice:
-                min_wattage = 0.005
-                self.min_ERP.delete(0,END)
-                self.min_ERP.insert(0,min_wattage)
-            else:
-                return 0
-        try:
-            max_wattage = float(self.max_ERP.get())
-        except ValueError:
-            choice = self.input_error(category='Maximum ERP',msg=f'Invalid Input')
-            if choice:
-                max_wattage = 50
-                self.max_ERP.delete(0,END)
-                self.max_ERP.insert(0,max_wattage)
-            else:
-                return 0
-        try:
-            path_loss_coeff = self.path_loss_coeff
-        except ValueError:
-            choice = self.input_error(category='Path-Loss Coefficient',msg=f'Invalid Input')
-            if choice:
-                path_loss_coeff = 4
-                self.option_path_loss_coeff.set('Moderate Foliage')
-                self.path_loss_coeff = 4
-            else:
-                return 0
+        # set values without option for user input 
         sensor1_receiver_height_m = 2
         sensor2_receiver_height_m = 2
         transmitter_gain_dBi = 0
         transmitter_height_m = 2
         temp_f = 70
+        # try to read sensor 1 mgrs value
+        try:
+            # get input from sensor1_mgrs input field
+            sensor1_mgrs = str(self.sensor1_mgrs.get()).strip()
+            # assess whether the input MGRS value is valid
+            if self.check_mgrs_input(sensor1_mgrs):
+                # if MGRS value is valid, pass on to next portion of function code
+                pass
+            else:
+                # if MGRS is invalid, give user the option to re-input or use default value
+                choice = self.input_error(category='Sensor 1 Grid',msg=f'Invalid Input {sensor1_mgrs}')
+                # assess if user wishes to use the default value or end function
+                if choice:
+                    # clear the previous sensor 1 MGRS input
+                    self.sensor1_mgrs.delete(0,END)
+                    # insert the default sensor 1 MGRS value
+                    self.sensor1_mgrs.insert(0,App.DEFAULT_VALUES['Sensor 1 MGRS'])
+                    # set local Sensor 1 MGRS value to default value
+                    sensor1_mgrs = App.DEFAULT_VALUES['Sensor 1 MGRS']
+                # if user chooses to re-input the sensor 1 MGRS value
+                else:
+                    # end function
+                    return 0
+        # exception handling for ValueError
+        except ValueError:
+            # if value error occurs, set Sensor 1 MGRS value to None
+            sensor1_mgrs = None
+        # try to read sensor 1 LOB value
+        try:
+            # get input from Sensor 1 LOB field
+            sensor1_grid_azimuth = int(self.sensor1_lob.get())
+            # assess feasiblity of Sensor 1 LOB input value
+            if sensor1_grid_azimuth < 0 or sensor1_grid_azimuth > 360:
+                raise ValueError
+        # exception handling for ValueError
+        except ValueError:
+            # give user option to re-input value or use the default Sensor 1 LOB value
+            choice = self.input_error(category='Sensor 1 Grid Azimuth',msg=f'Invalid Input')
+            # if user chooses to use the default Sensor 1 LOB value
+            if choice:
+                # clear Sensor 1 LOB input field
+                self.sensor1_lob.delete(0,END)
+                # insert default Sensor 1 LOB value
+                self.sensor1_lob.insert(0,App.DEFAULT_VALUES['Sensor 1 LOB'])
+                # set local Sensor 1 LOB value to default value
+                sensor1_grid_azimuth = App.DEFAULT_VALUES['Sensor 1 LOB']
+            # if user choose to re-input the Sensor 1 LOB value
+            else:
+                # end function
+                return 0
+        # try to read the Sensor 1 PWR Received value
+        try:
+            # get input from Sensor 1 PWR Received input field
+            sensor1_power_received_dBm = int(self.sensor1_Rpwr.get())
+            # assess validity of Sensor 1 power received input value
+            if sensor1_power_received_dBm > 0:
+                # exception handling for ValueError
+                raise ValueError
+        # exception for ValueError
+        except ValueError:
+            # give user option to re-input value or use the default Sensor 1 PWR received value
+            choice = self.input_error(category='Sensor 1 Power Received',msg=f'Invalid Input')
+            # if user chooses to use the default Sensor 1 PWR Received value
+            if choice:
+                # clear the Sensor 1 PWR Received value
+                self.sensor1_Rpwr.delete(0,END)
+                # insert the default Sensor 1 PWR Received value
+                self.sensor1_Rpwr.insert(0,App.DEFAULT_VALUES['Sensor 1 PWR Received'])
+                # set local Sensor 1 PWR Received value to default value 
+                sensor1_power_received_dBm = App.DEFAULT_VALUES['Sensor 1 PWR Received']
+            # if user chooses to re-input the Sensor 1 PWR Received value
+            else:
+                # end function
+                return 0
+        # try to read the Sensor 2 MGRS value
+        try:
+            # if Single LOB boolean value is FALSE
+            if not self.single_lob_bool:
+                # get input from Sensor 2 MGRS field
+                sensor2_mgrs = str(self.sensor2_mgrs.get()).strip()
+                # assess if Sensor 2 MGRS input is valid
+                if self.check_mgrs_input(sensor2_mgrs):
+                    # if MGRS value is valid, pass on to next portion of function code
+                    pass
+                else:
+                    # if MGRS is invalid, give user the option to re-input or use default value
+                    choice = self.input_error(category='Sensor 2 Grid',msg=f'Invalid Input {sensor2_mgrs}',single_lob_option=True)
+                    # if user chooses to use default Sensor 2 MGRS value
+                    if choice == True:
+                        # clear Sensor 2 MGRS input field
+                        self.sensor2_mgrs.delete(0,END)
+                        # insert default Sensor 2 MGRS value into field
+                        self.sensor2_mgrs.insert(0,App.DEFAULT_VALUES['Sensor 2 MGRS'])
+                        # set local Sensor 2 MGRS value to default value
+                        sensor2_mgrs = App.DEFAULT_VALUES['Sensor 2 MGRS']
+                    # if user chooses to re-input the Sensor 2 MGRS value
+                    elif choice == False:
+                        # end function
+                        return 0
+                    # if user chooses to utilize only a single LOB
+                    elif choice == 'SL':
+                        # set Single LOB boolean value to TRUE
+                        self.single_lob_bool = True
+                        # set Sensor 2 MGRS value to None
+                        sensor2_mgrs = None
+                        # clear Sensor 2 MGRS input field
+                        self.sensor2_mgrs.delete(0,END)
+            # if Single LOB Boolean value is TRUE
+            else:
+                # set all local Sensor 2 values to None
+                sensor2_mgrs = None
+                sensor2_grid_azimuth = None
+                sensor2_power_received_dBm = None
+                # clear all Sensor 2 input fields
+                self.sensor2_mgrs.delete(0,END) 
+                self.sensor2_lob.delete(0,END)
+                self.sensor2_Rpwr.delete(0,END)   
+        # exception handling for ValueError         
+        except ValueError:
+            # set local Sensor 2 MGRS value to None
+            sensor2_mgrs = None
+        # if Single LOB Boolean value is FALSE
+        if not self.single_lob_bool:
+            # try to read Sensor 2 LOB value
+            try:
+                # get Sensor 2 LOB value from input field
+                sensor2_grid_azimuth = int(self.sensor2_lob.get())
+                # assess the validity of Sensor 2 LOB input
+                if sensor2_grid_azimuth < 0 or sensor2_grid_azimuth > 360:
+                    # exception handling for ValueError
+                    raise ValueError
+            # exception for ValueError
+            except ValueError:
+                # if ValueError occurs, give user the option to re-input or use default value
+                choice = self.input_error(category='Sensor 2 Grid Azimuth',msg=f'Invalid Input',single_lob_option=True)
+                # if users chooses to utilize the default Sensor 2 LOB value
+                if choice == True:
+                    # clear the Sensor 2 LOB input field
+                    self.sensor2_lob.delete(0,END)
+                    # insert the default Sensor 2 LOB value 
+                    self.sensor2_lob.insert(0,App.DEFAULT_VALUES['Sensor 2 LOB'])   
+                    # set local Sensor 2 LOB value to default value
+                    sensor2_grid_azimuth = App.DEFAULT_VALUES['Sensor 2 LOB']
+                # if user chooses to re-input the Sensor 2 LOB value
+                elif choice == False:
+                    # end function
+                    return 0
+                # if user chooses to only utilize a Single LOB
+                elif choice == 'SL':
+                    # set Single LOB Boolean value to TRUE
+                    self.single_lob_bool = True
+                    # set local Sensor 2 LOB value to None
+                    sensor2_grid_azimuth = None
+                    # clear Sensor 2 LOB input field
+                    self.sensor2_lob.delete(0,END)
+        # if Single LOB Boolean value is TRUE
+        else:
+            # set all local Sensor 2 input values to None
+            sensor2_mgrs = None
+            sensor2_grid_azimuth = None
+            sensor2_power_received_dBm = None
+            # clear all Sensor 2 input fields
+            self.sensor2_mgrs.delete(0,END) 
+            self.sensor2_lob.delete(0,END)
+            self.sensor2_Rpwr.delete(0,END)
+        # if Single LOB Boolean value is FALSE
+        if not self.single_lob_bool:
+            # try to read the Sensor 2 PWR Received value
+            try:
+                # read the Sensor 2 PWR Received value from the input field
+                sensor2_power_received_dBm = int(self.sensor2_Rpwr.get())
+                # assess if validity of Sensor 2 PWR Received value
+                if sensor2_power_received_dBm > 0:
+                    # raise a ValueError exception
+                    raise ValueError
+            # exception handling for ValueError
+            except ValueError:
+                # if ValueError occurs, give user the option to re-input or use default value
+                choice = self.input_error(category='Sensor 2 Power Received',msg=f'Invalid Input',single_lob_option=True)
+                # if user chooses to utilize the default Sensor 2 LOB value
+                if choice == True:
+                    # clear the Sensor 2 Received PWR input field
+                    self.sensor2_Rpwr.delete(0,END)
+                    # insert the default Sensor 2 PWR Received value
+                    self.sensor2_Rpwr.insert(0,App.DEFAULT_VALUES['Sensor 2 PWR Received'])  
+                    # set local Sensor 2 PWR Received value to default value
+                    sensor2_power_received_dBm = App.DEFAULT_VALUES['Sensor 2 PWR Received']
+                # if user chooses to re-input the Sensor 2 PWR Received value
+                elif choice == False:
+                    # end function
+                    return 0
+                # if user chooses to only utilize a single LOB
+                elif choice == 'SL':
+                    # set Single LOB Boolean to TRUE
+                    self.single_lob_bool = True
+                    # set local Sensor 2 PWR Received value to None
+                    sensor2_power_received_dBm = None
+                    # clear Sensor 2 PWR Received input field
+                    self.sensor2_Rpwr.delete(0,END)
+        else:
+            # set all local Sensor 2 values to None
+            sensor2_mgrs = None
+            sensor2_grid_azimuth = None
+            sensor2_power_received_dBm = None
+            # clear all Sensor 2 input fields
+            self.sensor2_mgrs.delete(0,END) 
+            self.sensor2_lob.delete(0,END)
+            self.sensor2_Rpwr.delete(0,END)   
+        # try to read the input frequency
+        try:
+            # read the frequency from the frequency input field
+            frequency_MHz = float(self.frequency.get())
+            # assess if input frequency is feasible
+            if frequency_MHz < 0:
+                # raise a ValueError exception
+                raise ValueError
+        # exception handling for ValueError
+        except ValueError:
+            # if ValueError occurs, give user the option to re-input or use default value
+            choice = self.input_error(category='Frequency',msg=f'Invalid Input')
+            # if user chooses to use the default frequency value
+            if choice:
+                # clear frequency input field
+                self.frequency.delete(0,END)
+                # input default frequency value in input field
+                self.frequency.insert(0,App.DEFAULT_VALUES['Frequency'])
+                # set local frequency value to default frequency value
+                frequency_MHz = App.DEFAULT_VALUES['Frequency']
+            # if user chooses to re-input the frequency value
+            else:
+                # end function
+                return 0
+        # try to read the input Min ERP value
+        try:
+            # read the Min ERP value from the input field
+            min_wattage = float(self.min_ERP.get())
+            # assess validity of input Min ERP value
+            if min_wattage < 0:
+                # raise a ValueError exception
+                raise ValueError
+        # exception handling for ValueError
+        except ValueError:
+            # if ValueError occurs, give user the option to re-input or use default value
+            choice = self.input_error(category='Minimum ERP',msg=f'Invalid Input')
+            # if user chooses to utilize the default Min ERP value
+            if choice:
+                # clear Min ERP input field
+                self.min_ERP.delete(0,END)
+                # insert default Min ERP value in input field
+                self.min_ERP.insert(0,App.DEFAULT_VALUES['Min ERP'])
+                # set local Min ERP value to default Min ERP value
+                min_wattage = App.DEFAULT_VALUES['Min ERP']
+            # if user chooses to re-input Min ERP value
+            else:
+                # end function
+                return 0
+        # try to read Max ERP from input field
+        try:
+            # read Max ERP from input field
+            max_wattage = float(self.max_ERP.get())
+            # assess validity of Max ERP value
+            if max_wattage < 0 or max_wattage < min_wattage:
+                # raise a ValueError exception
+                raise ValueError
+        # exception handling for ValueError
+        except ValueError:
+            # if ValueError occurs, give user the option to re-input or use default value
+            choice = self.input_error(category='Maximum ERP',msg=f'Invalid Input')
+            # if user chooses to use the default Max ERP value
+            if choice:
+                # clear Max ERP input field
+                self.max_ERP.delete(0,END)
+                # insert default Max ERP in input field
+                self.max_ERP.insert(0,App.DEFAULT_VALUES['Max ERP'])
+                # set local Max ERP value to default value
+                max_wattage = App.DEFAULT_VALUES['Max ERP']
+            # if user chooses to re-input the Max ERP value
+            else:
+                # end function
+                return 0
+        # try to read path-loss coefficient value
+        try:
+            # set local path-loss coefficient value to global path-loss coefficent value
+            path_loss_coeff = self.path_loss_coeff
+        # exception handling for ValueError
+        except ValueError:
+            # if ValueError occurs, give user the option to re-input or use default value
+            choice = self.input_error(category='Path-Loss Coefficient',msg=f'Invalid Input')
+            # if user chooses to use the default path-loss coefficient
+            if choice:
+                # set local path-loss coefficient value to default value
+                path_loss_coeff = App.DEFAULT_VALUES['Path-Loss Coefficient']
+                # set path-loss coefficient input field to default description
+                self.option_path_loss_coeff.set(App.DEFAULT_VALUES['Path-Loss Coefficient Description'])
+                # set global path-loss coefficient value to default value
+                self.path_loss_coeff = App.DEFAULT_VALUES['Path-Loss Coefficient']
+            # if user chooses to re-input the path-loss coefficient
+            else:
+                # end function
+                return 0
         sensor1_coord = convert_mgrs_to_coords(sensor1_mgrs)
         self.sensor1_distance.configure(text='')
         sensor1_min_distance_km = get_emission_distance(min_wattage,frequency_MHz,transmitter_gain_dBi,self.sensor1_receiver_gain_dBi,sensor1_power_received_dBm,transmitter_height_m,sensor1_receiver_height_m,temp_f,path_loss_coeff,weather_coeff=4/3,pure_pathLoss=True)
@@ -1071,13 +1233,7 @@ class App(customtkinter.CTk):
                                             command=self.polygon_click,
                                             name=f"Target CUT with {cut_area_acres:,.0f} acres of error")
                 dist_sensor1 = int(get_distance_between_coords(sensor1_coord,center_coordinate))
-                dist_sensor2 = int(get_distance_between_coords(sensor2_coord,center_coordinate))
-                self.elevation_data_thread1 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor1_coord,sensor1_grid_azimuth,self.sensor1_error,sensor1_min_distance_m,sensor1_max_distance_m*1.25)[-1],[center_coordinate],['EWT 1']))
-                self.elevation_data_thread1.daemon = True
-                self.elevation_data_thread1.start()
-                self.elevation_data_thread2 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor2_coord,sensor2_grid_azimuth,self.sensor2_error,sensor2_min_distance_m,sensor2_max_distance_m*1.25)[-1],[center_coordinate],['EWT 2']))
-                self.elevation_data_thread2.daemon = True
-                self.elevation_data_thread2.start()                
+                dist_sensor2 = int(get_distance_between_coords(sensor2_coord,center_coordinate))               
                 dist_sensor1_unit = 'm'; dist_sensor2_unit = 'm'
                 cut_target_marker = self.map_widget.set_marker(center_coordinate[0], center_coordinate[1], text=f"{convert_coords_to_mgrs(center_coordinate)}", image_zoom_visibility=(10, float("inf")),
                                                 marker_color_circle='white',icon=self.target_image)
@@ -1128,12 +1284,6 @@ class App(customtkinter.CTk):
                     self.sensor2_distance.configure(text=f'{dist_sensor2}{dist_sensor2_unit}',text_color='white')
                 self.target_grid.configure(text='MULTIPLE TGTs',text_color='yellow')
                 self.target_error.configure(text=f'{sensor1_lob_error_acres:,.0f} & {sensor2_lob_error_acres:,.0f} acres',text_color='white')
-                self.elevation_data_thread1 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor1_coord,sensor1_grid_azimuth,self.sensor1_error,sensor1_min_distance_m,sensor1_max_distance_m*1.25)[-1],[sensor1_lob_near_middle_coord,sensor1_target_coord,sensor1_lob_far_middle_coord],['EWT 1']))
-                self.elevation_data_thread1.daemon = True
-                self.elevation_data_thread1.start()
-                self.elevation_data_thread2 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor2_coord,sensor2_grid_azimuth,self.sensor2_error,sensor2_min_distance_m,sensor2_max_distance_m*1.25)[-1],[sensor2_lob_near_middle_coord,sensor2_target_coord,sensor2_lob_far_middle_coord],['EWT 2']))
-                self.elevation_data_thread2.daemon = True
-                self.elevation_data_thread2.start()
         else:
             self.map_widget.set_zoom(16)
             intersection_l1r_l2r = False
@@ -1159,10 +1309,26 @@ class App(customtkinter.CTk):
                 self.sensor1_distance.configure(text=f'{dist_sensor1}{dist_sensor1_unit}',text_color='white')
             self.sensor2_distance.configure(text='N/A',text_color='white') 
             self.target_error.configure(text=f'{sensor1_lob_error_acres:,.0f} acres',text_color='white')
-            self.elevation_data_thread1 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor1_coord,sensor1_grid_azimuth,self.sensor1_error,sensor1_min_distance_m,sensor1_max_distance_m*1.25)[-1],[sensor1_lob_near_middle_coord,target_coord,sensor1_lob_far_middle_coord],['EWT 1']))
-            self.elevation_data_thread1.daemon = True
-            self.elevation_data_thread1.start()
 
+    def check_mgrs_input(self,mgrs_input):
+        """
+        Determine if the MGRS input is valid 
+
+        Parameters:
+        ----------
+        self: App Object
+            GUI application object
+        mgrs_input : str
+            Candidate MGRS input
+
+        Returns:
+        ----------
+        Boolean
+            Determination if MGRS is valid (TRUE) or not (FALSE)
+
+        """
+        return mgrs_input[2:5].isalpha() and mgrs_input[:2].isdigit() and mgrs_input[5:].isdigit() and len(mgrs_input[5:]) % 2 == 0
+    
     def add_marker_event(self, coords):
         print("Add marker:", coords)
         new_marker = self.map_widget.set_marker(coords[0], coords[1], 
@@ -1244,8 +1410,17 @@ class App(customtkinter.CTk):
         pass
 
     def elevation_survey(self):
+        # self.elevation_data_thread1 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor1_coord,sensor1_grid_azimuth,self.sensor1_error,sensor1_min_distance_m,sensor1_max_distance_m*1.25)[-1],[center_coordinate],['EWT 1']))
+        # self.elevation_data_thread1.daemon = True
+        # self.elevation_data_thread1.start()
+        # self.elevation_data_thread2 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor2_coord,sensor2_grid_azimuth,self.sensor2_error,sensor2_min_distance_m,sensor2_max_distance_m*1.25)[-1],[center_coordinate],['EWT 2']))
+        # self.elevation_data_thread2.daemon = True
+        # self.elevation_data_thread2.start() 
+        # self.elevation_data_thread1 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor1_coord,sensor1_grid_azimuth,self.sensor1_error,sensor1_min_distance_m,sensor1_max_distance_m*1.25)[-1],[sensor1_lob_near_middle_coord,target_coord,sensor1_lob_far_middle_coord],['EWT 1']))
+        # self.elevation_data_thread1.daemon = True
+        # self.elevation_data_thread1.start()
         pass
-        
+
     def polygon_click(self,polygon):
         self.show_info(msg=polygon.name,box_title='Target Data',icon='info')
 
@@ -1302,11 +1477,11 @@ class App(customtkinter.CTk):
             self.sensor2_error = 4            
         pass
 
-    def map_server(self):
+    def map_server(self,tile_directory):
         server_path = r"C:\Users\shuttdown\Documents\Coding Projects\CEMA\maptiles\ESRI"
         port = 8080
         from subprocess import call, PIPE, DEVNULL
-        call(["python3", "-m", "http.server", f"{port}", "--directory", f'"{self.tile_directory}"'])
+        call(["python3", "-m", "http.server", f"{port}", "--directory", f'"{tile_directory}"'])
 
     def elevation_plotter(self,coords,targets=None,title_args=None):
         elev_data = get_elevation_data(coords)
