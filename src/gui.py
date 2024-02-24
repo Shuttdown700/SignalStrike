@@ -44,14 +44,20 @@ class App(customtkinter.CTk):
         "Sensor 2 MGRS": "11SNV4314711067",
         "Sensor 2 PWR Received": -78,
         "Sensor 2 LOB": 165,
-        "Sensor 3 MGRS": "X",
+        "Sensor 3 MGRS": "11SNV4632811020",
         "Sensor 3 PWR Received": -79,
-        "Sensor 3 LOB": 275,
+        "Sensor 3 LOB": 247,
         "Frequency":32,
         "Min ERP":0.005,
         "Max ERP":50,
         "Path-Loss Coefficient":4,
-        "Path-Loss Coefficient Description":"Moderate Foliage"
+        "Path-Loss Coefficient Description":"Moderate Foliage",
+        "Border Width":4,
+        "LOB Fill Color":"gray95",
+        "LOB Center Line Color":"red",
+        "LOB Area Outline Color":"green",
+        "CUT Area Outline Color":"Blue"
+
     }
 
     def __init__(self, *args, **kwargs):
@@ -827,12 +833,13 @@ class App(customtkinter.CTk):
             label="Add Marker",
             command=self.add_marker_event,
             pass_coords=True)
-    def ewt_function(self):
+
+    def read_input_fields(self):
         """
         Function to calculate target location given EWT input(s)
         """
-        # resets single lob boolean value to FALSE, allowing multiple EWT input
-        self.single_lob_bool = False
+        # resets single lob and cut boolean value to FALSE, allowing multiple EWT input
+        self.single_lob_bool = False; self.cut_bool = False
         # delete all previous polygons from map widget
         self.map_widget.delete_all_polygon()
         # delete all previous EWTs from map widget
@@ -840,22 +847,23 @@ class App(customtkinter.CTk):
         # delete all previous target markers from map widget
         self.clear_target_markers()
         # set values without option for user input 
-        sensor1_receiver_height_m = 2
-        sensor2_receiver_height_m = 2
-        transmitter_gain_dBi = 0
-        transmitter_height_m = 2
-        temp_f = 70
+        self.sensor1_receiver_height_m_val = 2
+        self.sensor2_receiver_height_m_val = 2
+        self.sensor3_receiver_height_m_val = 2
+        self.transmitter_gain_dBi_val = 0
+        self.transmitter_height_m_val = 2
+        self.temp_f_val = 70
         # try to read sensor 1 mgrs value
         try:
             # get input from sensor1_mgrs input field
-            sensor1_mgrs = str(self.sensor1_mgrs.get()).strip()
+            self.sensor1_mgrs_val = str(self.sensor1_mgrs.get()).strip()
             # assess whether the input MGRS value is valid
-            if self.check_mgrs_input(sensor1_mgrs):
+            if self.check_mgrs_input(self.sensor1_mgrs_val):
                 # if MGRS value is valid, pass on to next portion of function code
                 pass
             else:
                 # if MGRS is invalid, give user the option to re-input or use default value
-                choice = self.input_error(category='Sensor 1 Grid',msg=f'Invalid Input {sensor1_mgrs}')
+                choice = self.input_error(category='Sensor 1 Grid',msg=f'Invalid Input {self.sensor1_mgrs_val}')
                 # assess if user wishes to use the default value or end function
                 if choice:
                     # clear the previous sensor 1 MGRS input
@@ -863,7 +871,7 @@ class App(customtkinter.CTk):
                     # insert the default sensor 1 MGRS value
                     self.sensor1_mgrs.insert(0,App.DEFAULT_VALUES['Sensor 1 MGRS'])
                     # set local Sensor 1 MGRS value to default value
-                    sensor1_mgrs = App.DEFAULT_VALUES['Sensor 1 MGRS']
+                    self.sensor1_mgrs_val = App.DEFAULT_VALUES['Sensor 1 MGRS']
                 # if user chooses to re-input the sensor 1 MGRS value
                 else:
                     # end function
@@ -871,13 +879,13 @@ class App(customtkinter.CTk):
         # exception handling for ValueError
         except ValueError:
             # if value error occurs, set Sensor 1 MGRS value to None
-            sensor1_mgrs = None
+            self.sensor1_mgrs_val = None
         # try to read sensor 1 LOB value
         try:
             # get input from Sensor 1 LOB field
-            sensor1_grid_azimuth = int(self.sensor1_lob.get())
+            self.sensor1_grid_azimuth_val = int(self.sensor1_lob.get())
             # assess feasiblity of Sensor 1 LOB input value
-            if sensor1_grid_azimuth < 0 or sensor1_grid_azimuth > 360:
+            if self.sensor1_grid_azimuth_val < 0 or self.sensor1_grid_azimuth_val > 360:
                 raise ValueError
         # exception handling for ValueError
         except ValueError:
@@ -890,7 +898,7 @@ class App(customtkinter.CTk):
                 # insert default Sensor 1 LOB value
                 self.sensor1_lob.insert(0,App.DEFAULT_VALUES['Sensor 1 LOB'])
                 # set local Sensor 1 LOB value to default value
-                sensor1_grid_azimuth = App.DEFAULT_VALUES['Sensor 1 LOB']
+                self.sensor1_grid_azimuth_val = App.DEFAULT_VALUES['Sensor 1 LOB']
             # if user choose to re-input the Sensor 1 LOB value
             else:
                 # end function
@@ -898,9 +906,9 @@ class App(customtkinter.CTk):
         # try to read the Sensor 1 PWR Received value
         try:
             # get input from Sensor 1 PWR Received input field
-            sensor1_power_received_dBm = int(self.sensor1_Rpwr.get())
+            self.sensor1_power_received_dBm_val = int(self.sensor1_Rpwr.get())
             # assess validity of Sensor 1 power received input value
-            if sensor1_power_received_dBm > 0:
+            if self.sensor1_power_received_dBm_val > 0:
                 # exception handling for ValueError
                 raise ValueError
         # exception for ValueError
@@ -914,7 +922,7 @@ class App(customtkinter.CTk):
                 # insert the default Sensor 1 PWR Received value
                 self.sensor1_Rpwr.insert(0,App.DEFAULT_VALUES['Sensor 1 PWR Received'])
                 # set local Sensor 1 PWR Received value to default value 
-                sensor1_power_received_dBm = App.DEFAULT_VALUES['Sensor 1 PWR Received']
+                self.sensor1_power_received_dBm_val = App.DEFAULT_VALUES['Sensor 1 PWR Received']
             # if user chooses to re-input the Sensor 1 PWR Received value
             else:
                 # end function
@@ -924,14 +932,14 @@ class App(customtkinter.CTk):
             # if Single LOB boolean value is FALSE
             if not self.single_lob_bool:
                 # get input from Sensor 2 MGRS field
-                sensor2_mgrs = str(self.sensor2_mgrs.get()).strip()
+                self.sensor2_mgrs_val = str(self.sensor2_mgrs.get()).strip()
                 # assess if Sensor 2 MGRS input is valid
-                if self.check_mgrs_input(sensor2_mgrs):
+                if self.check_mgrs_input(self.sensor2_mgrs_val):
                     # if MGRS value is valid, pass on to next portion of function code
                     pass
                 else:
                     # if MGRS is invalid, give user the option to re-input or use default value
-                    choice = self.input_error(category='Sensor 2 Grid',msg=f'Invalid Input {sensor2_mgrs}',single_lob_option=True)
+                    choice = self.input_error(category='Sensor 2 Grid',msg=f'Invalid Input {self.sensor2_mgrs_val}',single_lob_option=True)
                     # if user chooses to use default Sensor 2 MGRS value
                     if choice == True:
                         # clear Sensor 2 MGRS input field
@@ -939,7 +947,7 @@ class App(customtkinter.CTk):
                         # insert default Sensor 2 MGRS value into field
                         self.sensor2_mgrs.insert(0,App.DEFAULT_VALUES['Sensor 2 MGRS'])
                         # set local Sensor 2 MGRS value to default value
-                        sensor2_mgrs = App.DEFAULT_VALUES['Sensor 2 MGRS']
+                        self.sensor2_mgrs_val = App.DEFAULT_VALUES['Sensor 2 MGRS']
                     # if user chooses to re-input the Sensor 2 MGRS value
                     elif choice == False:
                         # end function
@@ -949,15 +957,15 @@ class App(customtkinter.CTk):
                         # set Single LOB boolean value to TRUE
                         self.single_lob_bool = True
                         # set Sensor 2 MGRS value to None
-                        sensor2_mgrs = None
+                        self.sensor2_mgrs_val = None
                         # clear Sensor 2 MGRS input field
                         self.sensor2_mgrs.delete(0,END)
             # if Single LOB Boolean value is TRUE
             else:
                 # set all local Sensor 2 values to None
-                sensor2_mgrs = None
-                sensor2_grid_azimuth = None
-                sensor2_power_received_dBm = None
+                self.sensor2_mgrs_val = None
+                self.sensor2_grid_azimuth_val = None
+                self.sensor2_power_received_dBm_val = None
                 # clear all Sensor 2 input fields
                 self.sensor2_mgrs.delete(0,END) 
                 self.sensor2_lob.delete(0,END)
@@ -965,15 +973,17 @@ class App(customtkinter.CTk):
         # exception handling for ValueError         
         except ValueError:
             # set local Sensor 2 MGRS value to None
-            sensor2_mgrs = None
+            self.sensor2_mgrs_val = None
+            self.sensor2_grid_azimuth_val = None
+            self.sensor2_power_received_dBm_val = None
         # if Single LOB Boolean value is FALSE
         if not self.single_lob_bool:
             # try to read Sensor 2 LOB value
             try:
                 # get Sensor 2 LOB value from input field
-                sensor2_grid_azimuth = int(self.sensor2_lob.get())
+                self.sensor2_grid_azimuth_val = int(self.sensor2_lob.get())
                 # assess the validity of Sensor 2 LOB input
-                if sensor2_grid_azimuth < 0 or sensor2_grid_azimuth > 360:
+                if self.sensor2_grid_azimuth_val < 0 or self.sensor2_grid_azimuth_val > 360:
                     # exception handling for ValueError
                     raise ValueError
             # exception for ValueError
@@ -987,7 +997,7 @@ class App(customtkinter.CTk):
                     # insert the default Sensor 2 LOB value 
                     self.sensor2_lob.insert(0,App.DEFAULT_VALUES['Sensor 2 LOB'])   
                     # set local Sensor 2 LOB value to default value
-                    sensor2_grid_azimuth = App.DEFAULT_VALUES['Sensor 2 LOB']
+                    self.sensor2_grid_azimuth_val = App.DEFAULT_VALUES['Sensor 2 LOB']
                 # if user chooses to re-input the Sensor 2 LOB value
                 elif choice == False:
                     # end function
@@ -997,15 +1007,15 @@ class App(customtkinter.CTk):
                     # set Single LOB Boolean value to TRUE
                     self.single_lob_bool = True
                     # set local Sensor 2 LOB value to None
-                    sensor2_grid_azimuth = None
+                    self.sensor2_grid_azimuth_val = None
                     # clear Sensor 2 LOB input field
                     self.sensor2_lob.delete(0,END)
         # if Single LOB Boolean value is TRUE
         else:
             # set all local Sensor 2 input values to None
-            sensor2_mgrs = None
-            sensor2_grid_azimuth = None
-            sensor2_power_received_dBm = None
+            self.sensor2_mgrs_val = None
+            self.sensor2_grid_azimuth_val = None
+            self.sensor2_power_received_dBm_val = None
             # clear all Sensor 2 input fields
             self.sensor2_mgrs.delete(0,END) 
             self.sensor2_lob.delete(0,END)
@@ -1015,9 +1025,9 @@ class App(customtkinter.CTk):
             # try to read the Sensor 2 PWR Received value
             try:
                 # read the Sensor 2 PWR Received value from the input field
-                sensor2_power_received_dBm = int(self.sensor2_Rpwr.get())
+                self.sensor2_power_received_dBm_val = int(self.sensor2_Rpwr.get())
                 # assess if validity of Sensor 2 PWR Received value
-                if sensor2_power_received_dBm > 0:
+                if self.sensor2_power_received_dBm_val > 0:
                     # raise a ValueError exception
                     raise ValueError
             # exception handling for ValueError
@@ -1031,7 +1041,7 @@ class App(customtkinter.CTk):
                     # insert the default Sensor 2 PWR Received value
                     self.sensor2_Rpwr.insert(0,App.DEFAULT_VALUES['Sensor 2 PWR Received'])  
                     # set local Sensor 2 PWR Received value to default value
-                    sensor2_power_received_dBm = App.DEFAULT_VALUES['Sensor 2 PWR Received']
+                    self.sensor2_power_received_dBm_val = App.DEFAULT_VALUES['Sensor 2 PWR Received']
                 # if user chooses to re-input the Sensor 2 PWR Received value
                 elif choice == False:
                     # end function
@@ -1041,24 +1051,172 @@ class App(customtkinter.CTk):
                     # set Single LOB Boolean to TRUE
                     self.single_lob_bool = True
                     # set local Sensor 2 PWR Received value to None
-                    sensor2_power_received_dBm = None
+                    self.sensor2_power_received_dBm_val = None
                     # clear Sensor 2 PWR Received input field
                     self.sensor2_Rpwr.delete(0,END)
         else:
             # set all local Sensor 2 values to None
-            sensor2_mgrs = None
-            sensor2_grid_azimuth = None
-            sensor2_power_received_dBm = None
+            self.sensor2_mgrs_val = None
+            self.sensor2_grid_azimuth_val = None
+            self.sensor2_power_received_dBm_val = None
             # clear all Sensor 2 input fields
             self.sensor2_mgrs.delete(0,END) 
             self.sensor2_lob.delete(0,END)
-            self.sensor2_Rpwr.delete(0,END)   
+            self.sensor2_Rpwr.delete(0,END)
+        try:
+            # if Single LOB and CUT boolean value are FALSE
+            if not self.single_lob_bool and not self.cut_bool:
+                # get input from Sensor 3 MGRS field
+                self.sensor3_mgrs_val = str(self.sensor3_mgrs.get()).strip()
+                # assess if Sensor 3 MGRS input is valid
+                if self.check_mgrs_input(self.sensor3_mgrs_val):
+                    # if MGRS value is valid, pass on to next portion of function code
+                    pass
+                else:
+                    # if MGRS is invalid, give user the option to re-input or use default value
+                    choice = self.input_error(category='Sensor 3 Grid',msg=f'Invalid Input {self.sensor3_mgrs_val}',single_lob_option=True,cut_option=True)
+                    # if user chooses to use default Sensor 3 MGRS value
+                    if choice == True:
+                        # clear Sensor 3 MGRS input field
+                        self.sensor3_mgrs.delete(0,END)
+                        # insert default Sensor 3 MGRS value into field
+                        self.sensor3_mgrs.insert(0,App.DEFAULT_VALUES['Sensor 3 MGRS'])
+                        # set local Sensor 3 MGRS value to default value
+                        self.sensor3_mgrs_val = App.DEFAULT_VALUES['Sensor 3 MGRS']
+                    # if user chooses to re-input the Sensor 3 MGRS value
+                    elif choice == False:
+                        # end function
+                        return 0
+                    # if user chooses to utilize only a single LOB
+                    elif choice == 'SL':
+                        # set Single LOB boolean value to TRUE
+                        self.single_lob_bool = True
+                        # set CUT boolean value to FALSE
+                        self.cut_bool = False
+                        # set Sensor 3 MGRS value to None
+                        self.sensor3_mgrs_val = None
+                        # clear Sensor 3 MGRS input field
+                        self.sensor3_mgrs.delete(0,END)
+                    elif choice == 'LOB/CUT':
+                        # set Single LOB boolean value to FALSE
+                        self.single_lob_bool = False
+                        # set CUT boolean value to TRUE
+                        self.cut_bool = True
+                        # set Sensor 3 MGRS value to None
+                        self.sensor3_mgrs_val = None
+                        # clear Sensor 3 MGRS input field
+                        self.sensor3_mgrs.delete(0,END)   
+            # if Single LOB Boolean value is TRUE
+            else:
+                # set all local Sensor 3 values to None
+                self.sensor3_mgrs_val = None
+                self.sensor3_grid_azimuth_val = None
+                self.sensor3_power_received_dBm_val = None
+                # clear all Sensor 3 input fields
+                self.sensor3_mgrs.delete(0,END) 
+                self.sensor3_lob.delete(0,END)
+                self.sensor3_Rpwr.delete(0,END)   
+        # exception handling for ValueError         
+        except ValueError:
+            # set local Sensor 3 MGRS value to None
+            self.sensor3_mgrs_val = None
+        # if Single LOB and CUT Boolean value is FALSE
+        if not self.single_lob_bool and not self.cut_bool:
+            # try to read Sensor 3 LOB value
+            try:
+                # get Sensor 3 LOB value from input field
+                self.sensor3_grid_azimuth_val = int(self.sensor3_lob.get())
+                # assess the validity of Sensor 3 LOB input
+                if self.sensor3_grid_azimuth_val < 0 or self.sensor3_grid_azimuth_val > 360:
+                    # exception handling for ValueError
+                    raise ValueError
+            # exception for ValueError
+            except ValueError:
+                # if ValueError occurs, give user the option to re-input or use default value
+                choice = self.input_error(category='Sensor 3 Grid Azimuth',msg=f'Invalid Input',single_lob_option=True,cut_option=True)
+                # if users chooses to utilize the default Sensor 3 LOB value
+                if choice == True:
+                    # clear the Sensor 3 LOB input field
+                    self.sensor3_lob.delete(0,END)
+                    # insert the default Sensor 3 LOB value 
+                    self.sensor3_lob.insert(0,App.DEFAULT_VALUES['Sensor 3 LOB'])   
+                    # set local Sensor 3 LOB value to default value
+                    self.sensor3_grid_azimuth_val = App.DEFAULT_VALUES['Sensor 3 LOB']
+                # if user chooses to re-input the Sensor 3 LOB value
+                elif choice == False:
+                    # end function
+                    return 0
+                # if user chooses to only utilize a Single LOB
+                elif choice == 'LOB/CUT':
+                    # set Single LOB boolean value to TRUE
+                    self.single_lob_bool = True
+                    # set CUT boolean value to FALSE
+                    self.cut_bool = False
+                    # set Sensor 3 MGRS value to None
+                    self.sensor3_mgrs_val = None
+                    # clear Sensor 3 MGRS input field
+                    self.sensor3_mgrs.delete(0,END) 
+        # if Single LOB or CUT Boolean value is TRUE
+        else:
+            # set all local Sensor 3 input values to None
+            self.sensor3_mgrs_val = None
+            self.sensor3_grid_azimuth_val = None
+            self.sensor3_power_received_dBm_val = None
+            # clear all Sensor 3 input fields
+            self.sensor3_mgrs.delete(0,END) 
+            self.sensor3_lob.delete(0,END)
+            self.sensor3_Rpwr.delete(0,END)
+        # if Single LOB and CUT Boolean value is FALSE
+        if not self.single_lob_bool and not self.cut_bool:
+            # try to read the Sensor 3 PWR Received value
+            try:
+                # read the Sensor 3 PWR Received value from the input field
+                self.sensor3_power_received_dBm_val = int(self.sensor3_Rpwr.get())
+                # assess if validity of Sensor 3 PWR Received value
+                if self.sensor3_power_received_dBm_val > 0:
+                    # raise a ValueError exception
+                    raise ValueError
+            # exception handling for ValueError
+            except ValueError:
+                # if ValueError occurs, give user the option to re-input or use default value
+                choice = self.input_error(category='Sensor 3 Power Received',msg=f'Invalid Input',single_lob_option=True,cut_option=True)
+                # if user chooses to utilize the default Sensor 3 LOB value
+                if choice == True:
+                    # clear the Sensor 3 Received PWR input field
+                    self.sensor3_Rpwr.delete(0,END)
+                    # insert the default Sensor 3 PWR Received value
+                    self.sensor3_Rpwr.insert(0,App.DEFAULT_VALUES['Sensor 3 PWR Received'])  
+                    # set local Sensor 2 PWR Received value to default value
+                    self.sensor3_power_received_dBm_val = App.DEFAULT_VALUES['Sensor 3 PWR Received']
+                # if user chooses to re-input the Sensor 3 PWR Received value
+                elif choice == False:
+                    # end function
+                    return 0
+                # if user chooses to only utilize a single LOB
+                elif choice == 'LOB/CUT':
+                    # set Single LOB boolean value to TRUE
+                    self.single_lob_bool = True
+                    # set CUT boolean value to FALSE
+                    self.cut_bool = False
+                    # set Sensor 3 MGRS value to None
+                    self.sensor3_mgrs_val = None
+                    # clear Sensor 3 MGRS input field
+                    self.sensor3_mgrs.delete(0,END)
+        else:
+            # set all local Sensor 3 values to None
+            self.sensor3_mgrs_val = None
+            self.sensor3_grid_azimuth_val = None
+            self.sensor3_power_received_dBm_val = None
+            # clear all Sensor 2 input fields
+            self.sensor3_mgrs.delete(0,END) 
+            self.sensor3_lob.delete(0,END)
+            self.sensor3_Rpwr.delete(0,END)  
         # try to read the input frequency
         try:
             # read the frequency from the frequency input field
-            frequency_MHz = float(self.frequency.get())
+            self.frequency_MHz_val = float(self.frequency.get())
             # assess if input frequency is feasible
-            if frequency_MHz < 0:
+            if self.frequency_MHz_val < 0:
                 # raise a ValueError exception
                 raise ValueError
         # exception handling for ValueError
@@ -1072,7 +1230,7 @@ class App(customtkinter.CTk):
                 # input default frequency value in input field
                 self.frequency.insert(0,App.DEFAULT_VALUES['Frequency'])
                 # set local frequency value to default frequency value
-                frequency_MHz = App.DEFAULT_VALUES['Frequency']
+                self.frequency_MHz_val = App.DEFAULT_VALUES['Frequency']
             # if user chooses to re-input the frequency value
             else:
                 # end function
@@ -1080,9 +1238,9 @@ class App(customtkinter.CTk):
         # try to read the input Min ERP value
         try:
             # read the Min ERP value from the input field
-            min_wattage = float(self.min_ERP.get())
+            self.min_wattage_val = float(self.min_ERP.get())
             # assess validity of input Min ERP value
-            if min_wattage < 0:
+            if self.min_wattage_val < 0:
                 # raise a ValueError exception
                 raise ValueError
         # exception handling for ValueError
@@ -1096,7 +1254,7 @@ class App(customtkinter.CTk):
                 # insert default Min ERP value in input field
                 self.min_ERP.insert(0,App.DEFAULT_VALUES['Min ERP'])
                 # set local Min ERP value to default Min ERP value
-                min_wattage = App.DEFAULT_VALUES['Min ERP']
+                self.min_wattage_val = App.DEFAULT_VALUES['Min ERP']
             # if user chooses to re-input Min ERP value
             else:
                 # end function
@@ -1104,9 +1262,9 @@ class App(customtkinter.CTk):
         # try to read Max ERP from input field
         try:
             # read Max ERP from input field
-            max_wattage = float(self.max_ERP.get())
+            self.max_wattage_val = float(self.max_ERP.get())
             # assess validity of Max ERP value
-            if max_wattage < 0 or max_wattage < min_wattage:
+            if self.max_wattage_val < 0 or self.max_wattage_val < self.min_wattage_val:
                 # raise a ValueError exception
                 raise ValueError
         # exception handling for ValueError
@@ -1120,7 +1278,7 @@ class App(customtkinter.CTk):
                 # insert default Max ERP in input field
                 self.max_ERP.insert(0,App.DEFAULT_VALUES['Max ERP'])
                 # set local Max ERP value to default value
-                max_wattage = App.DEFAULT_VALUES['Max ERP']
+                self.max_wattage_val = App.DEFAULT_VALUES['Max ERP']
             # if user chooses to re-input the Max ERP value
             else:
                 # end function
@@ -1128,7 +1286,7 @@ class App(customtkinter.CTk):
         # try to read path-loss coefficient value
         try:
             # set local path-loss coefficient value to global path-loss coefficent value
-            path_loss_coeff = self.path_loss_coeff
+            self.path_loss_coeff_val = self.path_loss_coeff
         # exception handling for ValueError
         except ValueError:
             # if ValueError occurs, give user the option to re-input or use default value
@@ -1136,7 +1294,7 @@ class App(customtkinter.CTk):
             # if user chooses to use the default path-loss coefficient
             if choice:
                 # set local path-loss coefficient value to default value
-                path_loss_coeff = App.DEFAULT_VALUES['Path-Loss Coefficient']
+                self.path_loss_coeff_val = App.DEFAULT_VALUES['Path-Loss Coefficient']
                 # set path-loss coefficient input field to default description
                 self.option_path_loss_coeff.set(App.DEFAULT_VALUES['Path-Loss Coefficient Description'])
                 # set global path-loss coefficient value to default value
@@ -1145,170 +1303,395 @@ class App(customtkinter.CTk):
             else:
                 # end function
                 return 0
-        sensor1_coord = convert_mgrs_to_coords(sensor1_mgrs)
+
+
+    def ewt_function(self):
+        """
+        Function to calculate target location given EWT input(s)
+        """
+        # read the user input fields
+        self.read_input_fields()
+        # convert sensor 1 mgrs to coords
+        self.sensor1_coord = convert_mgrs_to_coords(self.sensor1_mgrs_val)
+        # clear sensor 1 distance
         self.sensor1_distance.configure(text='')
-        sensor1_min_distance_km = get_emission_distance(min_wattage,frequency_MHz,transmitter_gain_dBi,self.sensor1_receiver_gain_dBi,sensor1_power_received_dBm,transmitter_height_m,sensor1_receiver_height_m,temp_f,path_loss_coeff,weather_coeff=4/3,pure_pathLoss=True)
-        sensor1_min_distance_m = sensor1_min_distance_km * 1000
-        sensor1_max_distance_km = get_emission_distance(max_wattage,frequency_MHz,transmitter_gain_dBi,self.sensor1_receiver_gain_dBi,sensor1_power_received_dBm,transmitter_height_m,sensor1_receiver_height_m,temp_f,path_loss_coeff,weather_coeff=4/3,pure_pathLoss=True)
-        sensor1_max_distance_m = sensor1_max_distance_km * 1000  
-        sensor1_lob_center, sensor1_lob_near_right_coord, sensor1_lob_near_left_coord, sensor1_lob_near_middle_coord, sensor1_lob_far_right_coord, sensor1_lob_far_left_coord, sensor1_lob_far_middle_coord, sensor1_center_coord_list = get_coords_from_LOBs(sensor1_coord,sensor1_grid_azimuth,self.sensor1_error,sensor1_min_distance_m,sensor1_max_distance_m)
+        # calculate minimum distance from sensor 1 to TGT (in km)
+        self.sensor1_min_distance_km = get_emission_distance(self.min_wattage_val,self.frequency_MHz_val,self.transmitter_gain_dBi_val,self.sensor1_receiver_gain_dBi,self.sensor1_power_received_dBm_val,self.transmitter_height_m_val,self.sensor1_receiver_height_m_val,self.temp_f_val,self.path_loss_coeff_val,weather_coeff=4/3,pure_pathLoss=True)
+        # convert minimum distance from sensor 1 to TGT to meters
+        self.sensor1_min_distance_m = self.sensor1_min_distance_km * 1000
+        # calculate maximum distance from sensor 1 to TGT (in km)
+        self.sensor1_max_distance_km = get_emission_distance(self.max_wattage_val,self.frequency_MHz_val,self.transmitter_gain_dBi_val,self.sensor1_receiver_gain_dBi,self.sensor1_power_received_dBm_val,self.transmitter_height_m_val,self.sensor1_receiver_height_m_val,self.temp_f_val,self.path_loss_coeff_val,weather_coeff=4/3,pure_pathLoss=True)
+        # calculate minimum distance from sensor 1 to TGT (in km)
+        self.sensor1_max_distance_m = self.sensor1_max_distance_km * 1000
+        # calculate sensor 1 LOB boundaries
+        sensor1_lob_center, sensor1_lob_near_right_coord, sensor1_lob_near_left_coord, sensor1_lob_near_middle_coord, sensor1_lob_far_right_coord, sensor1_lob_far_left_coord, sensor1_lob_far_middle_coord, sensor1_center_coord_list = get_coords_from_LOBs(self.sensor1_coord,self.sensor1_grid_azimuth_val,self.sensor1_error,self.sensor1_min_distance_m,self.sensor1_max_distance_m)
+        # define sensor 1 LOB polygon
         sensor1_lob_polygon = [sensor1_lob_near_right_coord,sensor1_lob_far_right_coord,sensor1_lob_far_left_coord,sensor1_lob_near_left_coord]
+        # organize sensor 1 LOB polygon points
         sensor1_lob_polygon = organize_polygon_coords(sensor1_lob_polygon)
-        sensor1_lob_error_acres = get_polygon_area(sensor1_lob_polygon)  
-        lob1_center = get_line(sensor1_coord, sensor1_lob_far_middle_coord)
+        # calculate sensor 1 LOB error (in acres)
+        sensor1_lob_error_acres = get_polygon_area(sensor1_lob_polygon)
+        # define sensor 1 LOB's center line
+        lob1_center = get_line(self.sensor1_coord, sensor1_lob_far_middle_coord)
+        # define sensor 1 LOB's right-bound error line
         lob1_right_bound = get_line(sensor1_lob_near_right_coord, sensor1_lob_far_right_coord)
+        # define sensor 1 LOB's left-bound error line
         lob1_left_bound = get_line(sensor1_lob_near_left_coord, sensor1_lob_far_left_coord)
-        ew_team1_marker = self.map_widget.set_marker(sensor1_coord[0], sensor1_coord[1], text="", image_zoom_visibility=(10, float("inf")),
-                                        marker_color_circle='white',text_color='black',icon=self.ew_team1_image) 
+        # define and set sensor 1 marker on the map
+        ew_team1_marker = self.map_widget.set_marker(
+            self.sensor1_coord[0], 
+            self.sensor1_coord[1],
+            text="",
+            image_zoom_visibility=(10, float("inf")),
+            marker_color_circle='white',
+            text_color='black',
+            icon=self.ew_team1_image)
+        # add sensor 1 marker to EWT marker list
         self.ewt_marker_list.append(ew_team1_marker)
-        sensor1_lob = self.map_widget.set_polygon([(sensor1_coord[0],sensor1_coord[1]),
-                                        (sensor1_lob_far_middle_coord[0],sensor1_lob_far_middle_coord[1])],
-                                    # fill_color=None,
-                                    outline_color="red",
-                                    # border_width=12,
-                                    command=self.polygon_click,
-                                    name="Sensor 1 LOB")
+        # define and set sensor 1 center line
+        sensor1_lob = self.map_widget.set_polygon(
+            position_list=[(self.sensor1_coord[0],self.sensor1_coord[1]),(sensor1_lob_far_middle_coord[0],sensor1_lob_far_middle_coord[1])],
+            fill_color=App.DEFAULT_VALUES['LOB Fill Color'],
+            outline_color=App.DEFAULT_VALUES['LOB Center Line Color'],
+            border_width=App.DEFAULT_VALUES['Border Width'],
+            command=self.polygon_click,
+            name="Sensor 1 LOB")
+        # add sensor 1 LOB center-line to polygon list
         self.polygon_list.append(sensor1_lob)
-        sensor1_lob_area = self.map_widget.set_polygon(sensor1_lob_polygon,
-                                    # fill_color=None,
-                                    outline_color="green",
-                                    # border_width=12,
-                                    command=self.polygon_click,
-                                    name=f"EWT 1 ({sensor1_mgrs}) LOB at bearing {int(sensor1_grid_azimuth)}° between {sensor1_min_distance_m/1000:,.2f}km and {sensor1_max_distance_m/1000:,.2f}km with {sensor1_lob_error_acres:,.0f} acres of error")
+        # define sensor 1 LOB description
+        sensor1_lob_description = f"EWT 1 ({self.sensor1_mgrs_val}) LOB at bearing {int(self.sensor1_grid_azimuth_val)}° between {self.sensor1_min_distance_m/1000:,.2f}km and {self.sensor1_max_distance_m/1000:,.2f}km with {sensor1_lob_error_acres:,.0f} acres of error"
+        # define and set sensor 1 LOB area
+        sensor1_lob_area = self.map_widget.set_polygon(
+            position_list=sensor1_lob_polygon,
+            fill_color=App.DEFAULT_VALUES['LOB Fill Color'],
+            outline_color=App.DEFAULT_VALUES['LOB Area Outline Color'],
+            border_width=App.DEFAULT_VALUES['Border Width'],
+            command=self.polygon_click,
+            name=sensor1_lob_description)
+        # add sensor 1 LOB area to polygon list
         self.polygon_list.append(sensor1_lob_area)
-        if sensor2_mgrs != None and sensor2_grid_azimuth != None and sensor2_power_received_dBm != None:
-            sensor2_coord = convert_mgrs_to_coords(sensor2_mgrs)
-            self.map_widget.set_position(np.average([sensor1_coord[0],sensor2_coord[0]]),np.average([sensor1_coord[1],sensor2_coord[1]]))
+        # if sensor 2 has non-None input values
+        if self.sensor2_mgrs_val != None and self.sensor2_grid_azimuth_val != None and self.sensor2_power_received_dBm_val != None:
+            # convert sensor 2 MGRS to coordinates
+            self.sensor2_coord = convert_mgrs_to_coords(self.sensor2_mgrs_val)
+            # set map position to the middle of sensor 1 and sensor 2
+            self.map_widget.set_position(np.average([self.sensor1_coord[0],self.sensor2_coord[0]]),np.average([self.sensor1_coord[1],self.sensor2_coord[1]]))
+            # clear sensor 2 distance 
             self.sensor2_distance.configure(text='')
-            sensor2_min_distance_km = get_emission_distance(min_wattage,frequency_MHz,transmitter_gain_dBi,self.sensor2_receiver_gain_dBi,sensor2_power_received_dBm,transmitter_height_m,sensor2_receiver_height_m,temp_f,path_loss_coeff,weather_coeff=4/3,pure_pathLoss=True)
-            sensor2_min_distance_m = sensor2_min_distance_km * 1000    
-            sensor2_max_distance_km = get_emission_distance(max_wattage,frequency_MHz,transmitter_gain_dBi,self.sensor2_receiver_gain_dBi,sensor2_power_received_dBm,transmitter_height_m,sensor2_receiver_height_m,temp_f,path_loss_coeff,weather_coeff=4/3,pure_pathLoss=True)
+            # calculate sensor 2 minimum distance (in km)
+            sensor2_min_distance_km = get_emission_distance(self.min_wattage_val,self.frequency_MHz_val,self.transmitter_gain_dBi_val,self.sensor2_receiver_gain_dBi,self.sensor2_power_received_dBm_val,self.transmitter_height_m_val,self.sensor2_receiver_height_m_val,self.temp_f_val,self.path_loss_coeff_val,weather_coeff=4/3,pure_pathLoss=True)
+            # convert sensor 2 minimum distance to meters
+            sensor2_min_distance_m = sensor2_min_distance_km * 1000
+            # calculate sensor 2 maximum distance (in km)    
+            sensor2_max_distance_km = get_emission_distance(self.max_wattage_val,self.frequency_MHz_val,self.transmitter_gain_dBi_val,self.sensor2_receiver_gain_dBi,self.sensor2_power_received_dBm_val,self.transmitter_height_m_val,self.sensor2_receiver_height_m_val,self.temp_f_val,self.path_loss_coeff_val,weather_coeff=4/3,pure_pathLoss=True)
+            # convert sensor 2 maximum distance to meters
             sensor2_max_distance_m = sensor2_max_distance_km * 1000
-            sensor2_lob_center, sensor2_lob_near_right_coord, sensor2_lob_near_left_coord, sensor2_lob_near_middle_coord, sensor2_lob_far_right_coord, sensor2_lob_far_left_coord, sensor2_lob_far_middle_coord, sensor2_center_coord_list = get_coords_from_LOBs(sensor2_coord,sensor2_grid_azimuth,self.sensor2_error,sensor2_min_distance_m,sensor2_max_distance_m)
+            # calculate sensor 2 LOB boundaries
+            sensor2_lob_center, sensor2_lob_near_right_coord, sensor2_lob_near_left_coord, sensor2_lob_near_middle_coord, sensor2_lob_far_right_coord, sensor2_lob_far_left_coord, sensor2_lob_far_middle_coord, sensor2_center_coord_list = get_coords_from_LOBs(self.sensor2_coord,self.sensor2_grid_azimuth_val,self.sensor2_error,sensor2_min_distance_m,sensor2_max_distance_m)
+            # define sensor 2 LOB polygon
             sensor2_lob_polygon = [sensor2_lob_near_right_coord,sensor2_lob_far_right_coord,sensor2_lob_far_left_coord,sensor2_lob_near_left_coord]
-            sensor2_lob_polygon = organize_polygon_coords(sensor2_lob_polygon) 
-            sensor2_lob_error_acres = get_polygon_area(sensor2_lob_polygon)  
-            lob2_center = get_line(sensor2_coord, sensor2_lob_far_middle_coord)
+            # organize sensor 2 LOB polygon
+            sensor2_lob_polygon = organize_polygon_coords(sensor2_lob_polygon)
+            # calculate LOB 2 sensor error (in acres)
+            sensor2_lob_error_acres = get_polygon_area(sensor2_lob_polygon)
+            # define sensor 2 LOB center-line
+            lob2_center = get_line(self.sensor2_coord, sensor2_lob_far_middle_coord)
+            # define sensor 2 LOB right-bound error line
             lob2_right_bound = get_line(sensor2_lob_near_right_coord, sensor2_lob_far_right_coord)
+            # define sensor 2 LOB left-bound error line
             lob2_left_bound = get_line(sensor2_lob_near_left_coord, sensor2_lob_far_left_coord)
-            ew_team2_marker = self.map_widget.set_marker(sensor2_coord[0], sensor2_coord[1], text="", image_zoom_visibility=(10, float("inf")),
-                                            marker_color_circle='white',text_color='black',icon=self.ew_team2_image)
+            # define and set sensor 2 marker on the map
+            ew_team2_marker = self.map_widget.set_marker(
+                deg_x=self.sensor2_coord[0], 
+                deg_y=self.sensor2_coord[1], 
+                text="", 
+                image_zoom_visibility=(10, float("inf")),
+                marker_color_circle='white',
+                text_color='black',
+                icon=self.ew_team2_image)
+            # add sensor 2 marker to EWT marker list
             self.ewt_marker_list.append(ew_team2_marker)
-            sensor2_lob = self.map_widget.set_polygon([(sensor2_coord[0],sensor2_coord[1]),
-                                            (sensor2_lob_far_middle_coord[0],sensor2_lob_far_middle_coord[1])],
-                                        # fill_color=None,
-                                        outline_color="red",
-                                        # border_width=12,
-                                        command=self.polygon_click,
-                                        name="Sensor 2 LOB")
+            # define and set sensor 2 LOB area
+            sensor2_lob = self.map_widget.set_polygon(
+                position_list=[(self.sensor2_coord[0],self.sensor2_coord[1]),(sensor2_lob_far_middle_coord[0],sensor2_lob_far_middle_coord[1])],
+                fill_color=App.DEFAULT_VALUES['LOB Fill Color'],
+                outline_color=App.DEFAULT_VALUES['LOB Center Line Color'],
+                border_width=App.DEFAULT_VALUES['Border Width'],
+                command=self.polygon_click,
+                name="Sensor 2 LOB")
+            # add sensor 2 LOB area to polygon list
             self.polygon_list.append(sensor2_lob)
-            sensor2_lob_area = self.map_widget.set_polygon(sensor2_lob_polygon,
-                                        # fill_color=None,
-                                        outline_color="green",
-                                        # border_width=12,
-                                        command=self.polygon_click,
-                                        name=f"EWT 2 ({sensor2_mgrs}) LOB at bearing {int(sensor2_grid_azimuth)}° between {sensor2_min_distance_m/1000:,.2f}km and {sensor2_max_distance_m/1000:,.2f}km with {sensor2_lob_error_acres:,.0f} acres of error")
+            # define sensor 2 LOB description
+            sensor2_lob_description = f"EWT 2 ({self.sensor2_mgrs_val}) LOB at bearing {int(self.sensor2_grid_azimuth_val)}° between {sensor2_min_distance_m/1000:,.2f}km and {sensor2_max_distance_m/1000:,.2f}km with {sensor2_lob_error_acres:,.0f} acres of error"
+            # define and set sensor 2 LOB area
+            sensor2_lob_area = self.map_widget.set_polygon(
+                position_list=sensor2_lob_polygon,
+                fill_color=App.DEFAULT_VALUES['LOB Fill Color'],
+                outline_color=App.DEFAULT_VALUES['LOB Area Outline Color'],
+                border_width=App.DEFAULT_VALUES['Border Width'],
+                command=self.polygon_click,
+                name=sensor2_lob_description)
+            # add LOB area to polygon list
             self.polygon_list.append(sensor2_lob_area)
-            if check_for_intersection(sensor1_coord,sensor1_lob_far_middle_coord,sensor2_coord,sensor2_lob_far_middle_coord):
+            # if sensor 3 has non-None input values 
+            if self.sensor3_mgrs_val != None and self.sensor3_grid_azimuth_val != None and self.sensor3_power_received_dBm_val != None:
+                "Need to develop code to read in EWT 3 values and plot LOB"
+                # convert sensor 3 MGRS to coordinates
+                self.sensor3_coord = convert_mgrs_to_coords(self.sensor3_mgrs_val)
+                # set map position to the middle of sensor 1, 2, and 3
+                self.map_widget.set_position(np.average([self.sensor1_coord[0],self.sensor2_coord[0],self.sensor3_coord[0]]),np.average([self.sensor1_coord[1],self.sensor2_coord[1],self.sensor3_coord[1]]))
+                # clear sensor 3 distance field
+                self.sensor3_distance.configure(text='')
+                # calculate sensor 3 minimum distance (in km)
+                sensor3_min_distance_km = get_emission_distance(self.min_wattage_val,self.frequency_MHz_val,self.transmitter_gain_dBi_val,self.sensor3_receiver_gain_dBi,self.sensor3_power_received_dBm_val,self.transmitter_height_m_val,self.sensor3_receiver_height_m_val,self.temp_f_val,self.path_loss_coeff_val,weather_coeff=4/3,pure_pathLoss=True)
+                # convert sensor 3 minimum distance to meters
+                sensor3_min_distance_m = sensor3_min_distance_km * 1000
+                # calculate sensor 3 maximum distance (in km)    
+                sensor3_max_distance_km = get_emission_distance(self.max_wattage_val,self.frequency_MHz_val,self.transmitter_gain_dBi_val,self.sensor3_receiver_gain_dBi,self.sensor3_power_received_dBm_val,self.transmitter_height_m_val,self.sensor3_receiver_height_m_val,self.temp_f_val,self.path_loss_coeff_val,weather_coeff=4/3,pure_pathLoss=True)
+                # convert sensor 3 maximum distance to meters
+                sensor3_max_distance_m = sensor3_max_distance_km * 1000
+                # calculate sensor 3 LOB boundaries
+                sensor3_lob_center, sensor3_lob_near_right_coord, sensor3_lob_near_left_coord, sensor3_lob_near_middle_coord, sensor3_lob_far_right_coord, sensor3_lob_far_left_coord, sensor3_lob_far_middle_coord, sensor3_center_coord_list = get_coords_from_LOBs(self.sensor3_coord,self.sensor3_grid_azimuth_val,self.sensor3_error,sensor3_min_distance_m,sensor3_max_distance_m)
+                # define sensor 3 LOB polygon
+                sensor3_lob_polygon = [sensor3_lob_near_right_coord,sensor3_lob_far_right_coord,sensor3_lob_far_left_coord,sensor3_lob_near_left_coord]
+                # organize sensor 3 LOB polygon
+                sensor3_lob_polygon = organize_polygon_coords(sensor3_lob_polygon)
+                # calculate LOB 3 sensor error (in acres)
+                sensor3_lob_error_acres = get_polygon_area(sensor3_lob_polygon)
+                # define sensor 3 LOB center-line
+                lob3_center = get_line(self.sensor3_coord, sensor3_lob_far_middle_coord)
+                # define sensor 3 LOB right-bound error line
+                lob3_right_bound = get_line(sensor3_lob_near_right_coord, sensor3_lob_far_right_coord)
+                # define sensor 3 LOB left-bound error line
+                lob3_left_bound = get_line(sensor3_lob_near_left_coord, sensor3_lob_far_left_coord)
+                # define and set sensor 3 marker on the map
+                ew_team3_marker = self.map_widget.set_marker(
+                    deg_x=self.sensor3_coord[0], 
+                    deg_y=self.sensor3_coord[1], 
+                    text="", 
+                    image_zoom_visibility=(10, float("inf")),
+                    marker_color_circle='white',
+                    text_color='black',
+                    icon=self.ew_team3_image)
+                # add sensor 3 marker to EWT marker list
+                self.ewt_marker_list.append(ew_team3_marker)
+                # define and set sensor 3 LOB area
+                sensor3_lob = self.map_widget.set_polygon(
+                    position_list=[(self.sensor3_coord[0],self.sensor3_coord[1]),(sensor3_lob_far_middle_coord[0],sensor3_lob_far_middle_coord[1])],
+                    fill_color=App.DEFAULT_VALUES['LOB Fill Color'],
+                    outline_color=App.DEFAULT_VALUES['LOB Center Line Color'],
+                    border_width=App.DEFAULT_VALUES['Border Width'],
+                    command=self.polygon_click,
+                    name="Sensor 3 LOB")
+                # add sensor 2 LOB area to polygon list
+                self.polygon_list.append(sensor3_lob)
+                # define sensor 3 LOB description
+                sensor3_lob_description = f"EWT 3 ({self.sensor3_mgrs_val}) LOB at bearing {int(self.sensor3_grid_azimuth_val)}° between {sensor3_min_distance_m/1000:,.2f}km and {sensor3_max_distance_m/1000:,.2f}km with {sensor3_lob_error_acres:,.0f} acres of error"
+                # define and set sensor 2 LOB area
+                sensor3_lob_area = self.map_widget.set_polygon(
+                    position_list=sensor3_lob_polygon,
+                    fill_color=App.DEFAULT_VALUES['LOB Fill Color'],
+                    outline_color=App.DEFAULT_VALUES['LOB Area Outline Color'],
+                    border_width=App.DEFAULT_VALUES['Border Width'],
+                    command=self.polygon_click,
+                    name=sensor3_lob_description)
+                # add LOB area to polygon list
+                self.polygon_list.append(sensor3_lob_area)
+
+                "Need to develop code to detect if there is a fix (3-way intersection)"
+
+                "Need to assess if there is a EWT 1 & 2 habe a CUT and EWT 3 is a lone LOB"
+
+                "Need to assess if there is a EWT 2 & 3 habe a CUT and EWT 1 is a lone LOB"
+
+                "Need to assess if there is a EWT 1 & 3 habe a CUT and EWT 2 is a lone LOB"
+
+                "Need to assess if there are not intersections between any EWTs' LOBs"
+                pass
+            # only sensor 1 and 2 have non-None input values
+            else:  
+                # set map zoon level
                 self.map_widget.set_zoom(15)
-                self.target_class = '(CUT)'
-                self.label_target_grid.configure(text=f'TARGET GRID {self.target_class}'.strip(),text_color='red')
-                intersection_l1_l2 = get_intersection(lob1_center, lob2_center)
-                center_coordinate = get_center_coord([intersection_l1_l2])
-                intersection_l1r_l2r = get_intersection(lob1_right_bound, lob2_right_bound)
-                intersection_l1r_l2l = get_intersection(lob1_right_bound, lob2_left_bound)
-                intersection_l1l_l2r = get_intersection(lob1_left_bound, lob2_right_bound)
-                intersection_l1l_l2l = get_intersection(lob1_left_bound, lob2_left_bound)
-                '''
-                Need an improved method to get cut coordinates
-                '''
-                cut_polygon = [intersection_l1r_l2r,intersection_l1r_l2l,intersection_l1l_l2l,intersection_l1l_l2r]
-                cut_polygon = organize_polygon_coords(cut_polygon)
-                cut_area_acres = get_polygon_area(cut_polygon)
-                cut_center_mgrs = convert_coords_to_mgrs(center_coordinate)
-                cut_area = self.map_widget.set_polygon(cut_polygon,
-                                            # fill_color=None,
-                                            outline_color="blue",
-                                            # border_width=12,
-                                            command=self.polygon_click,
-                                            name=f"Target CUT with {cut_area_acres:,.0f} acres of error")
-                dist_sensor1 = int(get_distance_between_coords(sensor1_coord,center_coordinate))
-                dist_sensor2 = int(get_distance_between_coords(sensor2_coord,center_coordinate))               
-                dist_sensor1_unit = 'm'; dist_sensor2_unit = 'm'
-                cut_target_marker = self.map_widget.set_marker(center_coordinate[0], center_coordinate[1], text=f"{convert_coords_to_mgrs(center_coordinate)}", image_zoom_visibility=(10, float("inf")),
-                                                marker_color_circle='white',icon=self.target_image)
-                self.target_marker_list.append(cut_target_marker)                
-                if dist_sensor1 >= 1000:
-                    dist_sensor1 /= 1000
-                    dist_sensor1_unit = 'km'
-                    self.sensor1_distance.configure(text=f'{dist_sensor1:,.2f}{dist_sensor1_unit}',text_color='white')
+                # if there is an intersection between sensor 1 and 2
+                if check_for_intersection(self.sensor1_coord,sensor1_lob_far_middle_coord,self.sensor2_coord,sensor2_lob_far_middle_coord):
+                    # define target classification
+                    self.target_class = '(CUT)'
+                    # set target label with updated target classification
+                    self.label_target_grid.configure(text=f'TARGET GRID {self.target_class}'.strip(),text_color='red')
+                    # get intersection of LOB centers
+                    intersection_coord = get_intersection(lob1_center, lob2_center)
+                    # get intersection of right-bound LOB errors
+                    intersection_l1r_l2r = get_intersection(lob1_right_bound, lob2_right_bound)
+                    # get intersection of LOB 1 right-bound error and LOB 2 left-bound error
+                    intersection_l1r_l2l = get_intersection(lob1_right_bound, lob2_left_bound)
+                    # get intersection of LOB 1 left-bound error and LOB 2 right-bound error
+                    intersection_l1l_l2r = get_intersection(lob1_left_bound, lob2_right_bound)
+                    # get intersection of left-bound LOB errors 
+                    intersection_l1l_l2l = get_intersection(lob1_left_bound, lob2_left_bound)
+                    '''
+                    Need an improved method to get cut coordinates by checking if intersection distance is longer than max distance
+                    '''
+                    # define CUT polygon
+                    cut_polygon = [intersection_l1r_l2r,intersection_l1r_l2l,intersection_l1l_l2l,intersection_l1l_l2r]
+                    # organize CUT polygon
+                    cut_polygon = organize_polygon_coords(cut_polygon)
+                    # calculate the CUT error (in acres)
+                    cut_area_acres = get_polygon_area(cut_polygon)
+                    # define CUT center MGRS grid
+                    cut_center_mgrs = convert_coords_to_mgrs(intersection_coord)
+                    # define sensor 1 LOB description
+                    cut_description = f"Target CUT with {cut_area_acres:,.0f} acres of error"
+                    # define and set CUT area
+                    cut_area = self.map_widget.set_polygon(
+                        position_list=cut_polygon,
+                        fill_color=App.DEFAULT_VALUES['LOB Fill Color'],
+                        outline_color=App.DEFAULT_VALUES['CUT Area Outline Color'],
+                        border_width=App.DEFAULT_VALUES['Border Width'],
+                        command=self.polygon_click,
+                        name=cut_description)
+                    # add CUT polygon to the polygon list
+                    self.polygon_list.append(cut_area)
+                    # calculate distance from sensor 1 and CUT intersection (in meters)
+                    dist_sensor1 = int(get_distance_between_coords(self.sensor1_coord,intersection_coord))
+                    # calculate distance from sensor 2 and CUT intersection (in meters)
+                    dist_sensor2 = int(get_distance_between_coords(self.sensor2_coord,intersection_coord))    
+                    # define the unit of measure of sensor distances         
+                    dist_sensor1_unit = 'm'; dist_sensor2_unit = 'm'
+                    # define and set the CUT target marker
+                    cut_target_marker = self.map_widget.set_marker(
+                        deg_x=intersection_coord[0], 
+                        deg_y=intersection_coord[1], 
+                        text=f"{convert_coords_to_mgrs(intersection_coord)}",
+                        image_zoom_visibility=(10, float("inf")),
+                        marker_color_circle='white',
+                        icon=self.target_image)
+                    # add CUT marker to target marker list
+                    self.target_marker_list.append(cut_target_marker)  
+                    # generate sensor 1 distance from target text     
+                    dist_sensor1_text = self.generate_sensor_distance_text(dist_sensor1)
+                    # set sensor 1 distance field
+                    self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
+                    # generate sensor 2 distance from target text       
+                    dist_sensor2_text = self.generate_sensor_distance_text(dist_sensor2)
+                    # set sensor 2 distance field
+                    self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
+                    # set target grid field with CUT center MGRS
+                    self.target_grid.configure(text=f'{cut_center_mgrs}',text_color='yellow')
+                    # set target error field
+                    self.target_error.configure(text=f'{cut_area_acres:,.0f} acres',text_color='white')
+                    # set map position at CUT target 
+                    self.map_widget.set_position(intersection_coord)
+                # if there is no intersection between LOBs
                 else:
-                    self.sensor1_distance.configure(text=f'{dist_sensor1}{dist_sensor1_unit}',text_color='white')
-                if dist_sensor2 >= 1000:
-                    dist_sensor2 /= 1000
-                    dist_sensor2_unit = 'km'
-                    self.sensor2_distance.configure(text=f'{dist_sensor2:,.2f}{dist_sensor2_unit}',text_color='white')
-                else:
-                    self.sensor2_distance.configure(text=f'{dist_sensor2}{dist_sensor2_unit}',text_color='white')
-                self.target_grid.configure(text=f'{cut_center_mgrs}',text_color='yellow')
-                self.target_error.configure(text=f'{cut_area_acres:,.0f} acres',text_color='white')
-            else: # output for no intersection
-                self.map_widget.set_zoom(15)
-                intersection_l1r_l2r = False
-                intersection_l1r_l2l = False
-                intersection_l1l_l2r = False
-                intersection_l1l_l2l = False     
-                self.show_info("No LOB intersection detected!")
-                sensor1_target_coord = [np.average([sensor1_lob_near_middle_coord[0],sensor1_lob_far_middle_coord[0]]),np.average([sensor1_lob_near_middle_coord[1],sensor1_lob_far_middle_coord[1]])]
-                target1_marker = self.map_widget.set_marker(sensor1_target_coord[0], sensor1_target_coord[1], text=f"{convert_coords_to_mgrs(sensor1_target_coord)}", image_zoom_visibility=(10, float("inf")),
-                                                marker_color_circle='white',icon=self.target_image)
-                self.target_marker_list.append(target1_marker)
-                sensor2_target_coord = [np.average([sensor2_lob_near_middle_coord[0],sensor2_lob_far_middle_coord[0]]),np.average([sensor2_lob_near_middle_coord[1],sensor2_lob_far_middle_coord[1]])]
-                target2_marker = self.map_widget.set_marker(sensor2_target_coord[0], sensor2_target_coord[1], text=f"{convert_coords_to_mgrs(sensor2_target_coord)}", image_zoom_visibility=(10, float("inf")),
-                                                marker_color_circle='white',icon=self.target_image)
-                self.target_marker_list.append(target2_marker)
-                # cut_center_coord = convert_mgrs_to_coords(cut_center_mgrs)
-                dist_sensor1 = int(get_distance_between_coords(sensor1_coord,sensor1_target_coord))
-                dist_sensor2 = int(get_distance_between_coords(sensor2_coord,sensor2_target_coord))
-                if dist_sensor1 >= 1000:
-                    dist_sensor1 /= 1000
-                    dist_sensor1_unit = 'km'
-                    self.sensor1_distance.configure(text=f'{dist_sensor1:,.2f}{dist_sensor1_unit}',text_color='white')
-                else:
-                    self.sensor1_distance.configure(text=f'{dist_sensor1}{dist_sensor1_unit}',text_color='white')
-                if dist_sensor2 >= 1000:
-                    dist_sensor2 /= 1000
-                    dist_sensor2_unit = 'km'
-                    self.sensor2_distance.configure(text=f'{dist_sensor2:,.2f}{dist_sensor2_unit}',text_color='white')
-                else:
-                    self.sensor2_distance.configure(text=f'{dist_sensor2}{dist_sensor2_unit}',text_color='white')
-                self.target_grid.configure(text='MULTIPLE TGTs',text_color='yellow')
-                self.target_error.configure(text=f'{sensor1_lob_error_acres:,.0f} & {sensor2_lob_error_acres:,.0f} acres',text_color='white')
+                    # set intersection booleans to False
+                    intersection_coord= False; intersection_l1r_l2r = False; intersection_l1r_l2l = False; intersection_l1l_l2r = False; intersection_l1l_l2l = False 
+                    # display info message that no LOB intersection exists  
+                    self.show_info("No LOB intersection detected!")
+                    # calculate sensor 1 target coordinate
+                    sensor1_target_coord = [np.average([sensor1_lob_near_middle_coord[0],sensor1_lob_far_middle_coord[0]]),np.average([sensor1_lob_near_middle_coord[1],sensor1_lob_far_middle_coord[1]])]
+                    # define and set sensor 1 target marker
+                    target1_marker = self.map_widget.set_marker(
+                        deg_x=sensor1_target_coord[0], 
+                        deg_y=sensor1_target_coord[1], 
+                        text=f"{convert_coords_to_mgrs(sensor1_target_coord)}", 
+                        image_zoom_visibility=(10, float("inf")),
+                        marker_color_circle='white',
+                        icon=self.target_image)
+                    # add sensor 1 target marker to target marker list
+                    self.target_marker_list.append(target1_marker)
+                    # calculate sensor 2 target coordinate
+                    sensor2_target_coord = [np.average([sensor2_lob_near_middle_coord[0],sensor2_lob_far_middle_coord[0]]),np.average([sensor2_lob_near_middle_coord[1],sensor2_lob_far_middle_coord[1]])]
+                    # define and set sensor 2 target marker
+                    target2_marker = self.map_widget.set_marker(
+                        deg_x=sensor2_target_coord[0], 
+                        deg_y=sensor2_target_coord[1], 
+                        text=f"{convert_coords_to_mgrs(sensor2_target_coord)}", 
+                        image_zoom_visibility=(10, float("inf")),
+                        marker_color_circle='white',
+                        icon=self.target_image)
+                    # add sensor 2 target marker to tarket marker list
+                    self.target_marker_list.append(target2_marker)
+                    # calculate sensor 1 distance to target 1
+                    dist_sensor1 = int(get_distance_between_coords(self.sensor1_coord,sensor1_target_coord))
+                    # calculate sensor 1 distance to target 2
+                    dist_sensor2 = int(get_distance_between_coords(self.sensor2_coord,sensor2_target_coord))
+                    # generate sensor 1 distance from target text     
+                    dist_sensor1_text = self.generate_sensor_distance_text(dist_sensor1)
+                    # set sensor 1 distance field
+                    self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
+                    # generate sensor 2 distance from target text       
+                    dist_sensor2_text = self.generate_sensor_distance_text(dist_sensor2)
+                    # set sensor 2 distance field
+                    self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
+                    # set target grid field
+                    self.target_grid.configure(text='MULTIPLE TGTs',text_color='yellow')
+                    # set target error field
+                    self.target_error.configure(text=f'{sensor1_lob_error_acres:,.0f} & {sensor2_lob_error_acres:,.0f} acres',text_color='white')
+        # if there is only one LOB
         else:
+            # set mag zoom level
             self.map_widget.set_zoom(16)
-            intersection_l1r_l2r = False
-            intersection_l1r_l2l = False
-            intersection_l1l_l2r = False
-            intersection_l1l_l2l = False
-            self.map_widget.set_position(sensor1_coord[0],sensor1_coord[1])
+            # set intersection booleans to False
+            intersection_coord= False; intersection_l1r_l2r = False; intersection_l1r_l2l = False; intersection_l1l_l2r = False; intersection_l1l_l2l = False
+            # define target classification
             self.target_class = '(LOB)'
+            # set target grid label to include target classification
             self.label_target_grid.configure(text=f'TARGET GRID {self.target_class}'.strip(),text_color='red')
-            target_coord = [np.average([sensor1_lob_near_middle_coord[0],sensor1_lob_far_middle_coord[0]]),np.average([sensor1_lob_near_middle_coord[1],sensor1_lob_far_middle_coord[1]])]
-            target_mgrs = convert_coords_to_mgrs(target_coord)
-            single_lob_target_marker = self.map_widget.set_marker(target_coord[0], target_coord[1], text=f"{convert_coords_to_mgrs(target_coord)}", image_zoom_visibility=(10, float("inf")),
-                                            marker_color_circle='white',icon=self.target_image)
-            self.target_marker_list.append(single_lob_target_marker)   
+            # calculate target coord
+            self.target_coord = [np.average([sensor1_lob_near_middle_coord[0],sensor1_lob_far_middle_coord[0]]),np.average([sensor1_lob_near_middle_coord[1],sensor1_lob_far_middle_coord[1]])]
+            # set map position between sensor 1 coord and target coord
+            self.map_widget.set_position(np.average([self.sensor1_coord[0],self.target_coord[0]]),np.average([self.sensor1_coord[1],self.target_coord[1]]))
+            # determine target MGRS grid
+            target_mgrs = convert_coords_to_mgrs(self.target_coord)
+            # define and set single LOB target marker
+            single_lob_target_marker = self.map_widget.set_marker(
+                deg_x=self.target_coord[0], 
+                deg_y=self.target_coord[1], 
+                text=f"{convert_coords_to_mgrs(self.target_coord)}", 
+                image_zoom_visibility=(10, float("inf")),
+                marker_color_circle='white',
+                icon=self.target_image)
+            # add single LOB target marker to target marker list
+            self.target_marker_list.append(single_lob_target_marker)
+            # set target grid field
             self.target_grid.configure(text=f'{target_mgrs}',text_color='yellow')
-            dist_sensor1 = int(get_distance_between_coords(sensor1_coord,target_coord))
-            dist_sensor1_unit = 'm'
-            if dist_sensor1 >= 1000:
-                dist_sensor1 /= 1000
-                dist_sensor1_unit = 'km'
-                self.sensor1_distance.configure(text=f'{dist_sensor1:,.2f}{dist_sensor1_unit}',text_color='white')
-            else:
-                self.sensor1_distance.configure(text=f'{dist_sensor1}{dist_sensor1_unit}',text_color='white')
-            self.sensor2_distance.configure(text='N/A',text_color='white') 
+            # calculate sensor 1 distance to target
+            dist_sensor1 = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
+            # generate sensor 1 distance text
+            dist_sensor1_text = self.generate_sensor_distance_text(dist_sensor1)
+            # set sensor 1 distance string
+            self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
+            # set sensor 2 distance string to "N/A"
+            self.sensor2_distance.configure(text='N/A',text_color='white')
+            # set target error to sensor 1 LOB error
             self.target_error.configure(text=f'{sensor1_lob_error_acres:,.0f} acres',text_color='white')
+    
+    def generate_sensor_distance_text(self,distance):
+        """
+        Generate sensor distance string w/ adjusted units of measurement
+        
+        Parameters:
+        ----------
+        self: App Object
+            GUI application object
+        distance : float
+            Sensor distance to target in meters 
+
+        Returns:
+        ----------
+        String
+            Sensor distance string with adjusted units of measurement
+        """
+        # set default unit of measurement
+        distance_unit = 'm'
+        # if distance is greater than 1000m
+        if distance >= 1000:
+            # convert meters to km
+            distance /= 1000
+            # change unit of measurement to km
+            distance_unit = 'km'
+        # return distance string
+        return f'{distance:,.2f}{distance_unit}'
 
     def check_mgrs_input(self,mgrs_input):
         """
@@ -1354,8 +1737,7 @@ class App(customtkinter.CTk):
                                                      image_zoom_visibility=(10, float('inf')),
                                                      icon=self.blank_image)
             self.path_list.append(dist_line)
-            self.path_list.append(marker_dist)
-                
+            self.path_list.append(marker_dist)        
 
     def search_event(self, event=None):
         try:
@@ -1410,13 +1792,13 @@ class App(customtkinter.CTk):
         pass
 
     def elevation_survey(self):
-        # self.elevation_data_thread1 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor1_coord,sensor1_grid_azimuth,self.sensor1_error,sensor1_min_distance_m,sensor1_max_distance_m*1.25)[-1],[center_coordinate],['EWT 1']))
+        # self.elevation_data_thread1 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor1_coord,self.sensor1_grid_azimuth_val,self.sensor1_error,sensor1_min_distance_m,sensor1_max_distance_m*1.25)[-1],[center_coordinate],['EWT 1']))
         # self.elevation_data_thread1.daemon = True
         # self.elevation_data_thread1.start()
-        # self.elevation_data_thread2 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor2_coord,sensor2_grid_azimuth,self.sensor2_error,sensor2_min_distance_m,sensor2_max_distance_m*1.25)[-1],[center_coordinate],['EWT 2']))
+        # self.elevation_data_thread2 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(self.sensor2_coord,self.sensor2_grid_azimuth_val,self.sensor2_error,sensor2_min_distance_m,sensor2_max_distance_m*1.25)[-1],[center_coordinate],['EWT 2']))
         # self.elevation_data_thread2.daemon = True
         # self.elevation_data_thread2.start() 
-        # self.elevation_data_thread1 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor1_coord,sensor1_grid_azimuth,self.sensor1_error,sensor1_min_distance_m,sensor1_max_distance_m*1.25)[-1],[sensor1_lob_near_middle_coord,target_coord,sensor1_lob_far_middle_coord],['EWT 1']))
+        # self.elevation_data_thread1 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor1_coord,self.sensor1_grid_azimuth_val,self.sensor1_error,sensor1_min_distance_m,sensor1_max_distance_m*1.25)[-1],[sensor1_lob_near_middle_coord,target_coord,sensor1_lob_far_middle_coord],['EWT 1']))
         # self.elevation_data_thread1.daemon = True
         # self.elevation_data_thread1.start()
         pass
@@ -1427,18 +1809,22 @@ class App(customtkinter.CTk):
     def show_info(self,msg,box_title='Warning Message',icon='warning'):
         CTkMessagebox(title=box_title, message=msg, icon=icon,option_1='Ackowledged')
 
-    def input_error(self,category,msg,single_lob_option=False):
-        if not single_lob_option:
-            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',option_1='Re-input',option_2='Use Default')
-        else:
-            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',option_1='Re-input',option_2='Use Default', option_3='Single LOB')
+    def input_error(self,category,msg,single_lob_option=False,cut_option=False):
+        if not single_lob_option and not cut_option:
+            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','Use Default'])
+        elif single_lob_option and not cut_option:
+            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','LOB','Use Default'])            
+        elif cut_option:
+            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','LOB/CUT','Use Default'])
         response = msgBox.get()
         if response == 'Re-input':
             return False
         elif response == 'Use Default':
             return True
-        elif response == 'Single LOB':
+        elif response == 'LOB':
             return 'SL'
+        elif response == 'LOB/CUT':
+            return 'LOB/CUT'
 
     def change_map(self, new_map: str):
         if new_map == 'Local Map Server':
@@ -1474,11 +1860,9 @@ class App(customtkinter.CTk):
             self.sensor1_receiver_gain_dBi = 0
             self.sensor2_receiver_gain_dBi = 0
             self.sensor1_error = 4
-            self.sensor2_error = 4            
-        pass
+            self.sensor2_error = 4
 
     def map_server(self,tile_directory):
-        server_path = r"C:\Users\shuttdown\Documents\Coding Projects\CEMA\maptiles\ESRI"
         port = 8080
         from subprocess import call, PIPE, DEVNULL
         call(["python3", "-m", "http.server", f"{port}", "--directory", f'"{tile_directory}"'])
@@ -1509,4 +1893,6 @@ DEV NOTES
 - 3D elevation plot
 - DTED elevation data source
 - button to request elevation survey, not automatic
+- if map tile doesn't exist, add it to the database
+- provide option to input coordinates instead of MGRS
 """
