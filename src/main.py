@@ -655,6 +655,13 @@ def get_coords_from_LOBs(sensor_coord,azimuth,error,min_lob_length,max_lob_lengt
     center_coord_list = [c for c in center_coord_list if len(c) <= 2]
     return center_coord, near_right_coord, near_left_coord, near_center_coord, far_right_coord, far_left_coord, running_coord_center, center_coord_list
 
+def determine_elevation_tif_file(coord):
+    json_filepath = r'C:\Users\shuttdown\Documents\Coding Projects\EW PLT Targeting App\elevation_data\xml_files'
+    f = open('data.json')
+    data = json.load(f)
+    print(data)
+    
+
 def get_elevation_data(coord_list):
     import csv, time
     def read_elevation_data(src_file):

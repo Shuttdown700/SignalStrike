@@ -82,7 +82,7 @@ class App(customtkinter.CTk):
         # define icon file directory
         self.icon_directory = "\\".join(self.src_directory.split('\\')[:-1])+"\\icons"
         # define map tile directory
-        self.tile_directory = "\\".join(self.src_directory.split('\\')[:-1])+"\\maptiles\\ESRI"
+        self.tile_directory = "\\".join(self.src_directory.split('\\')[:-1])+"\\map_tiles\\ESRI"
         # define icon file directory
         self.log_directory = "\\".join(self.src_directory.split('\\')[:-1])+"\\logs"
         # start map server thread if map server is not currently running
@@ -844,8 +844,10 @@ class App(customtkinter.CTk):
         """
         # resets single lob and cut boolean value to FALSE, allowing multiple EWT input
         self.single_lob_bool = False; self.cut_bool = False
-        # reset sensor mgrs reading to None, conditional in log method
+        # reset sensor mgrs/coord reading to None, conditional in log method and elevation survey
         self.sensor1_mgrs_val = None; self.sensor2_mgrs_val = None; self.sensor3_mgrs_val = None
+        self.sensor1_coord = None; self.sensor2_coord = None; self.sensor3_coord = None
+        self.sensor1_max_distance_m = None; self.sensor2_max_distance_m = None ; self.sensor3_max_distance_m = None
         # delete all previous polygons from map widget
         self.map_widget.delete_all_polygon()
         # delete all previous EWTs from map widget
@@ -1644,7 +1646,7 @@ class App(customtkinter.CTk):
                     # define multi-target coordinates
                     self.target_coord = f"{', '.join(sensor1_target_coord)} | {', '.join(sensor2_target_coord)}"
                     # define multi-target error
-                    self.target_error_val = f'{sensor1_lob_error_acres}, {sensor2_lob_error_acres}'
+                    self.target_error_val = f'{sensor1_lob_error_acres:,.2f}, {sensor2_lob_error_acres:,.2f}'
         # if there is only one LOB
         else:
             # set mag zoom level
@@ -1733,6 +1735,19 @@ class App(customtkinter.CTk):
         return mgrs_input[2:5].isalpha() and mgrs_input[:2].isdigit() and mgrs_input[5:].isdigit() and len(mgrs_input[5:]) % 2 == 0
     
     def log_target_data(self):
+        """
+        Logs current input fields and targeting data in a date-specific csv file
+
+        Parameters:
+        ----------
+        self: App Object
+            GUI application object
+
+        Returns:
+        ----------
+        None
+
+        """        
         import calendar, datetime
         import pandas as pd
         # define log columns
@@ -1824,9 +1839,7 @@ class App(customtkinter.CTk):
             # error message if file is currently open
             self.show_info("Log file currently open. Cannot log data!")
             return 0
-        self.show_info("Data successfully logged!!!")
-
-        
+        self.show_info("Data successfully logged!!!")    
     
     def add_marker_event(self, coords):
         print("Add marker:", coords)
@@ -1905,6 +1918,22 @@ class App(customtkinter.CTk):
         self.max_ERP.delete(0,END)
 
     def elevation_survey(self):
+        # if sensor 1 input field has no data
+        if self.sensor1_mgrs == None:
+            # end function
+            self.show_info('Please input and calculate data.')
+            return 0
+        sig_coords = [x for x in [self.sensor1_coord,self.sensor2_coord,self,self.sensor3_coord] if x != None]
+        sig_coords += [self.target_coord]
+        sig_coords += [x for x in [self.sensor1_max_distance_m,self.sensor2_max_distance_m,self.sensor3_max_distance_m] if x != None]
+        "Function to create coordinate map based signifigant coords"
+        "Function to pull elevation data"
+        
+
+
+
+
+
         # self.elevation_data_thread1 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor1_coord,self.sensor1_grid_azimuth_val,self.sensor1_error,sensor1_min_distance_m,sensor1_max_distance_m*1.25)[-1],[center_coordinate],['EWT 1']))
         # self.elevation_data_thread1.daemon = True
         # self.elevation_data_thread1.start()

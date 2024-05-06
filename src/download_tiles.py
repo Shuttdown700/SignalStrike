@@ -27,7 +27,7 @@ def get_coord_box(center_coord,x_dist_m,y_dist_m):
 
 import os
 src_directory = os.path.dirname(os.path.abspath(__file__))
-tile_dir = "\\".join(src_directory.split('\\')[:-1])+"\\maptiles\\ESRI"
+tile_dir = "\\".join(src_directory.split('\\')[:-1])+"\\mapt_iles\\ESRI"
 get_tiles_file = os.path.join(src_directory, "get_tiles.py")
 tile_url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png'
 
