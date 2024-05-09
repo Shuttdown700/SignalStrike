@@ -27,7 +27,10 @@ def import_libraries(libraries):
             subprocess.call(cmd, shell=True, stdout=subprocess.PIPE)
         if len(s) == 1: continue
         for sl in s[1]:
-            exec(f'from {s[0]} import {sl}')
+            try:
+                exec(f'from {s[0]} import {sl}')
+            except ImportError:
+                pass
 
 libraries = [['math',['sin','cos','pi']],['collections',['defaultdict']],
              ['branca.colormap'],['datetime',['date']],['jinja2'],['numpy'],

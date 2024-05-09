@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 
+from main import import_libraries
+libraries = [['customtkinter'],['CTkMessagebox',['CTkMessagebox']],
+             ['numpy'],['os'],['PIL',['Image','ImageTK']],
+             ['sys'],['threading'],['tkinter',['END']],['tkintermapview',['TkinterMapView']]]
+import_libraries(libraries)
+
 import customtkinter
 from CTkMessagebox import CTkMessagebox
 import numpy as np
 import os
+import PIL
 from PIL import Image, ImageTk
 import sys
 import threading
@@ -11,15 +18,15 @@ import tkinter
 from tkinter import END
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from tkintermapview import TkinterMapView
-from main import get_coords_from_LOBs, get_emission_distance, get_polygon_area, get_distance_between_coords, get_line, get_center_coord, plot_elevation_data, check_internet_connection
+from main import import_libraries, get_coords_from_LOBs, get_emission_distance, get_polygon_area, get_distance_between_coords, get_line, get_center_coord, plot_elevation_data, check_internet_connection
 from main import convert_mgrs_to_coords, organize_polygon_coords, convert_coords_to_mgrs, check_for_intersection, get_intersection, get_elevation_data, is_port_in_use
 
 customtkinter.set_default_color_theme("dark-blue")
 
-import sys
-import trace
-import time
-import concurrent.futures
+# import sys
+# import trace
+# import time
+# import concurrent.futures
 
 
 class App(customtkinter.CTk):
