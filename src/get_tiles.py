@@ -1,10 +1,15 @@
 import os
+
+from main import import_libraries
+import_libraries([["tiletanic"],["argparse"],["urllib.request"],["json"],
+                  ["concurrent.futures",["ThreadPoolExecutor"]],["shapely"],
+                  ["pyproj",["Transformer"]]])
+
 import argparse
 import time
 import urllib.request
 import json
 from concurrent.futures import ThreadPoolExecutor
-from alive_progress import alive_bar
 import tiletanic
 import shapely
 from pyproj import Transformer

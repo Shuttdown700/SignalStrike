@@ -18,7 +18,7 @@ import tkinter
 from tkinter import END
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from tkintermapview import TkinterMapView
-from main import import_libraries, get_coords_from_LOBs, get_emission_distance, get_polygon_area, get_distance_between_coords, get_line, get_center_coord, plot_elevation_data, check_internet_connection
+from main import get_fix_coords, import_libraries, get_coords_from_LOBs, get_emission_distance, get_polygon_area, get_distance_between_coords, get_line, get_center_coord, plot_elevation_data, check_internet_connection
 from main import convert_mgrs_to_coords, organize_polygon_coords, convert_coords_to_mgrs, check_for_intersection, get_intersection, get_elevation_data, is_port_in_use
 
 customtkinter.set_default_color_theme("dark-blue")
@@ -734,7 +734,7 @@ class App(customtkinter.CTk):
             master=self.frame_left, 
             text="Elevation Survey",
             fg_color='brown',
-            command = self.elevation_survey)
+            command = self.download_map_tiles)
         # assign elevation survey button grid position
         self.button_elevation_survey.grid(
             row=self.button_calculate.grid_info()["row"]+1,
@@ -1479,7 +1479,7 @@ class App(customtkinter.CTk):
                 lob3_right_bound = get_line(sensor3_lob_near_right_coord, sensor3_lob_far_right_coord)
                 # define sensor 3 LOB left-bound error line
                 lob3_left_bound = get_line(sensor3_lob_near_left_coord, sensor3_lob_far_left_coord)
-                # define and set sensor 3 marker on the map
+                # define and plot sensor 3 marker on the map
                 ew_team3_marker = self.map_widget.set_marker(
                     deg_x=self.sensor3_coord[0], 
                     deg_y=self.sensor3_coord[1], 
@@ -1512,8 +1512,68 @@ class App(customtkinter.CTk):
                     name=sensor3_lob_description)
                 # add LOB area to polygon list
                 self.polygon_list.append(sensor3_lob_area)
-
-                "Need to develop code to detect if there is a fix (3-way intersection)"
+                ewt1_ewt2_intersection_bool = check_for_intersection(self.sensor1_coord,sensor1_lob_far_middle_coord,self.sensor2_coord,sensor2_lob_far_middle_coord)
+                ewt2_ewt3_intersection_bool = check_for_intersection(self.sensor2_coord,sensor2_lob_far_middle_coord,self.sensor3_coord,sensor3_lob_far_middle_coord)
+                ewt1_ewt3_intersection_bool = check_for_intersection(self.sensor1_coord,sensor1_lob_far_middle_coord,self.sensor3_coord,sensor3_lob_far_middle_coord)
+                # assess if fix exists
+                print(ewt1_ewt2_intersection_bool,ewt1_ewt3_intersection_bool,ewt2_ewt3_intersection_bool)
+                if ewt1_ewt2_intersection_bool and ewt2_ewt3_intersection_bool and ewt1_ewt3_intersection_bool:
+                    intersection_l1r_l2r = get_intersection(lob1_right_bound, lob2_right_bound)
+                    intersection_l1r_l2l = get_intersection(lob1_right_bound, lob2_left_bound)
+                    intersection_l1l_l2r = get_intersection(lob1_left_bound, lob2_right_bound)
+                    intersection_l1l_l2l = get_intersection(lob1_left_bound, lob2_left_bound)
+                    # cut_polygon_12 = [intersection_l1r_l2r,intersection_l1r_l2l,intersection_l1l_l2l,intersection_l1l_l2r]
+                    # cut_polygon_12 = organize_polygon_coords(cut_polygon_12)
+                    intersection_l1r_l3r = get_intersection(lob1_right_bound, lob3_right_bound)
+                    intersection_l1r_l3l = get_intersection(lob1_right_bound, lob3_left_bound)
+                    intersection_l1l_l3r = get_intersection(lob1_left_bound, lob3_right_bound)
+                    intersection_l1l_l3l = get_intersection(lob1_left_bound, lob3_left_bound)
+                    # cut_polygon_13 = [intersection_l1r_l3r,intersection_l1r_l3l,intersection_l1l_l3r,intersection_l1l_l3l]
+                    # cut_polygon_13 = organize_polygon_coords(cut_polygon_13)
+                    intersection_l2r_l3r = get_intersection(lob1_right_bound, lob3_right_bound)
+                    intersection_l2r_l3l = get_intersection(lob1_right_bound, lob3_left_bound)
+                    intersection_l2l_l3r = get_intersection(lob1_left_bound, lob3_right_bound)
+                    intersection_l2l_l3l = get_intersection(lob1_left_bound, lob3_left_bound)
+                    # cut_polygon_23 = [intersection_l2r_l3r,intersection_l2r_l3l,intersection_l2l_l3r,intersection_l2l_l3l]
+                    # cut_polygon_23 = organize_polygon_coords(cut_polygon_23)
+                    # fix_coords = get_fix_coords([cut_polygon_12,cut_polygon_13,cut_polygon_23])
+                    fix_coord = get_center_coord([intersection_l1r_l2r,intersection_l1r_l2l,intersection_l1l_l2r,intersection_l1l_l2l,
+                                      intersection_l1r_l3r,intersection_l1r_l3l,intersection_l1l_l3r,intersection_l1l_l3l,
+                                      intersection_l2r_l3r,intersection_l2r_l3l,intersection_l2l_l3r,intersection_l2l_l3l])
+                    self.target_coord = fix_coord
+                    self.target_mgrs = convert_coords_to_mgrs(self.target_coord)
+                    self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
+                    self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.target_coord))
+                    self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.target_coord))
+                    self.target_error_val = 5
+                    fix_target_marker = self.map_widget.set_marker(
+                        deg_x=self.target_coord[0], 
+                        deg_y=self.target_coord[1], 
+                        text=f"{self.target_mgrs}",
+                        image_zoom_visibility=(10, float("inf")),
+                        marker_color_circle='white',
+                        icon=self.target_image)
+                    # add CUT marker to target marker list
+                    self.target_marker_list.append(fix_target_marker)  
+                    # generate sensor 1 distance from target text     
+                    dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
+                    # set sensor 1 distance field
+                    self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
+                    # generate sensor 2 distance from target text       
+                    dist_sensor2_text = self.generate_sensor_distance_text(self.sensor2_distance_val)
+                    # set sensor 2 distance field
+                    self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
+                    # set target grid field with CUT center MGRS
+                    dist_sensor3_text = self.generate_sensor_distance_text(self.sensor3_distance_val)
+                    # set sensor 2 distance field
+                    self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
+                    # set target grid field with CUT center MGRS
+                    self.target_grid.configure(text=f'{self.target_mgrs}',text_color='yellow')
+                    # set target error field
+                    self.target_error.configure(text=f'{self.target_error_val:,.0f} acres',text_color='white')
+                    # set map position at CUT target 
+                    self.map_widget.set_position(self.target_coord[0],self.target_coord[1])
+                
 
                 "Need to assess if there is a EWT 1 & 2 habe a CUT and EWT 3 is a lone LOB"
 
@@ -1951,6 +2011,17 @@ class App(customtkinter.CTk):
         # self.elevation_data_thread1.daemon = True
         # self.elevation_data_thread1.start()
         pass
+    
+    def download_map_tiles(self):
+        curr_center = list(self.map_widget.get_position())
+        max_zoom = self.map_widget.zoom
+        upper_left = self.map_widget.upper_left_tile_pos
+        lower_right = self.map_widget.lower_right_tile_pos
+        print(curr_center,max_zoom,upper_left,lower_right)
+        from download_tiles import download_map_tiles
+        x_tolerance_m = 500
+        y_tolerance_m = 500
+        download_map_tiles(curr_center, x_tolerance_m, y_tolerance_m,max_zoom)
 
     def polygon_click(self,polygon):
         self.show_info(msg=polygon.name,box_title='Target Data',icon='info')
@@ -2034,7 +2105,8 @@ if __name__ == "__main__":
 
 """
 DEV NOTES
-- Logging feature (csv)
+--- MVP Reqs:
+    - missing map data is attempted to be retreived
 - earth curvature limitation identified on elevation map
 - button that return you to last marker
 - add additional EWT to get potential for fix

@@ -845,6 +845,7 @@ def get_fix_coords(points_cut_polygons):
     poly1 = get_polygon(points_cut_polygons[0])
     poly2 = get_polygon(points_cut_polygons[1])
     poly3 = get_polygon(points_cut_polygons[2])
+    print(poly1,poly2,poly3)
     intersection_1_2 = poly1.intersection(poly2)
     intersection_1_3 = poly1.intersection(poly3)
     coords_intersection_1_2 = get_intersection_coords(intersection_1_2)
