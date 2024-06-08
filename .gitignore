@@ -1,0 +1,10 @@
+*.png
+*.csv
+*.bak
+*.cfg
+**/ewta_venv
+**/Include
+**/logs
+**/Scripts
+**/venv
+**/__pycache__

@@ -3,7 +3,8 @@
 from main import import_libraries
 libraries = [['customtkinter'],['CTkMessagebox',['CTkMessagebox']],
              ['numpy'],['os'],['PIL',['Image','ImageTK']],
-             ['sys'],['threading'],['tkinter',['END']],['tkintermapview',['TkinterMapView']]]
+             ['sys'],['threading'],['tkinter',['END']],['tkintermapview',['TkinterMapView']],
+             ['alive_progress'],['pandas']]
 import_libraries(libraries)
 
 import customtkinter
@@ -18,7 +19,7 @@ import tkinter
 from tkinter import END
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from tkintermapview import TkinterMapView
-from main import get_fix_coords, import_libraries, get_coords_from_LOBs, get_emission_distance, get_polygon_area, get_distance_between_coords, get_line, get_center_coord, plot_elevation_data, check_internet_connection
+from main import import_libraries, get_coords_from_LOBs, get_emission_distance, get_polygon_area, get_distance_between_coords, get_line, get_center_coord, plot_elevation_data
 from main import convert_mgrs_to_coords, organize_polygon_coords, convert_coords_to_mgrs, check_for_intersection, get_intersection, get_elevation_data, is_port_in_use
 
 customtkinter.set_default_color_theme("dark-blue")
@@ -42,7 +43,7 @@ class App(customtkinter.CTk):
     # preset height of GUI display (dependent on WIDTH and ASPECT_RATIO)
     HEIGHT = int(WIDTH/ASPECT_RATIO)
     # preset local port that is hosting the map server
-    MAP_SERVER_PORT = 8080
+    MAP_SERVER_PORT = 1234 # NEED TO PULL FROM A CONFIG FILE!!!!
     # preset default input values
     DEFAULT_VALUES = {
         "Sensor 1 MGRS": "11SNV4178910362",
@@ -775,8 +776,9 @@ class App(customtkinter.CTk):
             pady=(0, 0),
             sticky="nswe")
         # set map widget default tile server
+        map_server_url = f'http://localhost:{App.MAP_SERVER_PORT}'
         self.map_widget.set_tile_server(
-            tile_server="http://localhost:8080/{z}/{x}/{y}.png",
+            tile_server=map_server_url+"/{z}/{x}/{y}.png",
             max_zoom=22)
         # set initial zoom level for map tile server
         self.map_widget.set_zoom(14)
@@ -2164,8 +2166,9 @@ class App(customtkinter.CTk):
             return 'LOB/CUT'
 
     def change_map(self, new_map: str):
+        map_server_url = f'http://127.0.0.1:{App.MAP_SERVER_PORT}'
         if new_map == 'Local Map Server':
-            self.map_widget.set_tile_server("http://127.0.0.1:8080/{z}/{x}/{y}.png", max_zoom=22)
+            self.map_widget.set_tile_server(map_server_url+"/{z}/{x}/{y}.png", max_zoom=22)
         elif new_map == "OpenStreetMap":
             self.map_widget.set_tile_server("https://a.tile.openstreetmap.org/{z}/{x}/{y}.png")
         elif new_map == "Google Street":
@@ -2200,9 +2203,8 @@ class App(customtkinter.CTk):
             self.sensor2_error = 4
 
     def map_server(self,tile_directory):
-        port = 8080
         from subprocess import call, PIPE, DEVNULL
-        call(["python3", "-m", "http.server", f"{port}", "--directory", f'"{tile_directory}"'])
+        call(["python3", "-m", "http.server", f"{App.MAP_SERVER_PORT}", "--directory", f'"{tile_directory}"'])
 
     def elevation_plotter(self,coords,targets=None,title_args=None):
         elev_data = get_elevation_data(coords)
@@ -2222,8 +2224,11 @@ if __name__ == "__main__":
 
 """
 DEV NOTES
+
+
 --- MVP Reqs:
     - missing map data is attempted to be retreived
+    - restart app button
 - earth curvature limitation identified on elevation map
 - button that return you to last marker
 - add additional EWT to get potential for fix
