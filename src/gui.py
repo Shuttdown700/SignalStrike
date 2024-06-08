@@ -2168,6 +2168,7 @@ class App(customtkinter.CTk):
     def change_map(self, new_map: str):
         map_server_url = f'http://127.0.0.1:{App.MAP_SERVER_PORT}'
         if new_map == 'Local Map Server':
+            self.map_widget.
             self.map_widget.set_tile_server(map_server_url+"/{z}/{x}/{y}.png", max_zoom=22)
         elif new_map == "OpenStreetMap":
             self.map_widget.set_tile_server("https://a.tile.openstreetmap.org/{z}/{x}/{y}.png")
