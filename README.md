@@ -1,6 +1,6 @@
 # Overview:
 
-The Electromagnetic Warfare Targeting Application revolutionizes EW platoons' operations by streamlining their targeting process. Users input a LOB 3-Line (Sensor MGRS, LOB orientation, PWR Received) and the application reverse-engineers the detected radio signals and swiftly identifies and analyzes potential targets in real-time. The application allows the aggregation of EW targeting data from three EW teams (EWTs). The application integrates target data onto an offline digital map to enhance situational awareness and better enable precise targeting. This innovative tool empowers EW units to aggregate target data across their EWTs, significantly reducing the time required to detect, identify, and deliver effects on targets with decisive levels efficiency and accuracy.
+The Electromagnetic Warfare Targeting Application supports EW platoons' operations by streamlining their targeting process. Users input a LOB 3-Line (Sensor MGRS, LOB orientation, PWR Received) and the application reverse-engineers the detected radio signals and swiftly identifies potential targets in real-time. The application allows the aggregation of EW targeting data from three EW teams (EWTs). The application integrates target data onto an offline digital map to enhance situational awareness and better enable precise targeting. This innovative tool empowers EW units to aggregate target data across their EWTs, significantly reducing the time required to detect, identify, and deliver effects on targets with decisive levels efficiency and accuracy.
 
 ![](icons/ewta_snapshot_2.png)
 
@@ -38,7 +38,7 @@ run.bat
 Linux
 ```bash
 source ewta_venv/Scripts/activate
-run.bash
+run.sh
 ```
 
 ## How to Use:

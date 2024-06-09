@@ -173,7 +173,7 @@ class App(customtkinter.CTk):
         # define sensor option dropdown attributes
         self.option_sensor = customtkinter.CTkOptionMenu(
             master=self.frame_left, 
-            values=["VROD/VMAX","BEAST+"],
+            values=["BEAST+","VROD/VMAX"],
             fg_color='blue',
             button_color='blue',
             command=self.change_sensor)
@@ -2136,16 +2136,16 @@ class App(customtkinter.CTk):
             self.path_loss_coeff = 5
     
     def change_sensor(self,sensor_option):
-        if sensor_option == 'VROD/VMAX':
-            self.sensor1_receiver_gain_dBi = 0
-            self.sensor2_receiver_gain_dBi = 0
-            self.sensor1_error = 6
-            self.sensor2_error = 6
-        elif sensor_option == 'BEAST+':
+        if sensor_option == 'BEAST+':
             self.sensor1_receiver_gain_dBi = 0
             self.sensor2_receiver_gain_dBi = 0
             self.sensor1_error = 4
             self.sensor2_error = 4
+        elif sensor_option == 'VROD/VMAX':
+            self.sensor1_receiver_gain_dBi = 0
+            self.sensor2_receiver_gain_dBi = 0
+            self.sensor1_error = 6
+            self.sensor2_error = 6
 
     def on_closing(self, event=0):
         self.destroy()
