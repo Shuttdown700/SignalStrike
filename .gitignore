@@ -1,4 +1,3 @@
-*.png
 *.csv
 *.bak
 *.cfg
@@ -9,3 +8,4 @@
 **/venv
 **/__pycache__
 **/map_tiles
+**/Lib

@@ -4,32 +4,22 @@ from main import import_libraries
 libraries = [['customtkinter'],['CTkMessagebox',['CTkMessagebox']],
              ['numpy'],['os'],['PIL',['Image','ImageTK']],
              ['sys'],['threading'],['tkinter',['END']],['tkintermapview',['TkinterMapView']],
-             ['alive_progress'],['pandas']]
+             ['alive_progress'],['pandas'],['urllib.request']]
 import_libraries(libraries)
 
 import customtkinter
 from CTkMessagebox import CTkMessagebox
 import numpy as np
 import os
-import PIL
 from PIL import Image, ImageTk
 import sys
-import threading
-import tkinter
 from tkinter import END
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from tkintermapview import TkinterMapView
-from main import import_libraries, get_coords_from_LOBs, get_emission_distance, get_polygon_area, get_distance_between_coords, get_line, get_center_coord, plot_elevation_data
-from main import convert_mgrs_to_coords, organize_polygon_coords, convert_coords_to_mgrs, check_for_intersection, get_intersection, get_elevation_data, is_port_in_use
+from main import import_libraries, get_coords_from_LOBs, get_emission_distance, get_polygon_area, get_distance_between_coords, get_line, get_center_coord
+from main import convert_mgrs_to_coords, organize_polygon_coords, convert_coords_to_mgrs, check_for_intersection, get_intersection
 
 customtkinter.set_default_color_theme("dark-blue")
-
-# import sys
-# import trace
-# import time
-# import concurrent.futures
-
-
 class App(customtkinter.CTk):
     """
     Custom Tkinter Application Class for GUI support
@@ -44,6 +34,8 @@ class App(customtkinter.CTk):
     HEIGHT = int(WIDTH/ASPECT_RATIO)
     # preset local port that is hosting the map server
     MAP_SERVER_PORT = 1234 # NEED TO PULL FROM A CONFIG FILE!!!!
+    # preset maximum map zoom level
+    MAX_ZOOM = 19
     # preset default input values
     DEFAULT_VALUES = {
         "Sensor 1 MGRS": "11SNV4178910362",
@@ -66,7 +58,6 @@ class App(customtkinter.CTk):
         "LOB Area Outline Color":"green",
         "CUT Area Outline Color":"Blue",
         "FIX Area Outline Color":"Yellow"
-
     }
 
     def __init__(self, *args, **kwargs):
@@ -94,14 +85,6 @@ class App(customtkinter.CTk):
         self.tile_directory = "\\".join(self.src_directory.split('\\')[:-1])+"\\map_tiles\\ESRI"
         # define icon file directory
         self.log_directory = "\\".join(self.src_directory.split('\\')[:-1])+"\\logs"
-        # start map server thread if map server is not currently running
-        if not is_port_in_use(App.MAP_SERVER_PORT):
-            # create map server thread
-            self.map_server_thread = threading.Thread(target=self.map_server,args=([self.tile_directory]))
-            # set daemon attribute to True
-            self.map_server_thread.daemon = True
-            # start map server thread
-            self.map_server_thread.start()
         # define target image icon
         self.target_image = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "suspected_hostile.png")).resize((40, 40)))
         # define generic EWT icon
@@ -163,7 +146,7 @@ class App(customtkinter.CTk):
         # define frame header attributes
         self.label_header = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"EW TARGETING DATA", 
+            text="EW TARGETING DATA", 
             text_color='green')
         # assign frame header grid position
         self.label_header.grid(
@@ -176,7 +159,7 @@ class App(customtkinter.CTk):
         # define sensor option label attributes
         self.label_sensor_option = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"EW Sensor:", 
+            text="EW Sensor:", 
             text_color='white')
         # assign sensor option label grid position
         self.label_sensor_option.grid(
@@ -205,7 +188,7 @@ class App(customtkinter.CTk):
         # define sensor 1 mgrs label
         self.label_sensor1_mgrs = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"EWT 1 Location:", 
+            text="EWT 1 Location:", 
             text_color='white')
         # assign sensor 1 mgrs label grid position
         self.label_sensor1_mgrs.grid(
@@ -231,7 +214,7 @@ class App(customtkinter.CTk):
         # define sensor 1 LOB label
         self.label_sensor1_lob = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"EWT 1 LOB:", 
+            text="EWT 1 LOB:", 
             text_color='white')
         # assign sensor 1 LOB label grid position
         self.label_sensor1_lob.grid(
@@ -257,7 +240,7 @@ class App(customtkinter.CTk):
         # define sensor 1 received power label attributes
         self.label_sensor1_Rpwr = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"EWT 1 Power Received:", 
+            text="EWT 1 Power Received:", 
             text_color='white')
         # assign sensor 1 received power label grid position
         self.label_sensor1_Rpwr.grid(
@@ -283,7 +266,7 @@ class App(customtkinter.CTk):
         # define sensor 2 mgrs label attributes
         self.label_sensor2_mgrs = customtkinter.CTkLabel(
             master = self.frame_left, 
-            text=f"EWT 2 Location:", 
+            text="EWT 2 Location:", 
             text_color='white')
         # assign sensor 3 mgrs label grid position
         self.label_sensor2_mgrs.grid(
@@ -309,7 +292,7 @@ class App(customtkinter.CTk):
         # define sensor 2 LOB label attributes
         self.label_sensor2_lob = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"EWT 2 LOB:", 
+            text="EWT 2 LOB:", 
             text_color='white')
         # assign sensor 2 LOB label grid position
         self.label_sensor2_lob.grid(
@@ -335,7 +318,7 @@ class App(customtkinter.CTk):
         # define sensor 2 received power attributes
         self.label_sensor2_Rpwr = customtkinter.CTkLabel(
             self.frame_left, 
-            text=f"EWT 2 Power Received:", 
+            text="EWT 2 Power Received:", 
             text_color='white')
         # assign sensor 2 received power grid position
         self.label_sensor2_Rpwr.grid(
@@ -361,7 +344,7 @@ class App(customtkinter.CTk):
         # define sensor 3 mgrs label attributes
         self.label_sensor3_mgrs = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"EWT 3 Location:", 
+            text="EWT 3 Location:", 
             text_color='white')
         # assign sensor 3 mgrs label grid position
         self.label_sensor3_mgrs.grid(
@@ -387,7 +370,7 @@ class App(customtkinter.CTk):
         # define sensor 3 LOB label attributes
         self.label_sensor3_lob = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"EWT 3 LOB:", 
+            text="EWT 3 LOB:", 
             text_color='white')
         # assign sensor 3 LOB label grid position
         self.label_sensor3_lob.grid(
@@ -413,7 +396,7 @@ class App(customtkinter.CTk):
         # define sensor 3 received power label attributes
         self.label_sensor3_Rpwr = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"EWT 3 Power Received:", 
+            text="EWT 3 Power Received:", 
             text_color='white')
         # assign sensor 3 recieved power label grid position
         self.label_sensor3_Rpwr.grid(
@@ -439,7 +422,7 @@ class App(customtkinter.CTk):
         # define target frequency label attributes
         self.label_frequency = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"Frequency:",
+            text="Frequency:",
             text_color='white')
         # assign target frequency label grid position
         self.label_frequency.grid(
@@ -465,7 +448,7 @@ class App(customtkinter.CTk):
         # define min ERP label attributes
         self.label_min_ERP = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"Minimum ERP:", 
+            text="Minimum ERP:", 
             text_color='white')
         # assign min ERP label grid position
         self.label_min_ERP.grid(
@@ -491,7 +474,7 @@ class App(customtkinter.CTk):
         # define max ERP label attributes
         self.label_max_ERP = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"Maximum ERP:", 
+            text="Maximum ERP:", 
             text_color='white')
         # assign max ERP grid position
         self.label_max_ERP.grid(
@@ -517,7 +500,7 @@ class App(customtkinter.CTk):
         # define path-loss coefficient label attributes
         self.label_path_loss_coeff = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"Path-Loss Coefficient:", 
+            text="Path-Loss Coefficient:", 
             text_color='white')
         # assign path-loss coefficient label grid position
         self.label_path_loss_coeff.grid(
@@ -573,7 +556,7 @@ class App(customtkinter.CTk):
         # define target grid attributes
         self.target_grid = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"NO TARGET",
+            text="NO TARGET",
             text_color='yellow')
         # assign target grid grid position
         self.target_grid.grid(
@@ -586,7 +569,7 @@ class App(customtkinter.CTk):
         # define sensor 1 distance label attributes
         self.label_sensor1_distance = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"Distance from EWT 1:",
+            text="Distance from EWT 1:",
             text_color='white')
         # assign sensor 1 distance label grid position
         self.label_sensor1_distance.grid(
@@ -613,7 +596,7 @@ class App(customtkinter.CTk):
         # define sensor 2 distance label attributes
         self.label_sensor2_distance = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"Distance from EWT 2:",
+            text="Distance from EWT 2:",
             text_color='white')
         # assign sensor 2 distance label grid positon
         self.label_sensor2_distance.grid(
@@ -640,7 +623,7 @@ class App(customtkinter.CTk):
         # define sensor 3 distance label attributes
         self.label_sensor3_distance = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"Distance from EWT 3:",
+            text="Distance from EWT 3:",
             text_color='white')
         # assign sensor 3 distance label grid positon
         self.label_sensor3_distance.grid(
@@ -667,7 +650,7 @@ class App(customtkinter.CTk):
         # define target error label attributes
         self.label_target_error = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"Calculation Error:",
+            text="Calculation Error:",
             text_color='white')
         # assign target error label grid position
         self.label_target_error.grid(
@@ -681,7 +664,7 @@ class App(customtkinter.CTk):
         # define target error attributes
         self.target_error = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text=f"N/A",
+            text="N/A",
             text_color='white')
         # assign target error attributes grid position
         self.target_error.grid(
@@ -733,14 +716,13 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
-        # define elevation survey button attributes
-        self.button_elevation_survey = customtkinter.CTkButton(
+        # define TBD button attributes
+        self.button_TBD = customtkinter.CTkButton(
             master=self.frame_left, 
-            text="Elevation Survey",
-            fg_color='brown',
-            command = self.download_map_tiles)
-        # assign elevation survey button grid position
-        self.button_elevation_survey.grid(
+            text="TBD",
+            fg_color='brown')
+        # assign TBD button grid position
+        self.button_TBD.grid(
             row=self.button_calculate.grid_info()["row"]+1,
             rowspan=1,
             column=1,
@@ -779,7 +761,7 @@ class App(customtkinter.CTk):
         map_server_url = f'http://localhost:{App.MAP_SERVER_PORT}'
         self.map_widget.set_tile_server(
             tile_server=map_server_url+"/{z}/{x}/{y}.png",
-            max_zoom=22)
+            max_zoom=App.MAX_ZOOM)
         # set initial zoom level for map tile server
         self.map_widget.set_zoom(14)
         # define mgrs entry form attributes
@@ -838,8 +820,8 @@ class App(customtkinter.CTk):
             padx=(12, 0), 
             pady=12,
             sticky="e")
-        # set map widget default address
-        self.map_widget.set_address("Fort Irwin")
+        # set initial location
+        self.map_widget.set_position(31.8691,-81.6090)
         # set map widget default server
         self.map_option_menu.set("Local Map Server")
         # set default path-loss coefficient
@@ -856,7 +838,7 @@ class App(customtkinter.CTk):
         """
         # resets single lob and cut boolean value to FALSE, allowing multiple EWT input
         self.single_lob_bool = False; self.cut_bool = False
-        # reset sensor mgrs/coord reading to None, conditional in log method and elevation survey
+        # reset sensor mgrs/coord reading to None, conditional in log method
         self.sensor1_mgrs_val = None; self.sensor2_mgrs_val = None; self.sensor3_mgrs_val = None
         self.sensor1_coord = None; self.sensor2_coord = None; self.sensor3_coord = None
         self.sensor1_max_distance_m = None; self.sensor2_max_distance_m = None ; self.sensor3_max_distance_m = None
@@ -910,7 +892,7 @@ class App(customtkinter.CTk):
         # exception handling for ValueError
         except ValueError:
             # give user option to re-input value or use the default Sensor 1 LOB value
-            choice = self.input_error(category='Sensor 1 Grid Azimuth',msg=f'Invalid Input')
+            choice = self.input_error(category='Sensor 1 Grid Azimuth',msg='Invalid Input')
             # if user chooses to use the default Sensor 1 LOB value
             if choice:
                 # clear Sensor 1 LOB input field
@@ -934,7 +916,7 @@ class App(customtkinter.CTk):
         # exception for ValueError
         except ValueError:
             # give user option to re-input value or use the default Sensor 1 PWR received value
-            choice = self.input_error(category='Sensor 1 Power Received',msg=f'Invalid Input')
+            choice = self.input_error(category='Sensor 1 Power Received',msg='Invalid Input')
             # if user chooses to use the default Sensor 1 PWR Received value
             if choice:
                 # clear the Sensor 1 PWR Received value
@@ -1009,7 +991,7 @@ class App(customtkinter.CTk):
             # exception for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input or use default value
-                choice = self.input_error(category='Sensor 2 Grid Azimuth',msg=f'Invalid Input',single_lob_option=True)
+                choice = self.input_error(category='Sensor 2 Grid Azimuth',msg='Invalid Input',single_lob_option=True)
                 # if users chooses to utilize the default Sensor 2 LOB value
                 if choice == True:
                     # clear the Sensor 2 LOB input field
@@ -1053,7 +1035,7 @@ class App(customtkinter.CTk):
             # exception handling for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input or use default value
-                choice = self.input_error(category='Sensor 2 Power Received',msg=f'Invalid Input',single_lob_option=True)
+                choice = self.input_error(category='Sensor 2 Power Received',msg='Invalid Input',single_lob_option=True)
                 # if user chooses to utilize the default Sensor 2 LOB value
                 if choice == True:
                     # clear the Sensor 2 Received PWR input field
@@ -1153,7 +1135,7 @@ class App(customtkinter.CTk):
             # exception for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input or use default value
-                choice = self.input_error(category='Sensor 3 Grid Azimuth',msg=f'Invalid Input',single_lob_option=True,cut_option=True)
+                choice = self.input_error(category='Sensor 3 Grid Azimuth',msg='Invalid Input',single_lob_option=True,cut_option=True)
                 # if users chooses to utilize the default Sensor 3 LOB value
                 if choice == True:
                     # clear the Sensor 3 LOB input field
@@ -1199,7 +1181,7 @@ class App(customtkinter.CTk):
             # exception handling for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input or use default value
-                choice = self.input_error(category='Sensor 3 Power Received',msg=f'Invalid Input',single_lob_option=True,cut_option=True)
+                choice = self.input_error(category='Sensor 3 Power Received',msg='Invalid Input',single_lob_option=True,cut_option=True)
                 # if user chooses to utilize the default Sensor 3 LOB value
                 if choice == True:
                     # clear the Sensor 3 Received PWR input field
@@ -1242,7 +1224,7 @@ class App(customtkinter.CTk):
         # exception handling for ValueError
         except ValueError:
             # if ValueError occurs, give user the option to re-input or use default value
-            choice = self.input_error(category='Frequency',msg=f'Invalid Input')
+            choice = self.input_error(category='Frequency',msg='Invalid Input')
             # if user chooses to use the default frequency value
             if choice:
                 # clear frequency input field
@@ -1266,7 +1248,7 @@ class App(customtkinter.CTk):
         # exception handling for ValueError
         except ValueError:
             # if ValueError occurs, give user the option to re-input or use default value
-            choice = self.input_error(category='Minimum ERP',msg=f'Invalid Input')
+            choice = self.input_error(category='Minimum ERP',msg='Invalid Input')
             # if user chooses to utilize the default Min ERP value
             if choice:
                 # clear Min ERP input field
@@ -1290,7 +1272,7 @@ class App(customtkinter.CTk):
         # exception handling for ValueError
         except ValueError:
             # if ValueError occurs, give user the option to re-input or use default value
-            choice = self.input_error(category='Maximum ERP',msg=f'Invalid Input')
+            choice = self.input_error(category='Maximum ERP',msg='Invalid Input')
             # if user chooses to use the default Max ERP value
             if choice:
                 # clear Max ERP input field
@@ -1310,7 +1292,7 @@ class App(customtkinter.CTk):
         # exception handling for ValueError
         except ValueError:
             # if ValueError occurs, give user the option to re-input or use default value
-            choice = self.input_error(category='Path-Loss Coefficient',msg=f'Invalid Input')
+            choice = self.input_error(category='Path-Loss Coefficient',msg='Invalid Input')
             # if user chooses to use the default path-loss coefficient
             if choice:
                 # set local path-loss coefficient value to default value
@@ -1390,7 +1372,7 @@ class App(customtkinter.CTk):
             # set sensor 2 distance field
             self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
         # set target grid field with CUT center MGRS
-        self.target_grid.configure(text=f'{self.target_mgrs}',text_color='yellow')
+        self.target_grid.configure(text=f'{self.target_mgrs[:5]} {self.target_mgrs[5:10]} {self.target_mgrs[10:]}',text_color='yellow')
         # set target error field
         self.target_error.configure(text=f'{self.target_error_val:,.0f} acres',text_color='white')
         # set map position at CUT target 
@@ -1481,7 +1463,7 @@ class App(customtkinter.CTk):
             sensor3_target_coord = None
         nl = "\n"
         # set target grid field
-        target_grid_list = [x for x in [sensor1_target_mgrs,sensor2_target_mgrs,sensor3_target_mgrs] if x != None]
+        target_grid_list = [f'{x[:5]} {x[5:10]} {x[10:]}' for x in [sensor1_target_mgrs,sensor2_target_mgrs,sensor3_target_mgrs] if x != None]
         self.target_grid.configure(text=f'{nl.join(target_grid_list)}',text_color='yellow')
         # set target error field
         self.target_error.configure(text='Multiple LOBs',text_color='white')
@@ -1729,7 +1711,7 @@ class App(customtkinter.CTk):
                     # set sensor 2 distance field
                     self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
                     # set target grid field with CUT center MGRS
-                    self.target_grid.configure(text=f'{self.target_mgrs}',text_color='yellow')
+                    self.target_grid.configure(text=f'{self.target_mgrs[:5]} {self.target_mgrs[5:10]} {self.target_mgrs[10:]}',text_color='yellow')
                     # set target error field
                     self.target_error.configure(text=f'{self.target_error_val:,.0f} acres',text_color='white')
                     # set map position at CUT target 
@@ -1860,7 +1842,7 @@ class App(customtkinter.CTk):
             # add single LOB target marker to target marker list
             self.target_marker_list.append(single_lob_target_marker)
             # set target grid field
-            self.target_grid.configure(text=f'{self.target_mgrs}',text_color='yellow')
+            self.target_grid.configure(text=f'{self.target_mgrs[:5]} {self.target_mgrs[5:10]} {self.target_mgrs[:10]}',text_color='yellow')
             # calculate sensor 1 distance to target
             self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
             # generate sensor 1 distance text
@@ -2055,6 +2037,8 @@ class App(customtkinter.CTk):
             self.path_list.append(marker_dist)        
 
     def search_event(self, event=None):
+        # doesn't work
+        return
         try:
             mgrs = self.mgrs_entry.get()
         except ValueError:
@@ -2103,45 +2087,6 @@ class App(customtkinter.CTk):
         self.min_ERP.delete(0,END)
         self.max_ERP.delete(0,END)
 
-    def elevation_survey(self):
-        # if sensor 1 input field has no data
-        if self.sensor1_mgrs == None:
-            # end function
-            self.show_info('Please input and calculate data.')
-            return 0
-        sig_coords = [x for x in [self.sensor1_coord,self.sensor2_coord,self,self.sensor3_coord] if x != None]
-        sig_coords += [self.target_coord]
-        sig_coords += [x for x in [self.sensor1_max_distance_m,self.sensor2_max_distance_m,self.sensor3_max_distance_m] if x != None]
-        "Function to create coordinate map based signifigant coords"
-        "Function to pull elevation data"
-        
-
-
-
-
-
-        # self.elevation_data_thread1 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor1_coord,self.sensor1_grid_azimuth_val,self.sensor1_error,sensor1_min_distance_m,sensor1_max_distance_m*1.25)[-1],[center_coordinate],['EWT 1']))
-        # self.elevation_data_thread1.daemon = True
-        # self.elevation_data_thread1.start()
-        # self.elevation_data_thread2 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(self.sensor2_coord,self.sensor2_grid_azimuth_val,self.sensor2_error,sensor2_min_distance_m,sensor2_max_distance_m*1.25)[-1],[center_coordinate],['EWT 2']))
-        # self.elevation_data_thread2.daemon = True
-        # self.elevation_data_thread2.start() 
-        # self.elevation_data_thread1 = threading.Thread(target=self.elevation_plotter,args=(get_coords_from_LOBs(sensor1_coord,self.sensor1_grid_azimuth_val,self.sensor1_error,sensor1_min_distance_m,sensor1_max_distance_m*1.25)[-1],[sensor1_lob_near_middle_coord,target_coord,sensor1_lob_far_middle_coord],['EWT 1']))
-        # self.elevation_data_thread1.daemon = True
-        # self.elevation_data_thread1.start()
-        pass
-    
-    def download_map_tiles(self):
-        curr_center = list(self.map_widget.get_position())
-        max_zoom = self.map_widget.zoom
-        upper_left = self.map_widget.upper_left_tile_pos
-        lower_right = self.map_widget.lower_right_tile_pos
-        print(curr_center,max_zoom,upper_left,lower_right)
-        from download_tiles import download_map_tiles
-        x_tolerance_m = 500
-        y_tolerance_m = 500
-        download_map_tiles(curr_center, x_tolerance_m, y_tolerance_m,max_zoom)
-
     def polygon_click(self,polygon):
         self.show_info(msg=polygon.name,box_title='Target Data',icon='info')
 
@@ -2168,14 +2113,13 @@ class App(customtkinter.CTk):
     def change_map(self, new_map: str):
         map_server_url = f'http://127.0.0.1:{App.MAP_SERVER_PORT}'
         if new_map == 'Local Map Server':
-            self.map_widget.
-            self.map_widget.set_tile_server(map_server_url+"/{z}/{x}/{y}.png", max_zoom=22)
+            self.map_widget.set_tile_server(map_server_url+"/{z}/{x}/{y}.png", max_zoom=App.MAX_ZOOM)
         elif new_map == "OpenStreetMap":
             self.map_widget.set_tile_server("https://a.tile.openstreetmap.org/{z}/{x}/{y}.png")
         elif new_map == "Google Street":
-            self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
+            self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=App.MAX_ZOOM)
         elif new_map == "Google Satellite":
-            self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
+            self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=App.MAX_ZOOM)
 
     def change_path_loss(self, path_loss_description: str):
         if path_loss_description == 'Free Space (Theoretical)':
@@ -2203,14 +2147,6 @@ class App(customtkinter.CTk):
             self.sensor1_error = 4
             self.sensor2_error = 4
 
-    def map_server(self,tile_directory):
-        from subprocess import call, PIPE, DEVNULL
-        call(["python3", "-m", "http.server", f"{App.MAP_SERVER_PORT}", "--directory", f'"{tile_directory}"'])
-
-    def elevation_plotter(self,coords,targets=None,title_args=None):
-        elev_data = get_elevation_data(coords)
-        plot_elevation_data(elev_data,targets,title_args)
-
     def on_closing(self, event=0):
         self.destroy()
         sys.exit()
@@ -2230,13 +2166,9 @@ DEV NOTES
 --- MVP Reqs:
     - missing map data is attempted to be retreived
     - restart app button
+    - batch map data download (center point, radius, zoom min, zoom max)
+    
 - earth curvature limitation identified on elevation map
-- button that return you to last marker
-- add additional EWT to get potential for fix
-- add 100m to each end of elevation plot to provide better prespective\
-- 3D elevation plot
-- DTED elevation data source
-- button to request elevation survey, not automatic
-- if map tile doesn't exist, add it to the database
+    - circle around EWTs with radius being LOS?
 - provide option to input coordinates instead of MGRS
 """

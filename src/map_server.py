@@ -1,7 +1,17 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
+from download_tiles import download_tile
 import os
 import sys
+import csv
+
+def append_tile_to_queue(tile,file_path=os.path.dirname(os.path.abspath(__file__))+"/tile_queue.csv"):
+    if tile == "" or tile == []: return
+    row_to_append = tile
+    with open(file_path, mode='a', newline='') as file:
+        csv_writer = csv.writer(file)
+        csv_writer.writerow(row_to_append)
+    
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -24,6 +34,11 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         else:
             self.send_response(404)
             self.end_headers()
+            missing_tile = file_path.split('\\')[-1].split('.')[0].split('/')
+            for mt in missing_tile:
+                if int(mt) < 0:
+                    return
+            append_tile_to_queue(missing_tile)
             # message_404 = f'File with path: {file_path}'
             # self.wfile.write(message_404.encode('utf-8'))
 

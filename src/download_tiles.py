@@ -1,3 +1,54 @@
+import os
+
+def download_tile(tile,
+             output_dir="\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+'/map_tiles/ESRI/',
+             tileurl='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png',
+             bool_overwrite=False,
+             timeout_num=5,
+             interval_num=100):
+    import os, time, urllib, urllib.request
+    basepath = tileurl.split("/")[-1]  # ?foo=bar&z={z}.ext
+    segments = basepath.split(".")
+    ext = "." + segments[-1] if len(segments) > 1 else ".png"
+    val_z = str(tile[0])
+    val_y = str(tile[2]); val_y = val_y.split('.')[0]
+    val_x = str(tile[1]); val_x = val_x.split('.')[0]
+    print(f' z:{val_z},y:{val_y},x:{val_x}')
+    write_dir = os.path.join(output_dir, val_z, val_y)
+    write_filepath = os.path.join(write_dir, val_x) + ext
+
+    if os.path.exists(write_filepath) and not bool_overwrite:
+        # skip if already exists when not-overwrite mode
+        return
+    
+    url = (
+        tileurl
+        .replace(r"{x}", val_x)
+        .replace(r"{y}", val_y)
+        .replace(r"{z}", val_z)
+    )
+    
+    data = None
+    while True:
+        try:
+            data = urllib.request.urlopen(url, timeout=timeout_num)
+            break
+        except urllib.error.HTTPError as e:
+            raise Exception(str(e) + ":" + url)
+        except Exception as e:
+            if (
+                str(e.args)
+                == "(timeout('_ssl.c:1091: The handshake operation timed out'),)"
+            ):
+                print("timeout, retrying... :" + url)
+            else:
+                raise Exception(str(e) + ":" + url)
+    if data is not None:
+        # print(f'Downloading {tile[2]}/{tile[0]}/{tile[1]}.png')
+        os.makedirs(write_dir, exist_ok=True)
+        with open(write_filepath, mode="wb") as f:
+            f.write(data.read())
+        time.sleep(interval_num / 1000)
 
 def get_coord_box(center_coord,x_dist_m,y_dist_m):
     """
@@ -38,30 +89,32 @@ def download_map_tiles(center_coord,x_tolerance_m,y_tolerance_m,max_zoom=18,min_
         subprocess.run([cmd])
     except FileNotFoundError:
         cmd = f'python "{get_tiles_file}" "{tile_url}" "{tile_dir}" --extent {coord_box.replace(","," ")} --minzoom {min_zoom} --maxzoom {max_zoom} --parallel {parallel_threads}'
-        subprocess.run([cmd])        
+        subprocess.run([cmd])
 
 import os
 if __name__ == "__main__":
-    src_directory = os.path.dirname(os.path.abspath(__file__))
-    tile_dir = "\\".join(src_directory.split('\\')[:-1])+"\\mapt_iles\\ESRI"
-    get_tiles_file = os.path.join(src_directory, "get_tiles.py")
-    tile_url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png'
+    # src_directory = os.path.dirname(os.path.abspath(__file__))
+    # tile_dir = "\\".join(src_directory.split('\\')[:-1])+"\\mapt_iles\\ESRI"
+    # get_tiles_file = os.path.join(src_directory, "get_tiles.py")
+    # tile_url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png'
     
-    ntc_bbox = "-117.864075,35.056980,-115.996399,36.140093"
-    ntc_small_bbox = '-116.774368,35.376734,-116.366501,35.570215'
-    zagan_bbox = "15.205078,51.550546,15.439911,51.664769"
-    jmrc_bbox = "11.651001,49.207953,11.927376,49.350625"
-    fsga_bbox = "-81.933975,31.832649,-81.270676,32.113404"
-    boles_coords = [51.26070109979971, 15.567760588806994]
-    bpta_coords = [53.73721459690141, 22.05693866784293]
-    bbox = "-117.148590,35.288227,-116.341095,35.636093" # min_lon, min_lat, max_lon, max_lat
-    boles_bbox = get_coord_box(boles_coords,8500,8500)
-    bpta_bbox = get_coord_box(bpta_coords,3000,3000)
-    min_zoom = 0
-    max_zoom = 18
-    parallel_threads = 4
-    cmd = f'python3 "{get_tiles_file}" "{tile_url}" "{tile_dir}" --extent {bpta_bbox.replace(","," ")} --minzoom {min_zoom} --maxzoom {max_zoom} --parallel {parallel_threads}'
-    print(cmd)
+    # ntc_bbox = "-117.864075,35.056980,-115.996399,36.140093"
+    # ntc_small_bbox = '-116.774368,35.376734,-116.366501,35.570215'
+    # zagan_bbox = "15.205078,51.550546,15.439911,51.664769"
+    # jmrc_bbox = "11.651001,49.207953,11.927376,49.350625"
+    # fsga_bbox = "-81.933975,31.832649,-81.270676,32.113404"
+    # boles_coords = [51.26070109979971, 15.567760588806994]
+    # bpta_coords = [53.73721459690141, 22.05693866784293]
+    # bbox = "-117.148590,35.288227,-116.341095,35.636093" # min_lon, min_lat, max_lon, max_lat
+    # boles_bbox = get_coord_box(boles_coords,8500,8500)
+    # bpta_bbox = get_coord_box(bpta_coords,3000,3000)
+    # min_zoom = 0
+    # max_zoom = 18
+    # parallel_threads = 4
+    # cmd = f'python3 "{get_tiles_file}" "{tile_url}" "{tile_dir}" --extent {bpta_bbox.replace(","," ")} --minzoom {min_zoom} --maxzoom {max_zoom} --parallel {parallel_threads}'
+    # print(cmd)
     # import subprocess
     # subprocess.call(cmd, shell=True, stdout=subprocess.PIPE)
+    download_tile((14,8800,5375))
+    
 
