@@ -34,6 +34,8 @@ class App(customtkinter.CTk):
     HEIGHT = int(WIDTH/ASPECT_RATIO)
     # preset local port that is hosting the map server
     MAP_SERVER_PORT = 1234 # NEED TO PULL FROM A CONFIG FILE!!!!
+    # present IP address for the map server
+    MAP_SERVER_IP = 'localhost'
     # preset maximum map zoom level
     MAX_ZOOM = 19
     # preset default input values
@@ -736,6 +738,8 @@ class App(customtkinter.CTk):
         self.frame_right.grid_rowconfigure(0, weight=0)
         # configure second row with high weight
         self.frame_right.grid_rowconfigure(1, weight=1)
+        # configure third row with low weight
+        self.frame_right.grid_rowconfigure(2, weight=0)        
         # configure first column with low weight
         self.frame_right.grid_columnconfigure(0, weight=0)
         # configure second column with high weight
@@ -758,7 +762,7 @@ class App(customtkinter.CTk):
             pady=(0, 0),
             sticky="nswe")
         # set map widget default tile server
-        map_server_url = f'http://localhost:{App.MAP_SERVER_PORT}'
+        map_server_url = f'http://{App.MAP_SERVER_IP}:{App.MAP_SERVER_PORT}'
         self.map_widget.set_tile_server(
             tile_server=map_server_url+"/{z}/{x}/{y}.png",
             max_zoom=App.MAX_ZOOM)
@@ -820,12 +824,62 @@ class App(customtkinter.CTk):
             padx=(12, 0), 
             pady=12,
             sticky="e")
+        # define batch download radius (in km)
+        self.batch_download_radius = customtkinter.CTkEntry(
+            master=self.frame_right,
+            placeholder_text="Radius (in km)")
+        # assign batch download radius 
+        self.batch_download_radius.grid(
+            row=2, 
+            column=0, 
+            padx=(12, 0), 
+            pady=12,
+            sticky="we")
+        # define batch download center MGRS
+        self.batch_download_center_mgrs_entry = customtkinter.CTkEntry(
+            master=self.frame_right,
+            placeholder_text="Insert Center MGRS Grid")
+        # assign batch download's center MGRS
+        self.batch_download_center_mgrs_entry.grid(
+            row=2, 
+            column=1, 
+            padx=(12, 0), 
+            pady=12,
+            sticky="we")
+        # define batch download zoom range 
+        self.batch_download_zoom_range = customtkinter.CTkEntry(
+            master=self.frame_right,
+            placeholder_text="Zoom (Ex: 9-12)")
+        # assign batch download radius 
+        self.batch_download_zoom_range.grid(
+            row=2, 
+            column=2, 
+            padx=(12, 0), 
+            pady=12,
+            sticky="we")
+        # define clear markers button attributes
+        self.button_batch_download = customtkinter.CTkButton(
+            master=self.frame_right,
+            text="Download Map Data",
+            command=self.batch_download)
+        # assign clear markers button grid position
+        self.button_batch_download.grid(
+            row=2, 
+            rowspan=1,
+            column=3, 
+            columnspan=1, 
+            padx=(12, 0), 
+            pady=12,
+            sticky="e")
+
         # set initial location
         self.map_widget.set_position(31.8691,-81.6090)
         # set map widget default server
         self.map_option_menu.set("Local Map Server")
         # set default path-loss coefficient
         self.option_path_loss_coeff.set('Moderate Foliage')
+        # set default sensor
+        self.option_sensor.set('BEAST+')
         # define right-click attributes
         self.map_widget.add_right_click_menu_command(
             label="Add Marker",
@@ -1306,7 +1360,7 @@ class App(customtkinter.CTk):
                 # end function
                 return 0
 
-    def plot_cut(self,l1c,l1r,l1l,l2c,l2r,l2l):
+    def plot_cut(self,l1c,l1r,l1l,l2c,l2r,l2l,multi_cut_bool=False):
         # define target classification
         self.target_class = '(CUT)'
         # set target label with updated target classification
@@ -1351,7 +1405,7 @@ class App(customtkinter.CTk):
         cut_target_marker = self.map_widget.set_marker(
             deg_x=self.target_coord[0], 
             deg_y=self.target_coord[1], 
-            text=f"{self.target_mgrs}",
+            text=f'{self.target_mgrs[:5]} {self.target_mgrs[5:10]} {self.target_mgrs[10:]}',
             image_zoom_visibility=(10, float("inf")),
             marker_color_circle='white',
             icon=self.target_image)
@@ -1359,22 +1413,38 @@ class App(customtkinter.CTk):
         self.target_marker_list.append(cut_target_marker)  
         # generate sensor 1 distance from target text     
         if self.sensor1_mgrs_val != None: 
+            # generate sensor 1 distance from target text
             dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
-            self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
+            # set sensor 1 distance field
+            if self.sensor1_distance.cget("text") != '' and multi_cut_bool:
+                if self.sensor1_distance.cget("text") > dist_sensor1_text:
+                    self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
+            else:
+                self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
         if self.sensor2_mgrs_val != None: 
-            # generate sensor 2 distance from target text       
+            # generate sensor 2 distance from target text
             dist_sensor2_text = self.generate_sensor_distance_text(self.sensor2_distance_val)
             # set sensor 2 distance field
-            self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
+            if self.sensor2_distance.cget("text") != '' and multi_cut_bool:
+                if self.sensor2_distance.cget("text") > dist_sensor2_text:
+                    self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
+            else:
+                self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
         if self.sensor3_mgrs_val != None:
-            # generate sensor 3 distance from target text       
+            # generate sensor 3 distance from target text
             dist_sensor3_text = self.generate_sensor_distance_text(self.sensor3_distance_val)
-            # set sensor 2 distance field
-            self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
+            # set sensor 3 distance field
+            if self.sensor3_distance.cget("text") != '' and multi_cut_bool:
+                if self.sensor3_distance.cget("text") > dist_sensor3_text:
+                    self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
+            else:
+                self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
         # set target grid field with CUT center MGRS
-        self.target_grid.configure(text=f'{self.target_mgrs[:5]} {self.target_mgrs[5:10]} {self.target_mgrs[10:]}',text_color='yellow')
+        if multi_cut_bool: self.target_grid.configure(text="MULTIPLE CUTS")
+        if not multi_cut_bool: self.target_grid.configure(text=f'{self.target_mgrs[:5]} {self.target_mgrs[5:10]} {self.target_mgrs[10:]}',text_color='yellow')
         # set target error field
-        self.target_error.configure(text=f'{self.target_error_val:,.0f} acres',text_color='white')
+        if multi_cut_bool: self.target_error.configure(text="MULTIPLE CUTS")
+        if not multi_cut_bool: self.target_error.configure(text=f'{self.target_error_val:,.0f} acres',text_color='white')
         # set map position at CUT target 
         self.map_widget.set_position(self.target_coord[0],self.target_coord[1])
         
@@ -1395,7 +1465,7 @@ class App(customtkinter.CTk):
             target1_marker = self.map_widget.set_marker(
                 deg_x=sensor1_target_coord[0], 
                 deg_y=sensor1_target_coord[1], 
-                text=f"{sensor1_target_mgrs}", 
+                text=f'{sensor1_target_mgrs[:5]} {sensor1_target_mgrs[5:10]} {sensor1_target_mgrs[10:]}', 
                 image_zoom_visibility=(10, float("inf")),
                 marker_color_circle='white',
                 icon=self.target_image)
@@ -1420,7 +1490,7 @@ class App(customtkinter.CTk):
             target2_marker = self.map_widget.set_marker(
                 deg_x=sensor2_target_coord[0], 
                 deg_y=sensor2_target_coord[1], 
-                text=f"{sensor2_target_mgrs}", 
+                text=f'{sensor2_target_mgrs[:5]} {sensor2_target_mgrs[5:10]} {sensor2_target_mgrs[10:]}', 
                 image_zoom_visibility=(10, float("inf")),
                 marker_color_circle='white',
                 icon=self.target_image)
@@ -1445,7 +1515,7 @@ class App(customtkinter.CTk):
             target3_marker = self.map_widget.set_marker(
                 deg_x=sensor3_target_coord[0], 
                 deg_y=sensor3_target_coord[1], 
-                text=f"{sensor3_target_mgrs}", 
+                text=f'{sensor3_target_mgrs[:5]} {sensor3_target_mgrs[5:10]} {sensor3_target_mgrs[10:]}', 
                 image_zoom_visibility=(10, float("inf")),
                 marker_color_circle='white',
                 icon=self.target_image)
@@ -1478,11 +1548,13 @@ class App(customtkinter.CTk):
         Function to calculate target location given EWT input(s)
         """
         # reset fields to defaults
+        self.label_target_grid.configure(text='')
+        self.target_grid.configure(text='')
         self.sensor1_distance.configure(text='')
         self.sensor2_distance.configure(text='')
         self.sensor3_distance.configure(text='')
-        self.label_target_grid.configure(text='')
-        self.target_grid.configure(text='')
+        self.target_error.configure(text='')
+        self.target_class = ''        
         # read the user input fields
         self.read_input_fields()
         # convert sensor 1 mgrs to coords
@@ -1692,7 +1764,7 @@ class App(customtkinter.CTk):
                     fix_target_marker = self.map_widget.set_marker(
                         deg_x=self.target_coord[0], 
                         deg_y=self.target_coord[1], 
-                        text=f"{self.target_mgrs}",
+                        text=f'{self.target_mgrs[:5]} {self.target_mgrs[5:10]} {self.target_mgrs[10:]}',
                         image_zoom_visibility=(10, float("inf")),
                         marker_color_circle='white',
                         icon=self.target_image)
@@ -1731,90 +1803,45 @@ class App(customtkinter.CTk):
                         border_width=App.DEFAULT_VALUES['Border Width'],
                         command=self.polygon_click,
                         name=fix_description)
-                # EWT 1 & 2 CUT, EWT 3 LOB
+                # EWT 1 & 2 CUT, EWT 3 LOB (TOTAL 1 CUT)
                 elif ewt1_ewt2_intersection_bool and not ewt2_ewt3_intersection_bool and not ewt1_ewt3_intersection_bool:
                     self.plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound)
-                # EWT 2 & 3 CUT, EWT 1 LOB
+                # EWT 2 & 3 CUT, EWT 1 LOB (TOTAL 1 CUT)
                 elif not ewt1_ewt2_intersection_bool and ewt2_ewt3_intersection_bool and not ewt1_ewt3_intersection_bool:
                     self.plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound)
-                # EWT 1 & 3 CUT, EWT 2 LOB
+                # EWT 1 & 3 CUT, EWT 2 LOB (TOTAL 1 CUT)
                 elif not ewt1_ewt2_intersection_bool and not ewt2_ewt3_intersection_bool and ewt1_ewt3_intersection_bool:
                     self.plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound)
+                # EWT 1 & 2 CUT, EWT 2 & 3 NO CUT, EWT 1 & 3 CUT (TOTAL 2 CUT)
+                elif ewt1_ewt2_intersection_bool and not ewt2_ewt3_intersection_bool and ewt1_ewt3_intersection_bool:
+                    self.plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,True)
+                    self.plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True)
+                # EWT 1 & 2 CUT, EWT 2 & 3 CUT, EWT 1 & 3 NO CUT (TOTAL 2 CUT)
+                elif ewt1_ewt2_intersection_bool and ewt2_ewt3_intersection_bool and not ewt1_ewt3_intersection_bool:
+                    self.plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,True)
+                    self.plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True) 
+                # EWT 1 & 2 NO CUT, EWT 2 & 3 CUT, EWT 1 & 3 CUT (TOTAL 2 CUT)
+                elif not ewt1_ewt2_intersection_bool and ewt2_ewt3_intersection_bool and ewt1_ewt3_intersection_bool:
+                    self.plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True)
+                    self.plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True)
+                # No intersections between an EWT LOBs
                 elif not ewt1_ewt2_intersection_bool and not ewt2_ewt3_intersection_bool and not ewt1_ewt3_intersection_bool:
                     self.plot_lobs(sensor1_lob_near_middle_coord,sensor1_lob_far_middle_coord,sensor2_lob_near_middle_coord,sensor2_lob_far_middle_coord,sensor3_lob_near_middle_coord,sensor3_lob_far_middle_coord)
 
-                "Need to assess if there are not intersections between any EWTs' LOBs"
-                pass
+                "Need to assess all combinations of cuts to include multiple cuts"
             # only sensor 1 and 2 have non-None input values
             else:
                 sensor3_lob_near_middle_coord = None; sensor3_lob_far_middle_coord = None
                 # set map zoon level
                 self.map_widget.set_zoom(15)
+                # assess if cut exists between EWT 1 & EWT 2 LOBs
+                ewt1_ewt2_intersection_bool = check_for_intersection(self.sensor1_coord,sensor1_lob_far_middle_coord,self.sensor2_coord,sensor2_lob_far_middle_coord)
                 # if there is an intersection between sensor 1 and 2
-                if check_for_intersection(self.sensor1_coord,sensor1_lob_far_middle_coord,self.sensor2_coord,sensor2_lob_far_middle_coord):
+                if ewt1_ewt2_intersection_bool:
                     self.plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound)
-                    
                 # if there is no intersection between LOBs
                 else:
                     self.plot_lobs(sensor1_lob_near_middle_coord,sensor1_lob_far_middle_coord,sensor2_lob_near_middle_coord,sensor2_lob_far_middle_coord,sensor3_lob_near_middle_coord,sensor3_lob_far_middle_coord)
-                    # set target class
-                    # self.target_class = '(2 LOBs)'
-                    # # set target grid label to include target classification
-                    # self.label_target_grid.configure(text=f'TARGET GRIDs {self.target_class}'.strip(),text_color='red')
-                    # # set intersection booleans to False
-                    # intersection_l1r_l2r = False; intersection_l1r_l2l = False; intersection_l1l_l2r = False; intersection_l1l_l2l = False 
-                    # # display info message that no LOB intersection exists  
-                    # self.show_info("No LOB intersection detected!")
-                    # # calculate sensor 1 target coordinate
-                    # sensor1_target_coord = [np.average([sensor1_lob_near_middle_coord[0],sensor1_lob_far_middle_coord[0]]),np.average([sensor1_lob_near_middle_coord[1],sensor1_lob_far_middle_coord[1]])]
-                    # # calculate sensor 1 target MGRS
-                    # sensor1_target_mgrs = convert_coords_to_mgrs(sensor1_target_coord)
-                    # # define and set sensor 1 target marker
-                    # target1_marker = self.map_widget.set_marker(
-                    #     deg_x=sensor1_target_coord[0], 
-                    #     deg_y=sensor1_target_coord[1], 
-                    #     text=f"{sensor1_target_mgrs}", 
-                    #     image_zoom_visibility=(10, float("inf")),
-                    #     marker_color_circle='white',
-                    #     icon=self.target_image)
-                    # # add sensor 1 target marker to target marker list
-                    # self.target_marker_list.append(target1_marker)
-                    # # calculate sensor 2 target coordinate
-                    # sensor2_target_coord = [np.average([sensor2_lob_near_middle_coord[0],sensor2_lob_far_middle_coord[0]]),np.average([sensor2_lob_near_middle_coord[1],sensor2_lob_far_middle_coord[1]])]
-                    # # calculate sensor 2 target MGRS
-                    # sensor2_target_mgrs = convert_coords_to_mgrs(sensor2_target_coord)
-                    # # define and set sensor 2 target marker
-                    # target2_marker = self.map_widget.set_marker(
-                    #     deg_x=sensor2_target_coord[0], 
-                    #     deg_y=sensor2_target_coord[1], 
-                    #     text=f"{sensor2_target_mgrs}", 
-                    #     image_zoom_visibility=(10, float("inf")),
-                    #     marker_color_circle='white',
-                    #     icon=self.target_image)
-                    # # add sensor 2 target marker to tarket marker list
-                    # self.target_marker_list.append(target2_marker)
-                    # # calculate sensor 1 distance to target 1
-                    # self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,sensor1_target_coord))
-                    # # calculate sensor 1 distance to target 2
-                    # self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,sensor2_target_coord))
-                    # # generate sensor 1 distance from target text     
-                    # dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
-                    # # set sensor 1 distance field
-                    # self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
-                    # # generate sensor 2 distance from target text       
-                    # dist_sensor2_text = self.generate_sensor_distance_text(self.sensor2_distance_val)
-                    # # set sensor 2 distance field
-                    # self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
-                    # # set target grid field
-                    # self.target_grid.configure(text=f'{sensor1_target_mgrs}\n{sensor2_target_mgrs}',text_color='yellow')
-                    # # set target error field
-                    # self.target_error.configure(text=f'{sensor1_lob_error_acres:,.0f} & {sensor2_lob_error_acres:,.0f} acres',text_color='white')
-                    # # define multi-target MGRS value
-                    # self.target_mgrs = f'{sensor1_target_mgrs}, {sensor2_target_mgrs}'
-                    # # define multi-target coordinates
-                    # self.target_coord = f"{', '.join(sensor1_target_coord)} | {', '.join(sensor2_target_coord)}"
-                    # # define multi-target error
-                    # self.target_error_val = f'{sensor1_lob_error_acres:,.2f}, {sensor2_lob_error_acres:,.2f}'
         # if there is only one LOB
         else:
             sensor2_lob_near_middle_coord = None; sensor2_lob_far_middle_coord = None
@@ -1835,7 +1862,7 @@ class App(customtkinter.CTk):
             single_lob_target_marker = self.map_widget.set_marker(
                 deg_x=self.target_coord[0], 
                 deg_y=self.target_coord[1], 
-                text=f"{self.target_mgrs}", 
+                text=f'{self.target_mgrs[:5]} {self.target_mgrs[5:10]} {self.target_mgrs[10:]}', 
                 image_zoom_visibility=(10, float("inf")),
                 marker_color_circle='white',
                 icon=self.target_image)
@@ -2037,8 +2064,6 @@ class App(customtkinter.CTk):
             self.path_list.append(marker_dist)        
 
     def search_event(self, event=None):
-        # doesn't work
-        return
         try:
             mgrs = self.mgrs_entry.get()
         except ValueError:
@@ -2048,10 +2073,7 @@ class App(customtkinter.CTk):
             self.map_widget.set_position(entry_coord[0],entry_coord[1])
             self.add_marker_event(entry_coord)
         else:
-            if mgrs.replace(' ','').isalpha() and len(mgrs) > 2:
-                self.map_widget.set_address(mgrs)
-            else:
-                self.show_info("Invalid MGRS input!")
+            self.show_info("Invalid MGRS input!")
 
     def clear_markers(self):
         for marker in self.marker_list:
@@ -2086,6 +2108,9 @@ class App(customtkinter.CTk):
         self.frequency.delete(0,END)
         self.min_ERP.delete(0,END)
         self.max_ERP.delete(0,END)
+        
+    def batch_download(self):
+        pass
 
     def polygon_click(self,polygon):
         self.show_info(msg=polygon.name,box_title='Target Data',icon='info')
