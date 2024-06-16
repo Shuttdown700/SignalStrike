@@ -1,20 +1,5 @@
-import csv, datetime, os, time
-
-def read_queue(queue_file_name):
-    with open(queue_file_name, mode='r') as file:
-        csv_reader = csv.reader(file)
-        tile_queue = []
-        for row in csv_reader:
-            if row == []: continue
-            tile_queue.append(tuple(row))
-            
-    return tile_queue
-
-def write_queue(queue_file_name,queue_data):
-    with open(queue_file_name, mode='w', newline='') as file:
-        csv_writer = csv.writer(file)
-        for row in queue_data:
-            csv_writer.writerow(row)
+import datetime, os, time
+from main import read_queue, write_queue
 
 def download_tile(tile,
              output_dir="\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+'/map_tiles/ESRI/',
@@ -66,7 +51,8 @@ def download_tile(tile,
         time.sleep(interval_num / 1000)
 
 if __name__ == "__main__":
-    queue_file_name = os.path.dirname(os.path.abspath(__file__))+"/tile_queue.csv"
+    print('Starting Dynamic Tile Download Service:\n')
+    queue_file_name = os.path.dirname(os.path.abspath(__file__))+"/dynamic_tile_queue.csv"
     wait_interval_sec = 10
     time.sleep(2)
     while True:
@@ -74,7 +60,8 @@ if __name__ == "__main__":
         t1 = datetime.datetime.today()
         try:
             tile_queue = read_queue(queue_file_name)
-        except:
+        except Exception as e:
+            print(f'Error reading batch queue file: {e}',end='\n')
             time.sleep(5)
             continue
         if len(tile_queue) > 0:
@@ -90,14 +77,14 @@ if __name__ == "__main__":
                 else:
                     tile_queue_updated.append(list(tile))
             write_queue(queue_file_name,tile_queue_updated)
+        else:
+            print('Dynamic download queue is empty.\n')
         t2 = datetime.datetime.today()
         t_delta = t1 - t2
         if t_delta.total_seconds() < wait_interval_sec:
+            print(f'Waiting: {wait_interval_sec - t_delta.total_seconds():,.2f} seconds...',end='\n')
             time.sleep(wait_interval_sec - t_delta.total_seconds())
         else:
-            time.sleep(1)            
-        
-        
-list(('12', '11560', '1667'))       
+            time.sleep(1)              
     
 

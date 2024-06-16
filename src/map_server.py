@@ -1,17 +1,15 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
-from download_tiles import download_tile
 import os
 import sys
 import csv
 
-def append_tile_to_queue(tile,file_path=os.path.dirname(os.path.abspath(__file__))+"/tile_queue.csv"):
+def append_tile_to_queue(tile,file_path=os.path.dirname(os.path.abspath(__file__))+"/dynamic_tile_queue.csv"):
     if tile == "" or tile == []: return
     row_to_append = tile
     with open(file_path, mode='a', newline='') as file:
         csv_writer = csv.writer(file)
         csv_writer.writerow(row_to_append)
-    
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -20,7 +18,6 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         # Remove leading slash to get the file path
         if path.startswith("/"):
             path = path[1:]
-        
         # Check if the file exists within the specified directory
         file_path = os.path.join(SimpleHTTPRequestHandler.directory, path)
         if os.path.exists(file_path) and os.path.isfile(file_path):

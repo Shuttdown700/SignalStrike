@@ -219,6 +219,34 @@ def covert_degrees_to_radians(degrees):
     assert isinstance(degrees,(float,int)), 'Degrees must be a float [0-360]'
     return (degrees%360) * np.pi/180
 
+def get_coord_box(center_coord,x_dist_m,y_dist_m):
+    """
+    Generate a coordinate box for the tile downloader.
+
+    Parameters
+    ----------
+    center_coord : list
+        Coordinate in [lat,lon] format
+    x_dist_m : float
+        Distance from center to box edge along x-axis in meters
+    y_dist_m : float
+        Distance from center to box edge along y-axis in meters
+
+    Returns
+    -------
+    str
+        Coodinate string in "min_lon, min_lat, max_lon, max_lat" format.
+
+    """
+    from main import adjust_coordinate
+    import numpy as np
+    diag_dist = np.sqrt(x_dist_m**2 + y_dist_m**2)
+    tl_coord = adjust_coordinate(center_coord,315,diag_dist)
+    tl_coord = [round(coord,6) for coord in tl_coord]
+    br_coord = adjust_coordinate(center_coord,135,diag_dist)
+    br_coord = [round(coord,6) for coord in br_coord]
+    return f"{tl_coord[1]},{br_coord[0]},{br_coord[1]},{tl_coord[0]}"
+
 def get_distance_between_coords(coord1,coord2):
     """
     Determines distance between two coordinates in meters
@@ -752,6 +780,52 @@ def plot_elevation_data(coord_elev_data,target_coords=None,title_args=None):
         plt.show()
     except AttributeError as e:
         return 0
+
+def read_queue(queue_file_name):
+    """
+    Reads a queue csv file
+
+    Parameters
+    ----------
+    queue_file_name : str
+        File path to queue csv file.
+
+    Returns
+    -------
+    tile_queue : list of tuples
+        list of rows, with each row in tuple form.
+
+    """
+    import csv
+    with open(queue_file_name, mode='r') as file:
+        csv_reader = csv.reader(file)
+        tile_queue = []
+        for row in csv_reader:
+            if row == []: continue
+            tile_queue.append(tuple(row))
+    return tile_queue
+
+def write_queue(queue_file_name,queue_data):
+    """
+    Writes a queue csv file
+
+    Parameters
+    ----------
+    queue_file_name : str
+        File path to queue csv file.
+    queue_data : list
+        list of rows, with each row in list form.
+
+    Returns
+    -------
+    None.
+
+    """
+    import csv
+    with open(queue_file_name, mode='w', newline='') as file:
+        csv_writer = csv.writer(file)
+        for row in queue_data:
+            csv_writer.writerow(row)
 
 ## TEST ###
 if __name__ == '__main__':

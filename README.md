@@ -14,6 +14,8 @@ sudo apt-get update
 sudo apt-get install python
 # verify python version
 python --version
+# clone git repository
+git clone "https://github.com/Shuttdown700/ew_plt_targeting_app"
 # create a virtual python environment titled "ewta_venv"
 python -m venv ewta_venv
 # activate the virtual environment

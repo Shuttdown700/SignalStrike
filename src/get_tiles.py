@@ -5,17 +5,8 @@ import_libraries([["tiletanic"],["argparse"],["urllib.request"],["json"],
                   ["concurrent.futures",["ThreadPoolExecutor"]],["shapely"],
                   ["pyproj",["Transformer"]]])
 
-import argparse
-import time
-import urllib.request
-import json
-from concurrent.futures import ThreadPoolExecutor
-import tiletanic
-import shapely
-from pyproj import Transformer
-
-
 def get_args():
+    import argparse
     parser = argparse.ArgumentParser(description="xyz-tile download tool")
     parser.add_argument("tileurl", help=r"xyz-tile url in {z}/{x}/{y} template")
     parser.add_argument("output_dir", help="output dir")
@@ -74,8 +65,11 @@ def get_args():
 
 
 def main():
+    import urllib.request, json, shapely, tiletanic
+    from concurrent.futures import ThreadPoolExecutor
+    from pyproj import Transformer
     args = get_args()
-
+    num_tiles = 0
     if args["extent"] is not None:
         geometry = shapely.geometry.shape(
             {
@@ -108,6 +102,7 @@ def main():
     geom_3857 = shapely.ops.transform(transformer.transform, geometry)
 
     def download(tile):
+        import time
         basepath = args["tileurl"].split("/")[-1]  # ?foo=bar&z={z}.ext
         segments = basepath.split(".")
         ext = "." + segments[-1] if len(segments) > 1 else ".png"
@@ -162,14 +157,12 @@ def main():
             generator = tiletanic.tilecover.cover_geometry(tilescheme, geom_3857, zoom)
             for tile in generator:
                 future = executor.submit(download, tile)
+                num_tiles += 1
                 if future.exception() is not None:
                     print(future.exception())
                     # bar()
 
-    print("finished")
-
+    print(f"Download Finished: {num_tiles:,} tiles downloaded")
 
 if __name__ == "__main__":
-    global num_downloads; num_downloads = 0
-    global total_tiles; total_tiles = 0
     main()

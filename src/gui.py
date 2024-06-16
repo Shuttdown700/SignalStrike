@@ -721,7 +721,7 @@ class App(customtkinter.CTk):
         # define TBD button attributes
         self.button_TBD = customtkinter.CTkButton(
             master=self.frame_left, 
-            text="TBD",
+            text="TBD Feature",
             fg_color='brown')
         # assign TBD button grid position
         self.button_TBD.grid(
@@ -769,18 +769,18 @@ class App(customtkinter.CTk):
         # set initial zoom level for map tile server
         self.map_widget.set_zoom(14)
         # define mgrs entry form attributes
-        self.mgrs_entry = customtkinter.CTkEntry(
+        self.search_mgrs = customtkinter.CTkEntry(
             master=self.frame_right,
             placeholder_text="Insert MGRS Grid")
         # assign mgrs entry form grid position
-        self.mgrs_entry.grid(
+        self.search_mgrs.grid(
             row=0, 
             column=0, 
             padx=(12, 0), 
             pady=12,
             sticky="we")
         # bind mgrs entry keystroke to search function
-        self.mgrs_entry.bind("<Return>", self.search_event)
+        self.search_mgrs.bind("<Return>", self.search_event)
         # define search button attributes
         self.button_search = customtkinter.CTkButton(
             master=self.frame_right,
@@ -824,10 +824,10 @@ class App(customtkinter.CTk):
             padx=(12, 0), 
             pady=12,
             sticky="e")
-        # define batch download radius (in km)
+        # define batch download radius (in m)
         self.batch_download_radius = customtkinter.CTkEntry(
             master=self.frame_right,
-            placeholder_text="Radius (in km)")
+            placeholder_text="Radius (in meters)")
         # assign batch download radius 
         self.batch_download_radius.grid(
             row=2, 
@@ -836,11 +836,11 @@ class App(customtkinter.CTk):
             pady=12,
             sticky="we")
         # define batch download center MGRS
-        self.batch_download_center_mgrs_entry = customtkinter.CTkEntry(
+        self.batch_download_center_mgrs = customtkinter.CTkEntry(
             master=self.frame_right,
             placeholder_text="Insert Center MGRS Grid")
         # assign batch download's center MGRS
-        self.batch_download_center_mgrs_entry.grid(
+        self.batch_download_center_mgrs.grid(
             row=2, 
             column=1, 
             padx=(12, 0), 
@@ -931,7 +931,7 @@ class App(customtkinter.CTk):
                 # if user chooses to re-input the sensor 1 MGRS value
                 else:
                     # end function
-                    return 0
+                    return
         # exception handling for ValueError
         except ValueError:
             # if value error occurs, set Sensor 1 MGRS value to None
@@ -958,7 +958,7 @@ class App(customtkinter.CTk):
             # if user choose to re-input the Sensor 1 LOB value
             else:
                 # end function
-                return 0
+                return
         # try to read the Sensor 1 PWR Received value
         try:
             # get input from Sensor 1 PWR Received input field
@@ -982,7 +982,7 @@ class App(customtkinter.CTk):
             # if user chooses to re-input the Sensor 1 PWR Received value
             else:
                 # end function
-                return 0
+                return
         # try to read the Sensor 2 MGRS value
         try:
             # if Single LOB boolean value is FALSE
@@ -1007,7 +1007,7 @@ class App(customtkinter.CTk):
                     # if user chooses to re-input the Sensor 2 MGRS value
                     elif choice == False:
                         # end function
-                        return 0
+                        return
                     # if user chooses to utilize only a single LOB
                     elif choice == 'SL':
                         # set Single LOB boolean value to TRUE
@@ -1057,7 +1057,7 @@ class App(customtkinter.CTk):
                 # if user chooses to re-input the Sensor 2 LOB value
                 elif choice == False:
                     # end function
-                    return 0
+                    return
                 # if user chooses to only utilize a Single LOB
                 elif choice == 'SL':
                     # set Single LOB Boolean value to TRUE
@@ -1095,13 +1095,13 @@ class App(customtkinter.CTk):
                     # clear the Sensor 2 Received PWR input field
                     self.sensor2_Rpwr.delete(0,END)
                     # insert the default Sensor 2 PWR Received value
-                    self.sensor2_Rpwr.insert(0,App.DEFAULT_VALUES['Sensor 2 PWR Received'])  
+                    self.sensor2_Rpwr.insert(0,App.DEFAULT_VALUES['Sensor 2 PWR Received'])
                     # set local Sensor 2 PWR Received value to default value
                     self.sensor2_power_received_dBm_val = App.DEFAULT_VALUES['Sensor 2 PWR Received']
                 # if user chooses to re-input the Sensor 2 PWR Received value
                 elif choice == False:
                     # end function
-                    return 0
+                    return
                 # if user chooses to only utilize a single LOB
                 elif choice == 'SL':
                     # set Single LOB Boolean to TRUE
@@ -1142,7 +1142,7 @@ class App(customtkinter.CTk):
                     # if user chooses to re-input the Sensor 3 MGRS value
                     elif choice == False:
                         # end function
-                        return 0
+                        return
                     # if user chooses to utilize only a single LOB
                     elif choice == 'SL':
                         # set Single LOB boolean value to TRUE
@@ -1201,7 +1201,7 @@ class App(customtkinter.CTk):
                 # if user chooses to re-input the Sensor 3 LOB value
                 elif choice == False:
                     # end function
-                    return 0
+                    return
                 # if user chooses to only utilize a Single LOB
                 elif choice == 'LOB/CUT':
                     # set Single LOB boolean value to TRUE
@@ -1247,7 +1247,7 @@ class App(customtkinter.CTk):
                 # if user chooses to re-input the Sensor 3 PWR Received value
                 elif choice == False:
                     # end function
-                    return 0
+                    return
                 # if user chooses to only utilize a single LOB
                 elif choice == 'LOB/CUT':
                     # set Single LOB boolean value to TRUE
@@ -1290,7 +1290,7 @@ class App(customtkinter.CTk):
             # if user chooses to re-input the frequency value
             else:
                 # end function
-                return 0
+                return
         # try to read the input Min ERP value
         try:
             # read the Min ERP value from the input field
@@ -1314,7 +1314,7 @@ class App(customtkinter.CTk):
             # if user chooses to re-input Min ERP value
             else:
                 # end function
-                return 0
+                return
         # try to read Max ERP from input field
         try:
             # read Max ERP from input field
@@ -1338,7 +1338,7 @@ class App(customtkinter.CTk):
             # if user chooses to re-input the Max ERP value
             else:
                 # end function
-                return 0
+                return
         # try to read path-loss coefficient value
         try:
             # set local path-loss coefficient value to global path-loss coefficent value
@@ -1358,7 +1358,7 @@ class App(customtkinter.CTk):
             # if user chooses to re-input the path-loss coefficient
             else:
                 # end function
-                return 0
+                return
 
     def plot_cut(self,l1c,l1r,l1l,l2c,l2r,l2l,multi_cut_bool=False):
         # define target classification
@@ -1455,7 +1455,7 @@ class App(customtkinter.CTk):
         # set target grid label to include target classification
         self.label_target_grid.configure(text=f'TARGET GRIDs {self.target_class}'.strip(),text_color='red')
         # display info message that no LOB intersection exists  
-        self.show_info("No LOB intersection detected!")
+        self.show_info("No LOB intersection(s) detected!")
         if self.sensor1_mgrs_val != None:
             # calculate sensor 1 target coordinate
             sensor1_target_coord = [np.average([s1lnmc[0],s1lfmc[0]]),np.average([s1lnmc[1],s1lfmc[1]])]
@@ -1929,6 +1929,70 @@ class App(customtkinter.CTk):
         """
         return mgrs_input[2:5].isalpha() and mgrs_input[:2].isdigit() and mgrs_input[5:].isdigit() and len(mgrs_input[5:]) % 2 == 0
     
+    def check_coord_input(self,coord_input):
+        """
+        Determine if the coordinates input is valid
+
+        Parameters
+        ----------
+        self: App Object
+            GUI application object
+        coord_input : str,list,tuple
+            Candidate coordinate input
+
+        Returns
+        -------
+        Boolean
+            Determination if coordinate is valid (TRUE) or not (FALSE)
+
+        """
+        def coord_list_range_check(coord_list):
+            if -90 <= coord_list[0] <= 90 and -180 <= coord_list[1] <= 180:
+                return True
+            return False
+        # check if string input
+        if isinstance(coord_input,str):
+            if len(coord_input.split(',')) == 2:
+                return coord_list_range_check([float(c) for c in coord_input.split(',')])
+            elif len(coord_input.split()) == 2:
+                return coord_list_range_check([float(c) for c in coord_input.split()])
+            return False
+        # checkc if list input
+        elif isinstance(coord_input, list):
+            return coord_list_range_check(coord_input)
+        # check if tuple input
+        elif isinstance(coord_input, tuple):
+            return coord_list_range_check(list(coord_input))
+        
+    def correct_coord_input(self,coord):
+        """
+        Corrects coordinate input formats
+
+        Parameters
+        ----------
+        coord : list,str,tuple
+            User's coordinate input
+
+        Returns
+        -------
+        list
+            Coordinate in correct format
+
+        """
+        # if space-seperated string
+        if coord.count(',') == 0 and len(coord.strip().split()) == 2: 
+            return [float(c) for c in coord.split()]
+        # if comma-seperated string
+        elif coord.count(',') == 1 and len(coord.strip().split(',')) == 2: 
+            return [float(c) for c in coord.split(',')]
+        # if list of strings
+        elif isinstance(coord,list) and len(coord) == 2 and (isinstance(coord[0],str) or isinstance(coord[1],str)):
+            return [float(c) for c in coord.split(',')]
+        # if list of strings
+        elif isinstance(coord,tuple) and len(coord) == 2:
+            return [float(c) for c in list(coord)]
+        return coord
+    
     def log_target_data(self):
         """
         Logs current input fields and targeting data in a date-specific csv file
@@ -1950,6 +2014,10 @@ class App(customtkinter.CTk):
                        'EWT_1_MGRS','EWT_1_LATLON','EWT_1_LOB_DEGREES','EWT_1_PWR_REC_DbM','EWT_1_DIST2TGT_KM','EWT_1_MIN_DIST_KM','EWT_1_MAX_DIST_KM',
                        'EWT_2_MGRS','EWT_2_LATLON','EWT_2_LOB_DEGREES','EWT_2_PWR_REC_DbM','EWT_2_DIST2TGT_KM','EWT_2_MIN_DIST_KM','EWT_2_MAX_DIST_KM',
                        'EWT_3_MGRS','EWT_3_LATLON','EWT_3_LOB_DEGREES','EWT_3_PWR_REC_DbM','EWT_3_DIST2TGT_KM','EWT_3_MIN_DIST_KM','EWT_3_MAX_DIST_KM']
+        # assess if directory exists
+        if not os.path.exists(self.log_directory):
+            # create log directory
+            os.makedirs(self.log_directory)
         # define log file name
         filename = f"EW-targeting-log-{str(datetime.datetime.today()).split()[0]}.csv"
         # if log file already exists
@@ -1983,7 +2051,7 @@ class App(customtkinter.CTk):
         else:
             # end function w/o logging
             self.show_info("Insufficient input. No data logged.")
-            return 0
+            return
         # if sensor 1 has data in the input fields
         if self.sensor1_mgrs_val != None:
             row_data.append(self.sensor1_mgrs_val)
@@ -1997,7 +2065,7 @@ class App(customtkinter.CTk):
         else:
             # end function w/o logging
             self.show_info("Insufficient input. No data logged.")
-            return 0
+            return
         # if sensor 2 has data in the input fields
         if self.sensor2_mgrs_val != None:
             row_data.append(self.sensor2_mgrs_val)
@@ -2033,7 +2101,7 @@ class App(customtkinter.CTk):
         except PermissionError:
             # error message if file is currently open
             self.show_info("Log file currently open. Cannot log data!")
-            return 0
+            return
         self.show_info("Data successfully logged!!!")    
     
     def add_marker_event(self, coords):
@@ -2065,15 +2133,21 @@ class App(customtkinter.CTk):
 
     def search_event(self, event=None):
         try:
-            mgrs = self.mgrs_entry.get()
+            search_mgrs = self.search_mgrs.get()
         except ValueError:
             self.show_info("Invalid MGRS input!")
-        if mgrs[2:5].isalpha() and mgrs[:2].isdigit() and mgrs[5:].isdigit() and len(mgrs[5:]) % 2 == 0:
-            entry_coord = convert_mgrs_to_coords(self.mgrs_entry.get())
-            self.map_widget.set_position(entry_coord[0],entry_coord[1])
-            self.add_marker_event(entry_coord)
+            return
+        if self.check_mgrs_input(search_mgrs):
+            search_coord = convert_mgrs_to_coords(search_mgrs)
+            self.map_widget.set_position(search_coord[0],search_coord[1])
+            self.add_marker_event(search_coord)
+        elif self.check_coord_input(search_mgrs):
+            search_coord = self.correct_coord_input(search_mgrs)
+            self.map_widget.set_position(search_coord[0],search_coord[1])
+            self.add_marker_event(search_coord)
         else:
             self.show_info("Invalid MGRS input!")
+            return
 
     def clear_markers(self):
         for marker in self.marker_list:
@@ -2108,10 +2182,96 @@ class App(customtkinter.CTk):
         self.frequency.delete(0,END)
         self.min_ERP.delete(0,END)
         self.max_ERP.delete(0,END)
+        self.batch_download_center_mgrs.delete(0,END)
+        self.batch_download_zoom_range.delete(0,END)
+        self.batch_download_radius.delete(0,END)
         
     def batch_download(self):
-        pass
-
+        import re, subprocess
+        from main import get_coord_box
+        def append_cmd_to_queue(cmd,file_path=os.path.dirname(os.path.abspath(__file__))+"/batch_tile_queue.csv"):
+            import csv
+            if cmd == "" or cmd == []: return
+            row_to_append = [cmd]
+            with open(file_path, mode='a', newline='') as file:
+                csv_writer = csv.writer(file)
+                csv_writer.writerow(row_to_append)
+        # read center mgrs input
+        center_mgrs = self.batch_download_center_mgrs.get()
+        # check if NOT a valid mgrs
+        if not self.check_mgrs_input(center_mgrs):
+            # check if a valid coordinate
+            center_coord = self.correct_coord_input(center_mgrs)
+            if not self.check_coord_input(center_coord):
+                # display input error warning
+                self.show_info("MGRS / coordiante input is invalid",box_title="Input Error",icon='warning')
+                # end function
+                return
+            # convert coordinate to mgrs string
+            center_mgrs = convert_coords_to_mgrs(center_coord)
+        # if a valid mgrs
+        else:
+            # convert mgrs string to coordinate list
+            center_coord = convert_mgrs_to_coords(center_mgrs)
+        # read zoom string input
+        zoom_string = self.batch_download_zoom_range.get()
+        # check if zoom string is valid
+        if zoom_string == '' or len(zoom_string) > 5 or re.search(r'[a-zA-Z]+', zoom_string):
+            # display error upon invalid zoom string
+            self.show_info("Zoom range is invalid",box_title="Input Error",icon='warning')
+            # end function
+            return
+        # define zoom range
+        min_zoom = min([int(x.strip()) for x in zoom_string.split('-')])
+        max_zoom = max([int(x.strip()) for x in zoom_string.split('-')])
+        if min_zoom < 0: min_zoom = 0
+        if max_zoom > App.MAX_ZOOM: max_zoom = App.MAX_ZOOM
+        # read radius input and determine if valid
+        try:
+            radius_m = int(self.batch_download_radius.get())
+            x_dist_m = y_dist_m = radius_m
+        # if not valid
+        except ValueError:
+            # display error upon invalid radius input
+            self.show_info("Radius input is invalid",box_title="Input Error",icon='warning')
+            # end function
+            return
+        # identify tile download filepath
+        get_tiles_file = os.path.join(self.src_directory, "get_tiles.py")
+        # identify remote tile API
+        tile_url = '"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png"'
+        # identify number of threads dedicated to download
+        parallel_threads = 4
+        # generate coordinate bbox from input
+        coord_bbox = get_coord_box(center_coord,x_dist_m,y_dist_m)
+        # string operation on coordinate bbox
+        coord_bbox = coord_bbox.replace(","," ").split()
+        # generate CLI command
+        cmd = f'python "{get_tiles_file}" "{tile_url}" "{self.tile_directory}" --extent {coord_bbox[0]} {coord_bbox[1]} {coord_bbox[2]} {coord_bbox[3]} --minzoom {min_zoom} --maxzoom {max_zoom} --parallel {parallel_threads}'
+        '''
+        
+        Alter queue append to send args, not entire command
+        Add a main function to estimate run time and a main fuction to give status on current batch download queue
+        gui function to do a popup on the batch download details and a verify 
+        
+        '''
+        append_cmd_to_queue(cmd)
+        # # generate command list
+        # cmd_list = ['python',f'"{get_tiles_file}"',f'"{tile_url}"',f'"{self.tile_directory}"','--extent','{coord_bbox[0]}',
+        #             '{coord_bbox[1]}','{coord_bbox[2]}','{coord_bbox[3]}','--minzoom','{min_zoom}','--maxzoom','{max_zoom}',
+        #             '--parallel','{parallel_threads}']
+        # def download_func(cmd_list):
+        #     # subprocess.Popen(cmd_list,start_new_session=True)
+        #     subprocess.run(cmd, shell=True, start_new_session=True)
+        # # run tile download command
+        # # subprocess.run(cmd, shell=True, start_new_session=True)
+        # from multiprocessing import Process
+        # proc_batch_download = Process(target=download_func,args=(cmd_list))
+        # # procs.append(proc_batch_download)
+        # proc_batch_download.start()
+        
+        
+        
     def polygon_click(self,polygon):
         self.show_info(msg=polygon.name,box_title='Target Data',icon='info')
 
@@ -2136,7 +2296,7 @@ class App(customtkinter.CTk):
             return 'LOB/CUT'
 
     def change_map(self, new_map: str):
-        map_server_url = f'http://127.0.0.1:{App.MAP_SERVER_PORT}'
+        map_server_url = f'http://localhost:{App.MAP_SERVER_PORT}'
         if new_map == 'Local Map Server':
             self.map_widget.set_tile_server(map_server_url+"/{z}/{x}/{y}.png", max_zoom=App.MAX_ZOOM)
         elif new_map == "OpenStreetMap":
@@ -2173,15 +2333,25 @@ class App(customtkinter.CTk):
             self.sensor2_error = 6
 
     def on_closing(self, event=0):
+        # for proc in procs:
+        #     proc.join()
         self.destroy()
         sys.exit()
+        
 
     def start(self):
         self.mainloop()
 
-if __name__ == "__main__":
+def main():
     app = App()
     app.start()
+
+if __name__ == "__main__":
+    from multiprocessing import Process
+    # global procs; procs = []
+    proc_app = Process(target=main)
+    # procs.append(proc_app)
+    proc_app.start()
 
 
 """
@@ -2189,9 +2359,16 @@ DEV NOTES
 
 
 --- MVP Reqs:
-    - missing map data is attempted to be retreived
     - restart app button
-    - batch map data download (center point, radius, zoom min, zoom max)
+    - add config file for hard-coded data
+    - add feature to label "search markers"
+    - clear markers branches into "search markers" and "click markers" via pop-up??
+        - requires different markers groups
+        - distance feature only with "click markers"
+    - use a different thread / process for batch download
+    - give estimate warning prior to executing batch download
+    - main function that removes empty rows in csvs
+    
     
 - earth curvature limitation identified on elevation map
     - circle around EWTs with radius being LOS?
