@@ -19,7 +19,7 @@ from tkintermapview import TkinterMapView
 from main import import_libraries, get_coords_from_LOBs, get_emission_distance, get_polygon_area, get_distance_between_coords, get_line, get_center_coord
 from main import convert_mgrs_to_coords, organize_polygon_coords, convert_coords_to_mgrs, check_for_intersection, get_intersection
 
-# customtkinter.set_default_color_theme("dark-blue")
+customtkinter.set_default_color_theme("green")
 class App(customtkinter.CTk):
     """
     Custom Tkinter Application Class for GUI support
