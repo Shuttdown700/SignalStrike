@@ -19,7 +19,7 @@ from tkintermapview import TkinterMapView
 from main import import_libraries, get_coords_from_LOBs, get_emission_distance, get_polygon_area, get_distance_between_coords, get_line, get_center_coord
 from main import convert_mgrs_to_coords, organize_polygon_coords, convert_coords_to_mgrs, check_for_intersection, get_intersection
 
-customtkinter.set_default_color_theme("green")
+customtkinter.set_default_color_theme(os.path.dirname(os.path.abspath(__file__))+"/color_theme.json")
 class App(customtkinter.CTk):
     """
     Custom Tkinter Application Class for GUI support
@@ -2368,6 +2368,8 @@ DEV NOTES
     - use a different thread / process for batch download
     - give estimate warning prior to executing batch download
     - main function that removes empty rows in csvs
+    - function to retain LOBs until manually cleared
+    - shell code to automatically update (aka do a git fetch / pull)
     
     
 - earth curvature limitation identified on elevation map
