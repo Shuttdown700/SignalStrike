@@ -24,7 +24,7 @@
   "CTkLabel": {
     "corner_radius": 0,
     "fg_color": "transparent",
-    "text_color": ["#242424", "#D6D6D6"]
+    "text_color": ["#D6D6D6", "#D6D6D6"]
   },
   "CTkEntry": {
     "corner_radius": 6,
@@ -41,7 +41,7 @@
     "border_color": ["#3E454A", "#949A9F"],
     "hover_color": ["#325882", "#14375e"],
     "checkmark_color": ["#DCE4EE", "#2A2827"],
-    "text_color": ["#242424", "#D6D6D6"],
+    "text_color": ["#D6D6D6", "#D6D6D6"],
     "text_color_disabled": ["#A3A3A3", "#757575"]
   },
   "CTkSwitch": {
@@ -52,7 +52,7 @@
     "progress_color": ["#3a7ebf", "#1f538d"],
     "button_color": ["#5C5C5C", "#D5D9DE"],
     "button_hover_color": ["#333333", "#FCFCFC"],
-    "text_color": ["#242424", "#D6D6D6"],
+    "text_color": ["#D6D6D6", "#D6D6D6"],
     "text_color_disabled": ["#A3A3A3", "#757575"]
   },
   "CTkRadioButton": {
@@ -62,7 +62,7 @@
     "fg_color": ["#3a7ebf", "#1f538d"],
     "border_color": ["#3E454A", "#949A9F"],
     "hover_color": ["#325882", "#14375e"],
-    "text_color": ["#242424", "#D6D6D6"],
+    "text_color": ["#D6D6D6", "#D6D6D6"],
     "text_color_disabled": ["#A3A3A3", "#757575"]
   },
   "CTkProgressBar": {
@@ -97,7 +97,7 @@
     "border_color": ["#979DA2", "#565B5E"],
     "button_color": ["#979DA2", "#565B5E"],
     "button_hover_color": ["#6E7174", "#7A848D"],
-    "text_color": ["#242424", "#D6D6D6"],
+    "text_color": ["#D6D6D6", "#D6D6D6"],
     "text_color_disabled": ["#7F7F7F", "#757575"]
   },
   "CTkScrollbar": {
@@ -123,7 +123,7 @@
     "border_width": 0,
     "fg_color": ["#FCFCFC", "#333333"],
     "border_color": ["#979DA2", "#565B5E"],
-    "text_color": ["#242424", "#D6D6D6"],
+    "text_color": ["#D6D6D6", "#D6D6D6"],
     "scrollbar_button_color": ["#8C8C8C", "#696969"],
     "scrollbar_button_hover_color": ["#666666", "#878787"]
   },
@@ -133,7 +133,7 @@
   "DropdownMenu": {
     "fg_color": ["#2A2827", "#333333"],
     "hover_color": ["#BFBFBF", "#2A2827"],
-    "text_color": ["#242424", "#D6D6D6"]
+    "text_color": ["#D6D6D6", "#D6D6D6"]
   },
   "CTkFont": {
     "macOS": {
