@@ -968,7 +968,7 @@ class App(customtkinter.CTk):
         # try to read sensor 1 mgrs value
         try:
             # get input from sensor1_mgrs input field
-            self.sensor1_mgrs_val = str(self.sensor1_mgrs.get()).strip()
+            self.sensor1_mgrs_val = str(self.sensor1_mgrs.get()).strip().replace(" ","")
             # assess whether the input MGRS value is valid
             if check_mgrs_input(self.sensor1_mgrs_val):
                 # if MGRS value is valid, pass on to next portion of function code
@@ -1044,7 +1044,7 @@ class App(customtkinter.CTk):
             # if Single LOB boolean value is FALSE
             if not self.single_lob_bool:
                 # get input from Sensor 2 MGRS field
-                self.sensor2_mgrs_val = str(self.sensor2_mgrs.get()).strip()
+                self.sensor2_mgrs_val = str(self.sensor2_mgrs.get()).strip().replace(" ","")
                 # assess if Sensor 2 MGRS input is valid
                 if check_mgrs_input(self.sensor2_mgrs_val):
                     # if MGRS value is valid, pass on to next portion of function code
@@ -1179,7 +1179,7 @@ class App(customtkinter.CTk):
             # if Single LOB and CUT boolean value are FALSE
             if not self.single_lob_bool and not self.cut_bool:
                 # get input from Sensor 3 MGRS field
-                self.sensor3_mgrs_val = str(self.sensor3_mgrs.get()).strip()
+                self.sensor3_mgrs_val = str(self.sensor3_mgrs.get()).strip().replace(" ","")
                 # assess if Sensor 3 MGRS input is valid
                 if check_mgrs_input(self.sensor3_mgrs_val):
                     # if MGRS value is valid, pass on to next portion of function code
@@ -2193,7 +2193,7 @@ class App(customtkinter.CTk):
 
     def search_event(self, event=None):
         try:
-            search_mgrs = self.search_mgrs.get()
+            search_mgrs = self.search_mgrs.get().replace(" ","")
         except ValueError:
             self.show_info("Invalid MGRS input!")
             return
@@ -2313,7 +2313,7 @@ class App(customtkinter.CTk):
                 csv_writer = csv.writer(file)
                 csv_writer.writerow(row_to_append)
         # read center mgrs input
-        center_mgrs = self.batch_download_center_mgrs.get()
+        center_mgrs = self.batch_download_center_mgrs.get().replace(" ","")
         # check if NOT a valid mgrs
         if not check_mgrs_input(center_mgrs):
             # check if a valid coordinate
@@ -2485,6 +2485,8 @@ DEV NOTES
     - if cut exists with one random lob, still plot random lob
     - add enter command to user input
     - assign LOB targets to EWT in info description
+    - allow user to input LOB 3-liner for EWT 2 or 3 if EWT 1 is empty
+    - change log successful display to info, not warning
     
 - earth curvature limitation identified on elevation map
     - circle around EWTs with radius being LOS?
