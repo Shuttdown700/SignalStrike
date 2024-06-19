@@ -1,7 +1,6 @@
 *.bak
 *.cfg
 *.pyc
-**/src/
 **/ewta_venv
 **/Include
 **/logs
@@ -10,3 +9,4 @@
 **/__pycache__
 **/map_tiles
 **/Lib
+**/__pycache__
