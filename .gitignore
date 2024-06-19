@@ -6,7 +6,6 @@
 **/logs
 **/Scripts
 **/venv
-**/__pycache__
 **/map_tiles
 **/Lib
-**/__pycache__
+**/src/__pycache__
