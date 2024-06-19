@@ -1,5 +1,5 @@
 import datetime, os, time
-from main import read_queue, write_queue
+from utilities import read_queue, write_queue
 
 def download_tile(tile,
              output_dir="\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+'/map_tiles/ESRI/',
@@ -52,7 +52,7 @@ def download_tile(tile,
 
 if __name__ == "__main__":
     print('Starting Dynamic Tile Download Service:\n')
-    queue_file_name = os.path.dirname(os.path.abspath(__file__))+"/dynamic_tile_queue.csv"
+    queue_file_name = os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\dynamic_tile_queue.csv"
     if not os.path.exists(queue_file_name): 
         with open(queue_file_name, mode='w', newline='') as file:
             print("Creating batch queue file...\n") 

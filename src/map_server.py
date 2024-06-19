@@ -2,7 +2,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 import csv, os, sys
 
-def append_tile_to_queue(tile,file_path=os.path.dirname(os.path.abspath(__file__))+"/dynamic_tile_queue.csv"):
+def append_tile_to_queue(tile,file_path=os.path.dirname(os.path.abspath(__file__))+"/queue_files/dynamic_tile_queue.csv"):
     """
     Appends tile row to queue csv file
 
@@ -11,7 +11,7 @@ def append_tile_to_queue(tile,file_path=os.path.dirname(os.path.abspath(__file__
     tile : list
         Tile data represented as a [z,y,x] list
     file_path : str, optional
-        csv file path string. The default is os.path.dirname(os.path.abspath(__file__))+"/dynamic_tile_queue.csv".
+        csv file path string. The default is os.path.dirname(os.path.abspath(__file__))+"/queue_files/dynamic_tile_queue.csv".
 
     Returns
     -------

@@ -1,6 +1,6 @@
 import os
 
-from main import import_libraries
+from utilities import import_libraries
 import_libraries([["tiletanic"],["argparse"],["urllib.request"],["json"],
                   ["concurrent.futures",["ThreadPoolExecutor"]],["shapely"],
                   ["pyproj",["Transformer"]]])

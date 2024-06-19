@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from main import import_libraries
+from utilities import import_libraries
 libraries = [['customtkinter'],['CTkMessagebox',['CTkMessagebox']],
              ['numpy'],['os'],['PIL',['Image','ImageTK']],
              ['sys'],['threading'],['tkinter',['END']],['tkintermapview',['TkinterMapView']],
@@ -16,10 +16,10 @@ import sys
 from tkinter import END
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from tkintermapview import TkinterMapView
-from main import import_libraries, get_coords_from_LOBs, get_emission_distance, get_polygon_area, get_distance_between_coords, get_line, get_center_coord
-from main import convert_mgrs_to_coords, organize_polygon_coords, convert_coords_to_mgrs, check_for_intersection, get_intersection
+from utilities import import_libraries, get_coords_from_LOBs, get_emission_distance, get_polygon_area, get_distance_between_coords, get_line, get_center_coord
+from utilities import convert_mgrs_to_coords, organize_polygon_coords, convert_coords_to_mgrs, check_for_intersection, get_intersection, check_mgrs_input, format_readable_mgrs
 
-customtkinter.set_default_color_theme(os.path.dirname(os.path.abspath(__file__))+"/color_theme.json")
+customtkinter.set_default_color_theme(os.path.dirname(os.path.abspath(__file__))+"/config_files/color_theme.json")
 class App(customtkinter.CTk):
     """
     Custom Tkinter Application Class for GUI support
@@ -102,9 +102,13 @@ class App(customtkinter.CTk):
         # set app icon
         self.iconbitmap(os.path.join(self.icon_directory, "app_icon.ico"))
         # define initial marker list
-        self.marker_list = []
-        # define initial polygon list
-        self.polygon_list = []
+        self.user_marker_list = []
+        # define initial LOB list
+        self.lob_list = []
+        # define initial CUT list
+        self.cut_list = []
+        # define initial FIX list
+        self.fix_list = []
         # define initial EW marker list
         self.ewt_marker_list = []
         # define initial target marker list
@@ -144,7 +148,8 @@ class App(customtkinter.CTk):
         self.frame_right = customtkinter.CTkFrame(master=self, corner_radius=0)
         self.frame_right.grid(row=0, column=1, rowspan=1, pady=10, padx=10, sticky="nsew")
 
-        # ============ Input/Ouput Frame ============
+        # ============ User Input/Ouput Frame ============
+        
         # define frame header attributes
         self.label_header = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -213,6 +218,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind EWT function to RETURN keystroke in Sensor 1 MGRS input field
+        self.sensor1_mgrs.bind("<Return>", self.ewt_function)
         # define sensor 1 LOB label
         self.label_sensor1_lob = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -239,6 +246,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind EWT function to RETURN keystroke in Sensor 1 LOB input field
+        self.sensor1_lob.bind("<Return>", self.ewt_function)
         # define sensor 1 received power label attributes
         self.label_sensor1_Rpwr = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -265,6 +274,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind EWT function to RETURN keystroke in Sensor 1 Rpwr input field
+        self.sensor1_Rpwr.bind("<Return>", self.ewt_function)
         # define sensor 2 mgrs label attributes
         self.label_sensor2_mgrs = customtkinter.CTkLabel(
             master = self.frame_left, 
@@ -291,6 +302,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind EWT function to RETURN keystroke in Sensor 2 MGRS input field
+        self.sensor2_mgrs.bind("<Return>", self.ewt_function)
         # define sensor 2 LOB label attributes
         self.label_sensor2_lob = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -317,6 +330,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind EWT function to RETURN keystroke in Sensor 2 LOB input field
+        self.sensor2_lob.bind("<Return>", self.ewt_function)
         # define sensor 2 received power attributes
         self.label_sensor2_Rpwr = customtkinter.CTkLabel(
             self.frame_left, 
@@ -343,6 +358,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind EWT function to RETURN keystroke in Sensor 2 Rpwr input field
+        self.sensor2_Rpwr.bind("<Return>", self.ewt_function)
         # define sensor 3 mgrs label attributes
         self.label_sensor3_mgrs = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -369,6 +386,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind EWT function to RETURN keystroke in Sensor 3 MGRS input field
+        self.sensor3_mgrs.bind("<Return>", self.ewt_function)
         # define sensor 3 LOB label attributes
         self.label_sensor3_lob = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -395,6 +414,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind EWT function to RETURN keystroke in Sensor 3 LOB input field
+        self.sensor3_lob.bind("<Return>", self.ewt_function)
         # define sensor 3 received power label attributes
         self.label_sensor3_Rpwr = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -421,6 +442,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind EWT function to RETURN keystroke in Sensor 3 Rpwr input field
+        self.sensor3_Rpwr.bind("<Return>", self.ewt_function)
         # define target frequency label attributes
         self.label_frequency = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -447,6 +470,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,), 
             pady=(0,0))
+        # bind EWT function to RETURN keystroke in Frequency input field
+        self.frequency.bind("<Return>", self.ewt_function)
         # define min ERP label attributes
         self.label_min_ERP = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -473,6 +498,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind EWT function to RETURN keystroke in Min ERP input field
+        self.min_ERP.bind("<Return>", self.ewt_function)
         # define max ERP label attributes
         self.label_max_ERP = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -499,6 +526,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind EWT function to RETURN keystroke in Max ERP input field
+        self.max_ERP.bind("<Return>", self.ewt_function)
         # define path-loss coefficient label attributes
         self.label_path_loss_coeff = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -741,13 +770,17 @@ class App(customtkinter.CTk):
         # configure third row with low weight
         self.frame_right.grid_rowconfigure(2, weight=0)        
         # configure first column with low weight
-        self.frame_right.grid_columnconfigure(0, weight=0)
+        self.frame_right.grid_columnconfigure(0, weight=1)
         # configure second column with high weight
-        self.frame_right.grid_columnconfigure(1, weight=1)
+        self.frame_right.grid_columnconfigure(1, weight=0)
         # configure third column with low weight
         self.frame_right.grid_columnconfigure(2, weight=0)
         # configure forth column with low weight
         self.frame_right.grid_columnconfigure(3, weight=0)
+        # configure forth column with low weight
+        self.frame_right.grid_columnconfigure(4, weight=0)
+        # configure forth column with low weight
+        self.frame_right.grid_columnconfigure(5, weight=0)
         # define map widget attributes
         self.map_widget = TkinterMapView(
             master=self.frame_right, 
@@ -757,7 +790,7 @@ class App(customtkinter.CTk):
             row=1, 
             rowspan=1, 
             column=0, 
-            columnspan=4,
+            columnspan=6,
             padx=(0, 0), 
             pady=(0, 0),
             sticky="nswe")
@@ -774,38 +807,53 @@ class App(customtkinter.CTk):
             placeholder_text="Insert MGRS Grid")
         # assign mgrs entry form grid position
         self.search_mgrs.grid(
-            row=0, 
-            column=0, 
+            row=0,
+            column=0,
+            columnspan=2,
             padx=(12, 0), 
             pady=12,
-            sticky="we")
-        # bind mgrs entry keystroke to search function
+            sticky="ew")
+        # bind mgrs entry RETURN keystroke to search function
         self.search_mgrs.bind("<Return>", self.search_event)
         # define search button attributes
         self.button_search = customtkinter.CTkButton(
             master=self.frame_right,
-            text="Search",
+            text="Search Location",
             width=90,
             command=self.search_event)
         # assign search button grid position
         self.button_search.grid(
             row=0,
             rowspan=1,
-            column=1, 
+            column=2, 
             columnspan=1, 
             padx=(12, 0), 
             pady=12,
-            sticky="w")
+            sticky="ew")
+        # define clear LOBs button attributes
+        self.button_clear_LOBs = customtkinter.CTkButton(
+            master=self.frame_right,
+            text="Clear TGT Data",
+            command=self.clear_target_overlays)
+        # assign clear LOBs button grid position
+        self.button_clear_LOBs.grid(
+            row=0, 
+            rowspan=1,
+            column=3, 
+            columnspan=1, 
+            padx=(12, 0), 
+            pady=12,
+            sticky="ew")
         # define clear markers button attributes
         self.button_clear_markers = customtkinter.CTkButton(
             master=self.frame_right,
             text="Clear Markers",
-            command=self.clear_markers)
+            command=self.clear_user_markers)
         # assign clear markers button grid position
         self.button_clear_markers.grid(
             row=0, 
             rowspan=1,
-            column=2, 
+            column=4, 
             columnspan=1, 
             padx=(12, 0), 
             pady=12,
@@ -819,22 +867,11 @@ class App(customtkinter.CTk):
         self.map_option_menu.grid(
             row=0,
             rowspan=1,
-            column=3, 
+            column=5, 
             columnspan=1, 
             padx=(12, 0), 
             pady=12,
             sticky="e")
-        # define batch download radius (in m)
-        self.batch_download_radius = customtkinter.CTkEntry(
-            master=self.frame_right,
-            placeholder_text="Radius (in meters)")
-        # assign batch download radius 
-        self.batch_download_radius.grid(
-            row=2, 
-            column=0, 
-            padx=(12, 0), 
-            pady=12,
-            sticky="we")
         # define batch download center MGRS
         self.batch_download_center_mgrs = customtkinter.CTkEntry(
             master=self.frame_right,
@@ -842,7 +879,19 @@ class App(customtkinter.CTk):
         # assign batch download's center MGRS
         self.batch_download_center_mgrs.grid(
             row=2, 
-            column=1, 
+            column=0,
+            columnspan=2,
+            padx=(12, 0), 
+            pady=12,
+            sticky="we")
+        # define batch download radius (in m)
+        self.batch_download_radius = customtkinter.CTkEntry(
+            master=self.frame_right,
+            placeholder_text="Radius (in meters)")
+        # assign batch download radius 
+        self.batch_download_radius.grid(
+            row=2, 
+            column=2, 
             padx=(12, 0), 
             pady=12,
             sticky="we")
@@ -853,24 +902,37 @@ class App(customtkinter.CTk):
         # assign batch download radius 
         self.batch_download_zoom_range.grid(
             row=2, 
-            column=2, 
+            column=3, 
             padx=(12, 0), 
             pady=12,
             sticky="we")
-        # define clear markers button attributes
+        # define target error attributes
+        self.label_batch_download_time_estimate = customtkinter.CTkLabel(
+            master=self.frame_right, 
+            text="Est. Download Time: N/A",
+            text_color='white')
+        # assign target error attributes grid position
+        self.label_batch_download_time_estimate.grid(
+            row=2,
+            rowspan=1,
+            column=4, 
+            columnspan=1,
+            padx=(12,0), 
+            pady=(0,0))
+        # define batch download button attributes
         self.button_batch_download = customtkinter.CTkButton(
             master=self.frame_right,
             text="Download Map Data",
             command=self.batch_download)
-        # assign clear markers button grid position
+        # assign batch download button grid position
         self.button_batch_download.grid(
             row=2, 
             rowspan=1,
-            column=3, 
+            column=5, 
             columnspan=1, 
             padx=(12, 0), 
             pady=12,
-            sticky="e")
+            sticky="we")
 
         # set initial location
         self.map_widget.set_position(31.8691,-81.6090)
@@ -896,12 +958,6 @@ class App(customtkinter.CTk):
         self.sensor1_mgrs_val = None; self.sensor2_mgrs_val = None; self.sensor3_mgrs_val = None
         self.sensor1_coord = None; self.sensor2_coord = None; self.sensor3_coord = None
         self.sensor1_max_distance_m = None; self.sensor2_max_distance_m = None ; self.sensor3_max_distance_m = None
-        # delete all previous polygons from map widget
-        self.map_widget.delete_all_polygon()
-        # delete all previous EWTs from map widget
-        self.clear_ewt_markers()
-        # delete all previous target markers from map widget
-        self.clear_target_markers()
         # set values without option for user input 
         self.sensor1_receiver_height_m_val = 2
         self.sensor2_receiver_height_m_val = 2
@@ -914,7 +970,7 @@ class App(customtkinter.CTk):
             # get input from sensor1_mgrs input field
             self.sensor1_mgrs_val = str(self.sensor1_mgrs.get()).strip()
             # assess whether the input MGRS value is valid
-            if self.check_mgrs_input(self.sensor1_mgrs_val):
+            if check_mgrs_input(self.sensor1_mgrs_val):
                 # if MGRS value is valid, pass on to next portion of function code
                 pass
             else:
@@ -990,7 +1046,7 @@ class App(customtkinter.CTk):
                 # get input from Sensor 2 MGRS field
                 self.sensor2_mgrs_val = str(self.sensor2_mgrs.get()).strip()
                 # assess if Sensor 2 MGRS input is valid
-                if self.check_mgrs_input(self.sensor2_mgrs_val):
+                if check_mgrs_input(self.sensor2_mgrs_val):
                     # if MGRS value is valid, pass on to next portion of function code
                     pass
                 else:
@@ -1125,7 +1181,7 @@ class App(customtkinter.CTk):
                 # get input from Sensor 3 MGRS field
                 self.sensor3_mgrs_val = str(self.sensor3_mgrs.get()).strip()
                 # assess if Sensor 3 MGRS input is valid
-                if self.check_mgrs_input(self.sensor3_mgrs_val):
+                if check_mgrs_input(self.sensor3_mgrs_val):
                     # if MGRS value is valid, pass on to next portion of function code
                     pass
                 else:
@@ -1361,6 +1417,7 @@ class App(customtkinter.CTk):
                 return
 
     def plot_cut(self,l1c,l1r,l1l,l2c,l2r,l2l,multi_cut_bool=False):
+        from utilities import generate_DTG
         # define target classification
         self.target_class = '(CUT)'
         # set target label with updated target classification
@@ -1384,7 +1441,7 @@ class App(customtkinter.CTk):
         # define CUT center MGRS grid
         self.target_mgrs = convert_coords_to_mgrs(self.target_coord)
         # define sensor 1 LOB description
-        cut_description = f"Target CUT with {self.target_error_val:,.0f} acres of error"
+        cut_description = f"Target CUT at {format_readable_mgrs(self.target_mgrs)} with {self.target_error_val:,.0f} acres of error"
         # define and set CUT area
         cut_area = self.map_widget.set_polygon(
             position_list=cut_polygon,
@@ -1392,9 +1449,9 @@ class App(customtkinter.CTk):
             outline_color=App.DEFAULT_VALUES['CUT Area Outline Color'],
             border_width=App.DEFAULT_VALUES['Border Width'],
             command=self.polygon_click,
-            name=cut_description)
+            data=cut_description)
         # add CUT polygon to the polygon list
-        self.polygon_list.append(cut_area)
+        self.append_object(cut_area,"CUT")
         # calculate distance from sensor 1 and CUT intersection (in meters)
         if self.sensor1_mgrs_val != None: self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
         # calculate distance from sensor 2 and CUT intersection (in meters)
@@ -1405,12 +1462,14 @@ class App(customtkinter.CTk):
         cut_target_marker = self.map_widget.set_marker(
             deg_x=self.target_coord[0], 
             deg_y=self.target_coord[1], 
-            text=f'{self.target_mgrs[:5]} {self.target_mgrs[5:10]} {self.target_mgrs[10:]}',
+            text=f'{format_readable_mgrs(self.target_mgrs)}',
             image_zoom_visibility=(10, float("inf")),
             marker_color_circle='white',
-            icon=self.target_image)
+            icon=self.target_image,
+            command=self.marker_click,
+            data=f'TGT (CUT)\n{format_readable_mgrs(self.target_mgrs)}\n{generate_DTG()}')
         # add CUT marker to target marker list
-        self.target_marker_list.append(cut_target_marker)  
+        self.append_object(cut_target_marker,"TGT")
         # generate sensor 1 distance from target text     
         if self.sensor1_mgrs_val != None: 
             # generate sensor 1 distance from target text
@@ -1441,7 +1500,7 @@ class App(customtkinter.CTk):
                 self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
         # set target grid field with CUT center MGRS
         if multi_cut_bool: self.target_grid.configure(text="MULTIPLE CUTS")
-        if not multi_cut_bool: self.target_grid.configure(text=f'{self.target_mgrs[:5]} {self.target_mgrs[5:10]} {self.target_mgrs[10:]}',text_color='yellow')
+        if not multi_cut_bool: self.target_grid.configure(text=f'{format_readable_mgrs(self.target_mgrs)}',text_color='yellow')
         # set target error field
         if multi_cut_bool: self.target_error.configure(text="MULTIPLE CUTS")
         if not multi_cut_bool: self.target_error.configure(text=f'{self.target_error_val:,.0f} acres',text_color='white')
@@ -1449,6 +1508,7 @@ class App(customtkinter.CTk):
         self.map_widget.set_position(self.target_coord[0],self.target_coord[1])
         
     def plot_lobs(self,s1lnmc,s1lfmc,s2lnmc,s2lfmc,s3lnmc,s3lfmc):
+        from utilities import generate_DTG
         num_lobs = 3-[self.sensor1_mgrs_val,self.sensor2_mgrs_val,self.sensor3_mgrs_val].count(None)
         # set target class
         self.target_class = f'({num_lobs} {"LOB" if num_lobs == 1 else "LOBs"})'
@@ -1465,12 +1525,14 @@ class App(customtkinter.CTk):
             target1_marker = self.map_widget.set_marker(
                 deg_x=sensor1_target_coord[0], 
                 deg_y=sensor1_target_coord[1], 
-                text=f'{sensor1_target_mgrs[:5]} {sensor1_target_mgrs[5:10]} {sensor1_target_mgrs[10:]}', 
+                text=f'{format_readable_mgrs(sensor1_target_mgrs)}', 
                 image_zoom_visibility=(10, float("inf")),
                 marker_color_circle='white',
-                icon=self.target_image)
+                icon=self.target_image,
+                command=self.marker_click,
+                data=f'TGT (LOB)\n{format_readable_mgrs(sensor1_target_mgrs)}\n{generate_DTG()}')
             # add sensor 1 target marker to target marker list
-            self.target_marker_list.append(target1_marker)
+            self.append_object(target1_marker,"TGT")
             # calculate sensor 1 distance to target 1
             self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,sensor1_target_coord))
             # generate sensor 1 distance from target text     
@@ -1490,12 +1552,14 @@ class App(customtkinter.CTk):
             target2_marker = self.map_widget.set_marker(
                 deg_x=sensor2_target_coord[0], 
                 deg_y=sensor2_target_coord[1], 
-                text=f'{sensor2_target_mgrs[:5]} {sensor2_target_mgrs[5:10]} {sensor2_target_mgrs[10:]}', 
+                text=f'{format_readable_mgrs(sensor2_target_mgrs)}', 
                 image_zoom_visibility=(10, float("inf")),
                 marker_color_circle='white',
-                icon=self.target_image)
+                icon=self.target_image,
+                command=self.marker_click,
+                data=f'TGT (LOB)\n{format_readable_mgrs(sensor2_target_mgrs)}\n{generate_DTG()}')
             # add sensor 2 target marker to tarket marker list
-            self.target_marker_list.append(target2_marker)
+            self.append_object(target2_marker,"TGT")
             # calculate sensor 1 distance to target 2
             self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,sensor2_target_coord))
             # generate sensor 2 distance from target text       
@@ -1515,12 +1579,14 @@ class App(customtkinter.CTk):
             target3_marker = self.map_widget.set_marker(
                 deg_x=sensor3_target_coord[0], 
                 deg_y=sensor3_target_coord[1], 
-                text=f'{sensor3_target_mgrs[:5]} {sensor3_target_mgrs[5:10]} {sensor3_target_mgrs[10:]}', 
+                text=f'{format_readable_mgrs(sensor3_target_mgrs)}', 
                 image_zoom_visibility=(10, float("inf")),
                 marker_color_circle='white',
-                icon=self.target_image)
+                icon=self.target_image,
+                command=self.marker_click,
+                data=f'TGT (LOB)\n{format_readable_mgrs(sensor3_target_mgrs)}\n{generate_DTG()}')
             # add sensor 3 target marker to tarket marker list
-            self.target_marker_list.append(target3_marker)
+            self.append_object(target3_marker,"TGT")
             # calculate sensor 3 distance to target 3
             self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,sensor3_target_coord))
             # generate sensor 3 distance from target text       
@@ -1533,7 +1599,7 @@ class App(customtkinter.CTk):
             sensor3_target_coord = None
         nl = "\n"
         # set target grid field
-        target_grid_list = [f'{x[:5]} {x[5:10]} {x[10:]}' for x in [sensor1_target_mgrs,sensor2_target_mgrs,sensor3_target_mgrs] if x != None]
+        target_grid_list = [f'{format_readable_mgrs(x)}' for x in [sensor1_target_mgrs,sensor2_target_mgrs,sensor3_target_mgrs] if x != None]
         self.target_grid.configure(text=f'{nl.join(target_grid_list)}',text_color='yellow')
         # set target error field
         self.target_error.configure(text='Multiple LOBs',text_color='white')
@@ -1543,10 +1609,11 @@ class App(customtkinter.CTk):
         target_coord_list = [f'{", ".join(x)}' for x in [str(sensor1_target_coord),str(sensor2_target_coord),str(sensor3_target_coord)] if x != None]
         self.target_coord = f'{" | ".join(target_coord_list)}'
 
-    def ewt_function(self):
+    def ewt_function(self,*args):
         """
         Function to calculate target location given EWT input(s)
         """
+        from utilities import generate_DTG
         # reset fields to defaults
         self.label_target_grid.configure(text='')
         self.target_grid.configure(text='')
@@ -1577,6 +1644,8 @@ class App(customtkinter.CTk):
         sensor1_lob_polygon = organize_polygon_coords(sensor1_lob_polygon)
         # calculate sensor 1 LOB error (in acres)
         sensor1_lob_error_acres = get_polygon_area(sensor1_lob_polygon)
+        # define sensor 1 LOB description
+        sensor1_lob_description = f"EWT 1 ({self.sensor1_mgrs_val}) LOB at bearing {int(self.sensor1_grid_azimuth_val)}° between {self.sensor1_min_distance_m/1000:,.2f}km and {self.sensor1_max_distance_m/1000:,.2f}km with {sensor1_lob_error_acres:,.0f} acres of error"
         # define sensor 1 LOB's center line
         lob1_center = get_line(self.sensor1_coord, sensor1_lob_far_middle_coord)
         # define sensor 1 LOB's right-bound error line
@@ -1591,9 +1660,11 @@ class App(customtkinter.CTk):
             image_zoom_visibility=(10, float("inf")),
             marker_color_circle='white',
             text_color='black',
-            icon=self.ew_team1_image)
+            icon=self.ew_team1_image,
+            command=self.marker_click,
+            data=f'EWT 1\n{format_readable_mgrs(self.sensor1_mgrs_val)}\n{generate_DTG()}')
         # add sensor 1 marker to EWT marker list
-        self.ewt_marker_list.append(ew_team1_marker)
+        self.append_object(ew_team1_marker,"EWT")
         # define and set sensor 1 center line
         sensor1_lob = self.map_widget.set_polygon(
             position_list=[(self.sensor1_coord[0],self.sensor1_coord[1]),(sensor1_lob_far_middle_coord[0],sensor1_lob_far_middle_coord[1])],
@@ -1601,11 +1672,9 @@ class App(customtkinter.CTk):
             outline_color=App.DEFAULT_VALUES['LOB Center Line Color'],
             border_width=App.DEFAULT_VALUES['Border Width'],
             command=self.polygon_click,
-            name="Sensor 1 LOB")
+            data="(LINE) "+sensor1_lob_description)
         # add sensor 1 LOB center-line to polygon list
-        self.polygon_list.append(sensor1_lob)
-        # define sensor 1 LOB description
-        sensor1_lob_description = f"EWT 1 ({self.sensor1_mgrs_val}) LOB at bearing {int(self.sensor1_grid_azimuth_val)}° between {self.sensor1_min_distance_m/1000:,.2f}km and {self.sensor1_max_distance_m/1000:,.2f}km with {sensor1_lob_error_acres:,.0f} acres of error"
+        self.append_object(sensor1_lob,"LOB")
         # define and set sensor 1 LOB area
         sensor1_lob_area = self.map_widget.set_polygon(
             position_list=sensor1_lob_polygon,
@@ -1613,9 +1682,9 @@ class App(customtkinter.CTk):
             outline_color=App.DEFAULT_VALUES['LOB Area Outline Color'],
             border_width=App.DEFAULT_VALUES['Border Width'],
             command=self.polygon_click,
-            name=sensor1_lob_description)
+            data="(AREA) "+sensor1_lob_description)
         # add sensor 1 LOB area to polygon list
-        self.polygon_list.append(sensor1_lob_area)
+        self.append_object(sensor1_lob_area,"LOB")
         # if sensor 2 has non-None input values
         if self.sensor2_mgrs_val != None and self.sensor2_grid_azimuth_val != None and self.sensor2_power_received_dBm_val != None:
             # convert sensor 2 MGRS to coordinates
@@ -1640,6 +1709,8 @@ class App(customtkinter.CTk):
             sensor2_lob_polygon = organize_polygon_coords(sensor2_lob_polygon)
             # calculate LOB 2 sensor error (in acres)
             sensor2_lob_error_acres = get_polygon_area(sensor2_lob_polygon)
+            # define LOB 2 description
+            sensor2_lob_description = f"EWT 2 ({self.sensor2_mgrs_val}) LOB at bearing {int(self.sensor2_grid_azimuth_val)}° between {self.sensor2_min_distance_m/1000:,.2f}km and {self.sensor2_max_distance_m/1000:,.2f}km with {sensor2_lob_error_acres:,.0f} acres of error"
             # define sensor 2 LOB center-line
             lob2_center = get_line(self.sensor2_coord, sensor2_lob_far_middle_coord)
             # define sensor 2 LOB right-bound error line
@@ -1654,9 +1725,11 @@ class App(customtkinter.CTk):
                 image_zoom_visibility=(10, float("inf")),
                 marker_color_circle='white',
                 text_color='black',
-                icon=self.ew_team2_image)
+                icon=self.ew_team2_image,
+                command=self.marker_click,
+                data=f'EWT 2\n{format_readable_mgrs(self.sensor1_mgrs_val)}\n{generate_DTG()}')
             # add sensor 2 marker to EWT marker list
-            self.ewt_marker_list.append(ew_team2_marker)
+            self.append_object(ew_team2_marker,"EWT")
             # define and set sensor 2 LOB area
             sensor2_lob = self.map_widget.set_polygon(
                 position_list=[(self.sensor2_coord[0],self.sensor2_coord[1]),(sensor2_lob_far_middle_coord[0],sensor2_lob_far_middle_coord[1])],
@@ -1664,11 +1737,9 @@ class App(customtkinter.CTk):
                 outline_color=App.DEFAULT_VALUES['LOB Center Line Color'],
                 border_width=App.DEFAULT_VALUES['Border Width'],
                 command=self.polygon_click,
-                name="Sensor 2 LOB")
+                data="(LINE) "+sensor2_lob_description)
             # add sensor 2 LOB area to polygon list
-            self.polygon_list.append(sensor2_lob)
-            # define sensor 2 LOB description
-            sensor2_lob_description = f"EWT 2 ({self.sensor2_mgrs_val}) LOB at bearing {int(self.sensor2_grid_azimuth_val)}° between {self.sensor2_min_distance_m/1000:,.2f}km and {self.sensor2_max_distance_m/1000:,.2f}km with {sensor2_lob_error_acres:,.0f} acres of error"
+            self.append_object(sensor2_lob,"LOB")
             # define and set sensor 2 LOB area
             sensor2_lob_area = self.map_widget.set_polygon(
                 position_list=sensor2_lob_polygon,
@@ -1676,9 +1747,9 @@ class App(customtkinter.CTk):
                 outline_color=App.DEFAULT_VALUES['LOB Area Outline Color'],
                 border_width=App.DEFAULT_VALUES['Border Width'],
                 command=self.polygon_click,
-                name=sensor2_lob_description)
+                data="(AREA) "+sensor2_lob_description)
             # add LOB area to polygon list
-            self.polygon_list.append(sensor2_lob_area)
+            self.append_object(sensor2_lob_area,"LOB")
             # if sensor 3 has non-None input values 
             if self.sensor3_mgrs_val != None and self.sensor3_grid_azimuth_val != None and self.sensor3_power_received_dBm_val != None:
                 # define target classification
@@ -1707,6 +1778,8 @@ class App(customtkinter.CTk):
                 sensor3_lob_polygon = organize_polygon_coords(sensor3_lob_polygon)
                 # calculate LOB 3 sensor error (in acres)
                 sensor3_lob_error_acres = get_polygon_area(sensor3_lob_polygon)
+                # define sensor 3 LOB description
+                sensor3_lob_description = f"EWT 3 ({self.sensor3_mgrs_val}) LOB at bearing {int(self.sensor3_grid_azimuth_val)}° between {self.sensor3_min_distance_m/1000:,.2f}km and {self.sensor3_max_distance_m/1000:,.2f}km with {sensor3_lob_error_acres:,.0f} acres of error"
                 # define sensor 3 LOB center-line
                 lob3_center = get_line(self.sensor3_coord, sensor3_lob_far_middle_coord)
                 # define sensor 3 LOB right-bound error line
@@ -1721,9 +1794,11 @@ class App(customtkinter.CTk):
                     image_zoom_visibility=(10, float("inf")),
                     marker_color_circle='white',
                     text_color='black',
-                    icon=self.ew_team3_image)
+                    icon=self.ew_team3_image,
+                    command=self.marker_click,
+                    data=f'EWT 3\n{format_readable_mgrs(self.sensor1_mgrs_val)}\n{generate_DTG()}')
                 # add sensor 3 marker to EWT marker list
-                self.ewt_marker_list.append(ew_team3_marker)
+                self.append_object(ew_team3_marker,"EWT")
                 # define and set sensor 3 LOB area
                 sensor3_lob = self.map_widget.set_polygon(
                     position_list=[(self.sensor3_coord[0],self.sensor3_coord[1]),(sensor3_lob_far_middle_coord[0],sensor3_lob_far_middle_coord[1])],
@@ -1731,11 +1806,9 @@ class App(customtkinter.CTk):
                     outline_color=App.DEFAULT_VALUES['LOB Center Line Color'],
                     border_width=App.DEFAULT_VALUES['Border Width'],
                     command=self.polygon_click,
-                    name="Sensor 3 LOB")
+                    data="(LINE) "+sensor3_lob_description)
                 # add sensor 2 LOB area to polygon list
-                self.polygon_list.append(sensor3_lob)
-                # define sensor 3 LOB description
-                sensor3_lob_description = f"EWT 3 ({self.sensor3_mgrs_val}) LOB at bearing {int(self.sensor3_grid_azimuth_val)}° between {self.sensor3_min_distance_m/1000:,.2f}km and {self.sensor3_max_distance_m/1000:,.2f}km with {sensor3_lob_error_acres:,.0f} acres of error"
+                self.append_object(sensor3_lob,"LOB")
                 # define and set sensor 2 LOB area
                 sensor3_lob_area = self.map_widget.set_polygon(
                     position_list=sensor3_lob_polygon,
@@ -1743,9 +1816,9 @@ class App(customtkinter.CTk):
                     outline_color=App.DEFAULT_VALUES['LOB Area Outline Color'],
                     border_width=App.DEFAULT_VALUES['Border Width'],
                     command=self.polygon_click,
-                    name=sensor3_lob_description)
+                    data="(AREA) "+sensor3_lob_description)
                 # add LOB area to polygon list
-                self.polygon_list.append(sensor3_lob_area)
+                self.append_object(sensor3_lob_area,"LOB")
                 ewt1_ewt2_intersection_bool = check_for_intersection(self.sensor1_coord,sensor1_lob_far_middle_coord,self.sensor2_coord,sensor2_lob_far_middle_coord)
                 ewt2_ewt3_intersection_bool = check_for_intersection(self.sensor2_coord,sensor2_lob_far_middle_coord,self.sensor3_coord,sensor3_lob_far_middle_coord)
                 ewt1_ewt3_intersection_bool = check_for_intersection(self.sensor1_coord,sensor1_lob_far_middle_coord,self.sensor3_coord,sensor3_lob_far_middle_coord)
@@ -1761,15 +1834,18 @@ class App(customtkinter.CTk):
                     self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.target_coord))
                     self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.target_coord))
                     self.target_error_val = 5
+                    fix_description = f"Target FIX at {format_readable_mgrs(self.target_mgrs)} with {self.target_error_val:,.0f} acres of error"
                     fix_target_marker = self.map_widget.set_marker(
                         deg_x=self.target_coord[0], 
                         deg_y=self.target_coord[1], 
-                        text=f'{self.target_mgrs[:5]} {self.target_mgrs[5:10]} {self.target_mgrs[10:]}',
+                        text=f'{format_readable_mgrs(self.target_mgrs)}',
                         image_zoom_visibility=(10, float("inf")),
                         marker_color_circle='white',
-                        icon=self.target_image)
-                    # add CUT marker to target marker list
-                    self.target_marker_list.append(fix_target_marker)  
+                        icon=self.target_image,
+                        command=self.marker_click,
+                        data=f'TGT {self.target_class}\n{format_readable_mgrs(self.target_mgrs)}\n{generate_DTG()}')
+                    # add FIX marker to target marker list
+                    self.append_object(fix_target_marker,"TGT")
                     # generate sensor 1 distance from target text     
                     dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
                     # set sensor 1 distance field
@@ -1783,7 +1859,7 @@ class App(customtkinter.CTk):
                     # set sensor 2 distance field
                     self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
                     # set target grid field with CUT center MGRS
-                    self.target_grid.configure(text=f'{self.target_mgrs[:5]} {self.target_mgrs[5:10]} {self.target_mgrs[10:]}',text_color='yellow')
+                    self.target_grid.configure(text=f'{format_readable_mgrs(self.target_mgrs)}',text_color='yellow')
                     # set target error field
                     self.target_error.configure(text=f'{self.target_error_val:,.0f} acres',text_color='white')
                     # set map position at CUT target 
@@ -1796,13 +1872,14 @@ class App(customtkinter.CTk):
                     # define sensor FIX description
                     fix_description = f"Target FIX with {self.target_error_val:,.0f} acres of error"
                     # define and set CUT area
-                    fix = self.map_widget.set_polygon(
+                    fix_area = self.map_widget.set_polygon(
                         position_list=fix_polygon,
                         fill_color=App.DEFAULT_VALUES['LOB Fill Color'],
                         outline_color=App.DEFAULT_VALUES['FIX Area Outline Color'],
                         border_width=App.DEFAULT_VALUES['Border Width'],
                         command=self.polygon_click,
-                        name=fix_description)
+                        data=fix_description)
+                    self.append_object(fix_area,"FIX")
                 # EWT 1 & 2 CUT, EWT 3 LOB (TOTAL 1 CUT)
                 elif ewt1_ewt2_intersection_bool and not ewt2_ewt3_intersection_bool and not ewt1_ewt3_intersection_bool:
                     self.plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound)
@@ -1862,14 +1939,16 @@ class App(customtkinter.CTk):
             single_lob_target_marker = self.map_widget.set_marker(
                 deg_x=self.target_coord[0], 
                 deg_y=self.target_coord[1], 
-                text=f'{self.target_mgrs[:5]} {self.target_mgrs[5:10]} {self.target_mgrs[10:]}', 
+                text=f'{format_readable_mgrs(self.target_mgrs)}', 
                 image_zoom_visibility=(10, float("inf")),
                 marker_color_circle='white',
-                icon=self.target_image)
+                icon=self.target_image,
+                command=self.marker_click,
+                data=f'TGT {self.target_class}\n{format_readable_mgrs(self.target_mgrs)}\n{generate_DTG()}')
             # add single LOB target marker to target marker list
-            self.target_marker_list.append(single_lob_target_marker)
+            self.append_object(single_lob_target_marker,"TGT")
             # set target grid field
-            self.target_grid.configure(text=f'{self.target_mgrs[:5]} {self.target_mgrs[5:10]} {self.target_mgrs[:10]}',text_color='yellow')
+            self.target_grid.configure(text=f'{format_readable_mgrs(self.target_mgrs)}',text_color='yellow')
             # calculate sensor 1 distance to target
             self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
             # generate sensor 1 distance text
@@ -1909,25 +1988,6 @@ class App(customtkinter.CTk):
             distance_unit = 'km'
         # return distance string
         return f'{distance:,.2f}{distance_unit}'
-
-    def check_mgrs_input(self,mgrs_input):
-        """
-        Determine if the MGRS input is valid 
-
-        Parameters:
-        ----------
-        self: App Object
-            GUI application object
-        mgrs_input : str
-            Candidate MGRS input
-
-        Returns:
-        ----------
-        Boolean
-            Determination if MGRS is valid (TRUE) or not (FALSE)
-
-        """
-        return mgrs_input[2:5].isalpha() and mgrs_input[:2].isdigit() and mgrs_input[5:].isdigit() and len(mgrs_input[5:]) % 2 == 0
     
     def check_coord_input(self,coord_input):
         """
@@ -1994,6 +2054,7 @@ class App(customtkinter.CTk):
         return coord
     
     def log_target_data(self):
+        from utilities import generate_DTG
         """
         Logs current input fields and targeting data in a date-specific csv file
 
@@ -2007,7 +2068,7 @@ class App(customtkinter.CTk):
         None
 
         """        
-        import calendar, datetime
+        import datetime
         import pandas as pd
         # define log columns
         log_columns = ['DTG','TGT_CLASS','TGT_MGRS','TGT_LATLON','TGT_ERROR_ACRES',
@@ -2030,12 +2091,8 @@ class App(customtkinter.CTk):
             # create log file DataFrame
             log_data = []
         row_data = []
-        # generate today's date
-        dt = str(datetime.datetime.today())
-        # define today's datetime components
-        year = dt.split()[0].split('-')[0]; month = dt.split()[0].split('-')[1]; day = dt.split()[0].split('-')[2]; hour = dt.split()[1].split(':')[0]; minute = dt.split()[1].split(':')[1]
-        # log today's DTG
-        row_data.append(f"{day}{hour}{minute}{calendar.month_abbr[int(month)].upper()}{year}")
+        dtg = generate_DTG()
+        row_data.append(dtg)
         # if there is target data
         if  self.target_mgrs != None:
             row_data.append(self.target_class.split('(')[-1].split(')')[0])
@@ -2105,13 +2162,16 @@ class App(customtkinter.CTk):
         self.show_info("Data successfully logged!!!")    
     
     def add_marker_event(self, coords):
-        print("Add marker:", coords)
+        marker_text = f"{format_readable_mgrs(convert_coords_to_mgrs(list(coords)))}"
+        print("Added marker:", marker_text)
         new_marker = self.map_widget.set_marker(coords[0], coords[1], 
-                                                text=f"{convert_coords_to_mgrs(list(coords))}",
-                                                image_zoom_visibility=(10, float("inf")))
-        self.marker_list.append(new_marker)
-        if len(self.marker_list) > 1:
-            sequencial_marker_list = self.marker_list[::-1]
+                                                text=marker_text,
+                                                image_zoom_visibility=(10, float("inf")),
+                                                command=self.marker_click,
+                                                data=marker_text)
+        self.append_object(new_marker,"USER")
+        if len(self.user_marker_list) > 1:
+            sequencial_marker_list = self.user_marker_list[::-1]
             sequencial_coord_list = []
             for i,marker in enumerate(sequencial_marker_list):
                 sequencial_coord_list.append(list(marker.position))
@@ -2137,7 +2197,7 @@ class App(customtkinter.CTk):
         except ValueError:
             self.show_info("Invalid MGRS input!")
             return
-        if self.check_mgrs_input(search_mgrs):
+        if check_mgrs_input(search_mgrs):
             search_coord = convert_mgrs_to_coords(search_mgrs)
             self.map_widget.set_position(search_coord[0],search_coord[1])
             self.add_marker_event(search_coord)
@@ -2149,25 +2209,81 @@ class App(customtkinter.CTk):
             self.show_info("Invalid MGRS input!")
             return
 
-    def clear_markers(self):
-        for marker in self.marker_list:
+    def check_if_object_in_object_list(self,map_object,map_object_list):
+        # got to assess marker details... not just the object
+        map_object_data = map_object.data
+        object_data_list = [mo.data for mo in map_object_list]
+        if map_object_data in object_data_list:
+            # print(f"denied marker to object list: {object_data_list}")
+            # delete redudant map object
+            map_object.delete()
+            return True
+        else:
+            # print(f"allowed marker to object list: {object_data_list}")
+            return False
+
+    def append_object(self,map_object,map_object_list_name):
+        # check if map object is a EWT marker
+        if map_object_list_name.upper() == 'EWT':
+            # check if EWT marker already exists in the EWT marker list
+            if not self.check_if_object_in_object_list(map_object,self.ewt_marker_list):
+                # append the EWT marker to the EWT marker list
+                self.ewt_marker_list.append(map_object)
+        # check if map object is a target marker
+        elif map_object_list_name.upper() == 'TGT':
+            # check if target marker already exists in the target marker list
+            if not self.check_if_object_in_object_list(map_object,self.target_marker_list):
+                # append the target marker to the target marker list
+                self.target_marker_list.append(map_object)
+        # check if map object is a USER marker
+        if map_object_list_name.upper() == 'USER':
+            # check if EWT marker already exists in the EWT marker list
+            if not self.check_if_object_in_object_list(map_object,self.user_marker_list):
+                # append the EWT marker to the EWT marker list
+                self.user_marker_list.append(map_object)
+        # check if map object is a LOB
+        elif map_object_list_name.upper() == 'LOB':
+            # check if LOB already exists in the LOB list
+            if not self.check_if_object_in_object_list(map_object,self.lob_list):
+                # append the LOB to the LOB list
+                self.lob_list.append(map_object)
+        # check if map object is a CUT
+        elif map_object_list_name.upper() == 'CUT':
+            # check if CUT already exists in the CUT list
+            if not self.check_if_object_in_object_list(map_object,self.cut_list):
+                # append the CUT to the CUT list
+                self.cut_list.append(map_object)
+        # check if map object is a FIX
+        elif map_object_list_name.upper() == 'FIX':
+            # check if FIX already exists in the FIX list
+            if not self.check_if_object_in_object_list(map_object,self.fix_list):
+                # append the FIX to the FIX list
+                self.fix_list.append(map_object)     
+
+    def clear_user_markers(self):
+        for marker in self.user_marker_list:
             marker.delete()
         for path in self.path_list:
             path.delete()
-        self.marker_list = []
+        self.user_marker_list = []
         self.path_list = []
 
-    def clear_ewt_markers(self):
+    def clear_target_overlays(self):
         for ewt_marker in self.ewt_marker_list:
             ewt_marker.delete()
-
-    def clear_polygons(self):
-        for polygon in self.polygon_list:
-            polygon.delete()
-
-    def clear_target_markers(self):
         for target in self.target_marker_list:
             target.delete()
+        for lob in self.lob_list:
+            lob.delete()
+        for cut in self.cut_list:
+            cut.delete()
+        for fix in self.fix_list:
+            fix.delete()
+        self.ewt_marker_list = []
+        self.target_marker_list = []
+        self.lob_list = []
+        self.cut_list = []
+        self.fix_list = []
 
     def clear_entries(self):
         self.sensor1_mgrs.delete(0,END)
@@ -2187,9 +2303,9 @@ class App(customtkinter.CTk):
         self.batch_download_radius.delete(0,END)
         
     def batch_download(self):
-        import re, subprocess
-        from main import get_coord_box
-        def append_cmd_to_queue(cmd,file_path=os.path.dirname(os.path.abspath(__file__))+"/batch_tile_queue.csv"):
+        import re
+        from utilities import get_coord_box
+        def append_cmd_to_queue(cmd,file_path=os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\batch_tile_queue.csv"):
             import csv
             if cmd == "" or cmd == []: return
             row_to_append = [cmd]
@@ -2199,7 +2315,7 @@ class App(customtkinter.CTk):
         # read center mgrs input
         center_mgrs = self.batch_download_center_mgrs.get()
         # check if NOT a valid mgrs
-        if not self.check_mgrs_input(center_mgrs):
+        if not check_mgrs_input(center_mgrs):
             # check if a valid coordinate
             center_coord = self.correct_coord_input(center_mgrs)
             if not self.check_coord_input(center_coord):
@@ -2270,10 +2386,16 @@ class App(customtkinter.CTk):
         # # procs.append(proc_batch_download)
         # proc_batch_download.start()
         
-        
+    def marker_click(self,marker):
+        if "EWT" in marker.data:
+            self.show_info(msg=marker.data,box_title='EWT Data',icon='info')
+        elif "TGT" in marker.data:
+            self.show_info(msg=marker.data,box_title='TGT Data',icon='info')
+        else:
+            self.show_info(msg=marker.data,box_title='EWT Data',icon='info')
         
     def polygon_click(self,polygon):
-        self.show_info(msg=polygon.name,box_title='Target Data',icon='info')
+        self.show_info(msg=polygon.data,box_title='Target Data',icon='info')
 
     def show_info(self,msg,box_title='Warning Message',icon='warning'):
         CTkMessagebox(title=box_title, message=msg, icon=icon,option_1='Ackowledged')
@@ -2353,26 +2475,22 @@ if __name__ == "__main__":
     # procs.append(proc_app)
     proc_app.start()
 
-
 """
 DEV NOTES
 
-
 --- MVP Reqs:
-    - restart app button
-    - add config file for hard-coded data
-    - add feature to label "search markers"
-    - clear markers branches into "search markers" and "click markers" via pop-up??
-        - requires different markers groups
-        - distance feature only with "click markers"
-    - use a different thread / process for batch download
     - give estimate warning prior to executing batch download
     - main function that removes empty rows in csvs
-    - function to retain LOBs until manually cleared
-    - shell code to automatically update (aka do a git fetch / pull)
-    
+    - csv log error if file is open (bypass by creating alternate file?)
+    - if cut exists with one random lob, still plot random lob
+    - add enter command to user input
+    - assign LOB targets to EWT in info description
     
 - earth curvature limitation identified on elevation map
     - circle around EWTs with radius being LOS?
 - provide option to input coordinates instead of MGRS
+- move batch download function into utilities file
+- add config file for hard-coded data
+- restart app button
+
 """

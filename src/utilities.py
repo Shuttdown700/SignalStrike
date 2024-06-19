@@ -93,6 +93,16 @@ def check_internet_connection():
     except TimeoutError:
         return False
 
+def generate_DTG():
+    import calendar, datetime
+    # generate today's date
+    dt = str(datetime.datetime.today())
+    # define today's datetime components
+    year = dt.split()[0].split('-')[0]; month = dt.split()[0].split('-')[1]; day = dt.split()[0].split('-')[2]; hour = dt.split()[1].split(':')[0]; minute = dt.split()[1].split(':')[1]
+    # log today's DTG
+    dtg = f"{day}{hour}{minute}{calendar.month_abbr[int(month)].upper()}{year}"
+    return dtg
+
 def convert_coordinates_to_meters(coord):
     """
     Converts coodinate distance to meters.
@@ -200,6 +210,30 @@ def convert_mgrs_to_coords(milGrid):
     """
     assert isinstance(milGrid,str), 'MGRS must be a string'
     return list(mgrs.MGRS().toLatLon(milGrid.encode()))
+
+def check_mgrs_input(mgrs_input):
+    """
+    Determine if the MGRS input is valid 
+
+    Parameters:
+    ----------
+    mgrs_input : str
+        Candidate MGRS input
+
+    Returns:
+    ----------
+    Boolean
+        Determination if MGRS is valid (TRUE) or not (FALSE)
+
+    """
+    prefix_len = 5
+    return mgrs_input[:2].isdigit() and mgrs_input[2:prefix_len].isalpha() and mgrs_input[prefix_len:].isdigit() and len(mgrs_input[prefix_len:]) % 2 == 0
+
+def format_readable_mgrs(mgrs):
+    prefix_len = 5; mgrs_len = len(mgrs); precision = int((mgrs_len - prefix_len) / 2)
+    if check_mgrs_input(mgrs): 
+        return f'{mgrs[:prefix_len]} {mgrs[prefix_len:prefix_len+precision]} {mgrs[prefix_len+precision:]}'
+    return mgrs
 
 def covert_degrees_to_radians(degrees):
     """
