@@ -21,6 +21,9 @@ def append_tile_to_queue(tile,file_path=os.path.dirname(os.path.abspath(__file__
     # end function if tile to append is blank
     if tile == "" or tile == []: return
     # open csv file
+    if not os.path.exists(file_path): 
+        with open(file_path, mode='w', newline='') as file:
+            print("Creating batch queue file...\n")
     with open(file_path, mode='a', newline='') as file:
         # read file as csv file object
         csv_writer = csv.writer(file)

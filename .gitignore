@@ -1,6 +1,7 @@
-*.csv
 *.bak
 *.cfg
+*.pyc
+**/src/
 **/ewta_venv
 **/Include
 **/logs
