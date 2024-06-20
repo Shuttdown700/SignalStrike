@@ -4,7 +4,7 @@ from utilities import read_queue, write_queue
 if __name__ == "__main__":
     print('Starting Batch Tile Download Service:\n')
     queue_file_name = os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\batch_tile_queue.csv"
-    if not os.path.exists(queue_file_name): 
+    if not os.path.isfile(queue_file_name): 
         with open(queue_file_name, mode='w', newline='') as file:
             print("Creating batch queue file...\n")    
     wait_interval_sec = 10
