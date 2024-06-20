@@ -232,8 +232,11 @@ def check_mgrs_input(mgrs_input):
 def format_readable_mgrs(mgrs):
     prefix_len = 5; mgrs_len = len(mgrs); precision = int((mgrs_len - prefix_len) / 2)
     if check_mgrs_input(mgrs): 
-        return f'{mgrs[:prefix_len]} {mgrs[prefix_len:prefix_len+precision]} {mgrs[prefix_len+precision:]}'
+        return f'{str(mgrs[:prefix_len]).upper()} {mgrs[prefix_len:prefix_len+precision]} {mgrs[prefix_len+precision:]}'
     return mgrs
+
+def format_readable_DTG(dtg):
+    return dtg
 
 def covert_degrees_to_radians(degrees):
     """
@@ -829,6 +832,11 @@ def remove_empty_csv_rows(csv_file):
     None.
 
     """
+    
+    '''
+    Experiencing access errors...
+    '''
+    
     import csv, shutil, tempfile
     # create temp file
     temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, newline='', encoding='utf-8')
@@ -861,7 +869,7 @@ def read_queue(queue_file_name):
 
     """
     import csv
-    remove_empty_csv_rows(queue_file_name)
+    # remove_empty_csv_rows(queue_file_name)
     with open(queue_file_name, mode='r') as file:
         csv_reader = csv.reader(file)
         tile_queue = []

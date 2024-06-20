@@ -2493,6 +2493,10 @@ DEV NOTES
     - assign LOB targets to EWT in info description
     - allow user to input LOB 3-liner for EWT 2 or 3 if EWT 1 is empty
     - change log successful display to info, not warning
+    - single lob not being attributed to ewt 1
+    - lob area tgt data formatting, needs improvement
+    - distance format function that changes km to m based on number (already exists in dist to ewt)
+    - better formating in log file
     
 - earth curvature limitation identified on elevation map
     - circle around EWTs with radius being LOS?
