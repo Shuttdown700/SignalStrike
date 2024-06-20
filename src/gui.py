@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from utilities import import_libraries
 libraries = [['customtkinter'],['CTkMessagebox',['CTkMessagebox']],
              ['numpy'],['os'],['PIL',['Image','ImageTK']],
@@ -8,17 +9,6 @@ libraries = [['customtkinter'],['CTkMessagebox',['CTkMessagebox']],
 import_libraries(libraries)
 
 import customtkinter
-from CTkMessagebox import CTkMessagebox
-import numpy as np
-import os
-from PIL import Image, ImageTk
-import sys
-from tkinter import END
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-from tkintermapview import TkinterMapView
-from utilities import import_libraries, get_coords_from_LOBs, get_emission_distance, get_polygon_area, get_distance_between_coords, get_line, get_center_coord
-from utilities import convert_mgrs_to_coords, organize_polygon_coords, convert_coords_to_mgrs, check_for_intersection, get_intersection, check_mgrs_input, format_readable_mgrs
-
 customtkinter.set_default_color_theme(os.path.dirname(os.path.abspath(__file__))+"/config_files/color_theme.json")
 class App(customtkinter.CTk):
     """
@@ -33,12 +23,12 @@ class App(customtkinter.CTk):
     # preset height of GUI display (dependent on WIDTH and ASPECT_RATIO)
     HEIGHT = int(WIDTH/ASPECT_RATIO)
     # preset local port that is hosting the map server
-    MAP_SERVER_PORT = 1234 # NEED TO PULL FROM A CONFIG FILE!!!!
+    MAP_SERVER_PORT = 1234
     # present IP address for the map server
     MAP_SERVER_IP = 'localhost'
     # preset maximum map zoom level
     MAX_ZOOM = 19
-    # preset default input values
+    # preset default values
     DEFAULT_VALUES = {
         "Sensor 1 MGRS": "11SNV4178910362",
         "Sensor 1 PWR Received": -75,
@@ -56,8 +46,8 @@ class App(customtkinter.CTk):
         "Path-Loss Coefficient Description":"Moderate Foliage",
         "Border Width":4,
         "LOB Fill Color":"gray95",
-        "LOB Center Line Color":"red",
-        "LOB Area Outline Color":"green",
+        "LOB Center Line Color":"Red",
+        "LOB Area Outline Color":"Green",
         "CUT Area Outline Color":"Blue",
         "FIX Area Outline Color":"Yellow"
     }
@@ -67,6 +57,8 @@ class App(customtkinter.CTk):
         Defines application initialization attributes
         """
         super().__init__(*args, **kwargs)
+        from tkintermapview import TkinterMapView
+        from PIL import Image, ImageTk
         # set title of application 
         self.title(App.APP_NAME)
         # set geometry of GUI display to presets
@@ -948,10 +940,12 @@ class App(customtkinter.CTk):
             command=self.add_marker_event,
             pass_coords=True)
 
-    def read_input_fields(self):
+    def read_ewt_input_fields(self):
         """
-        Function to calculate target location given EWT input(s)
+        Function to read and ajudicate EWT input
         """
+        from tkinter import END
+        from utilities import check_mgrs_input
         # resets single lob and cut boolean value to FALSE, allowing multiple EWT input
         self.single_lob_bool = False; self.cut_bool = False
         # reset sensor mgrs/coord reading to None, conditional in log method
@@ -1417,7 +1411,7 @@ class App(customtkinter.CTk):
                 return
 
     def plot_cut(self,l1c,l1r,l1l,l2c,l2r,l2l,multi_cut_bool=False):
-        from utilities import generate_DTG
+        from utilities import convert_coords_to_mgrs, format_readable_mgrs, generate_DTG, get_polygon_area, get_distance_between_coords, get_intersection, organize_polygon_coords
         # define target classification
         self.target_class = '(CUT)'
         # set target label with updated target classification
@@ -1508,7 +1502,8 @@ class App(customtkinter.CTk):
         self.map_widget.set_position(self.target_coord[0],self.target_coord[1])
         
     def plot_lobs(self,s1lnmc,s1lfmc,s2lnmc,s2lfmc,s3lnmc,s3lfmc):
-        from utilities import generate_DTG
+        from utilities import convert_coords_to_mgrs, format_readable_mgrs, generate_DTG, get_distance_between_coords
+        import numpy as np
         num_lobs = 3-[self.sensor1_mgrs_val,self.sensor2_mgrs_val,self.sensor3_mgrs_val].count(None)
         # set target class
         self.target_class = f'({num_lobs} {"LOB" if num_lobs == 1 else "LOBs"})'
@@ -1530,7 +1525,7 @@ class App(customtkinter.CTk):
                 marker_color_circle='white',
                 icon=self.target_image,
                 command=self.marker_click,
-                data=f'TGT (LOB)\n{format_readable_mgrs(sensor1_target_mgrs)}\n{generate_DTG()}')
+                data=f'TGT (LOB)\nEWT 1\n{format_readable_mgrs(sensor1_target_mgrs)}\n{generate_DTG()}')
             # add sensor 1 target marker to target marker list
             self.append_object(target1_marker,"TGT")
             # calculate sensor 1 distance to target 1
@@ -1557,7 +1552,7 @@ class App(customtkinter.CTk):
                 marker_color_circle='white',
                 icon=self.target_image,
                 command=self.marker_click,
-                data=f'TGT (LOB)\n{format_readable_mgrs(sensor2_target_mgrs)}\n{generate_DTG()}')
+                data=f'TGT (LOB)\nEWT 2\n{format_readable_mgrs(sensor2_target_mgrs)}\n{generate_DTG()}')
             # add sensor 2 target marker to tarket marker list
             self.append_object(target2_marker,"TGT")
             # calculate sensor 1 distance to target 2
@@ -1584,7 +1579,7 @@ class App(customtkinter.CTk):
                 marker_color_circle='white',
                 icon=self.target_image,
                 command=self.marker_click,
-                data=f'TGT (LOB)\n{format_readable_mgrs(sensor3_target_mgrs)}\n{generate_DTG()}')
+                data=f'TGT (LOB)\nEWT 3\n{format_readable_mgrs(sensor3_target_mgrs)}\n{generate_DTG()}')
             # add sensor 3 target marker to tarket marker list
             self.append_object(target3_marker,"TGT")
             # calculate sensor 3 distance to target 3
@@ -1613,7 +1608,8 @@ class App(customtkinter.CTk):
         """
         Function to calculate target location given EWT input(s)
         """
-        from utilities import generate_DTG
+        import numpy as np
+        from utilities import check_for_intersection, convert_coords_to_mgrs, convert_mgrs_to_coords, format_readable_mgrs, generate_DTG, get_center_coord, get_coords_from_LOBs, get_distance_between_coords, get_emission_distance, get_intersection, get_line, get_polygon_area, organize_polygon_coords
         # reset fields to defaults
         self.label_target_grid.configure(text='')
         self.target_grid.configure(text='')
@@ -1623,7 +1619,7 @@ class App(customtkinter.CTk):
         self.target_error.configure(text='')
         self.target_class = ''        
         # read the user input fields
-        self.read_input_fields()
+        self.read_ewt_input_fields()
         # convert sensor 1 mgrs to coords
         self.sensor1_coord = convert_mgrs_to_coords(self.sensor1_mgrs_val)
         # clear sensor 1 distance
@@ -2077,6 +2073,7 @@ class App(customtkinter.CTk):
                        'EWT_1_MGRS','EWT_1_LATLON','EWT_1_LOB_DEGREES','EWT_1_PWR_REC_DbM','EWT_1_DIST2TGT_KM','EWT_1_MIN_DIST_KM','EWT_1_MAX_DIST_KM',
                        'EWT_2_MGRS','EWT_2_LATLON','EWT_2_LOB_DEGREES','EWT_2_PWR_REC_DbM','EWT_2_DIST2TGT_KM','EWT_2_MIN_DIST_KM','EWT_2_MAX_DIST_KM',
                        'EWT_3_MGRS','EWT_3_LATLON','EWT_3_LOB_DEGREES','EWT_3_PWR_REC_DbM','EWT_3_DIST2TGT_KM','EWT_3_MIN_DIST_KM','EWT_3_MAX_DIST_KM']
+        num_ewt_datapoints = 7
         # assess if directory exists
         if not os.path.exists(self.log_directory):
             # create log directory
@@ -2137,7 +2134,7 @@ class App(customtkinter.CTk):
         # if sensor 2 has no data in the input fields
         else:
             # add blank entries to sensor 2 data log
-            for i in range(7): row_data.append('')
+            for i in range(num_ewt_datapoints): row_data.append('')
         # if sensor 2 has data in the input fields
         if self.sensor3_mgrs_val != None:
             row_data.append(self.sensor3_mgrs_val)
@@ -2150,7 +2147,7 @@ class App(customtkinter.CTk):
         # if sensor 3 has no data in the input fields
         else:
             # add blank entries to sensor 3 data log
-            for i in range(7): row_data.append('')
+            for i in range(num_ewt_datapoints): row_data.append('')
         log_data.append(row_data)
         df_log = pd.DataFrame(log_data,columns=log_columns).set_index(['DTG'],drop=True)
         # try to save the updated log file
@@ -2164,6 +2161,8 @@ class App(customtkinter.CTk):
         self.show_info("Data successfully logged!!!")    
     
     def add_marker_event(self, coords):
+        from utilities import convert_coords_to_mgrs, format_readable_mgrs, get_distance_between_coords
+        import numpy as np
         marker_text = f"{format_readable_mgrs(convert_coords_to_mgrs(list(coords)))}"
         print("Added marker:", marker_text)
         new_marker = self.map_widget.set_marker(coords[0], coords[1], 
@@ -2194,6 +2193,7 @@ class App(customtkinter.CTk):
             self.path_list.append(marker_dist)        
 
     def search_event(self, event=None):
+        from utilities import check_mgrs_input, convert_mgrs_to_coords
         try:
             search_mgrs = self.search_mgrs.get().replace(" ","")
         except ValueError:
@@ -2273,21 +2273,22 @@ class App(customtkinter.CTk):
     def clear_target_overlays(self):
         for ewt_marker in self.ewt_marker_list:
             ewt_marker.delete()
+        self.ewt_marker_list = []
         for target in self.target_marker_list:
             target.delete()
+        self.target_marker_list = []
         for lob in self.lob_list:
             lob.delete()
+        self.lob_list = []
         for cut in self.cut_list:
             cut.delete()
+        self.cut_list = []
         for fix in self.fix_list:
             fix.delete()
-        self.ewt_marker_list = []
-        self.target_marker_list = []
-        self.lob_list = []
-        self.cut_list = []
         self.fix_list = []
 
     def clear_entries(self):
+        from tkinter import END
         self.sensor1_mgrs.delete(0,END)
         self.sensor1_lob.delete(0,END)
         self.sensor1_Rpwr.delete(0,END)
@@ -2303,10 +2304,11 @@ class App(customtkinter.CTk):
         self.batch_download_center_mgrs.delete(0,END)
         self.batch_download_zoom_range.delete(0,END)
         self.batch_download_radius.delete(0,END)
+        self.search_mgrs.delete(0,END)
         
     def batch_download(self):
         import re
-        from utilities import get_coord_box
+        from utilities import check_mgrs_input, convert_coords_to_mgrs, convert_mgrs_to_coords, get_coord_box
         def append_cmd_to_queue(cmd,file_path=os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\batch_tile_queue.csv"):
             import csv
             if cmd == "" or cmd == []: return
@@ -2400,9 +2402,11 @@ class App(customtkinter.CTk):
         self.show_info(msg=polygon.data,box_title='Target Data',icon='info')
 
     def show_info(self,msg,box_title='Warning Message',icon='warning'):
+        from CTkMessagebox import CTkMessagebox
         CTkMessagebox(title=box_title, message=msg, icon=icon,option_1='Ackowledged')
 
     def input_error(self,category,msg,single_lob_option=False,cut_option=False):
+        from CTkMessagebox import CTkMessagebox
         if not single_lob_option and not cut_option:
             msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','Use Default'])
         elif single_lob_option and not cut_option:
@@ -2457,6 +2461,7 @@ class App(customtkinter.CTk):
             self.sensor2_error = 6
 
     def on_closing(self, event=0):
+        import sys
         # for proc in procs:
         #     proc.join()
         self.destroy()
@@ -2482,7 +2487,6 @@ DEV NOTES
 
 --- MVP Reqs:
     - give estimate warning prior to executing batch download
-    - main function that removes empty rows in csvs
     - csv log error if file is open (bypass by creating alternate file?)
     - if cut exists with one random lob, still plot random lob
     - add enter command to user input

@@ -53,7 +53,7 @@ def download_tile(tile,
 if __name__ == "__main__":
     print('Starting Dynamic Tile Download Service:\n')
     queue_file_name = os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\dynamic_tile_queue.csv"
-    if not os.path.exists(queue_file_name): 
+    if not os.path.isfile(queue_file_name): 
         with open(queue_file_name, mode='w', newline='') as file:
             print("Creating batch queue file...\n") 
     wait_interval_sec = 10

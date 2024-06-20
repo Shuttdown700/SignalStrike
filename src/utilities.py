@@ -815,52 +815,6 @@ def plot_elevation_data(coord_elev_data,target_coords=None,title_args=None):
     except AttributeError as e:
         return 0
 
-def read_queue(queue_file_name):
-    """
-    Reads a queue csv file
-
-    Parameters
-    ----------
-    queue_file_name : str
-        File path to queue csv file.
-
-    Returns
-    -------
-    tile_queue : list of tuples
-        list of rows, with each row in tuple form.
-
-    """
-    import csv
-    with open(queue_file_name, mode='r') as file:
-        csv_reader = csv.reader(file)
-        tile_queue = []
-        for row in csv_reader:
-            if row == []: continue
-            tile_queue.append(tuple(row))
-    return tile_queue
-
-def write_queue(queue_file_name,queue_data):
-    """
-    Writes a queue csv file
-
-    Parameters
-    ----------
-    queue_file_name : str
-        File path to queue csv file.
-    queue_data : list
-        list of rows, with each row in list form.
-
-    Returns
-    -------
-    None.
-
-    """
-    import csv
-    with open(queue_file_name, mode='w', newline='') as file:
-        csv_writer = csv.writer(file)
-        for row in queue_data:
-            csv_writer.writerow(row)
-
 def remove_empty_csv_rows(csv_file):
     """
     Removes empty rows from csv file
@@ -890,6 +844,53 @@ def remove_empty_csv_rows(csv_file):
                 writer.writerow(row)
     # move temp file to csv file
     shutil.move(temp_file.name, csv_file)
+
+def read_queue(queue_file_name):
+    """
+    Reads a queue csv file
+
+    Parameters
+    ----------
+    queue_file_name : str
+        File path to queue csv file.
+
+    Returns
+    -------
+    tile_queue : list of tuples
+        list of rows, with each row in tuple form.
+
+    """
+    import csv
+    remove_empty_csv_rows(queue_file_name)
+    with open(queue_file_name, mode='r') as file:
+        csv_reader = csv.reader(file)
+        tile_queue = []
+        for row in csv_reader:
+            if row == []: continue
+            tile_queue.append(tuple(row))
+    return tile_queue
+
+def write_queue(queue_file_name,queue_data):
+    """
+    Writes a queue csv file
+
+    Parameters
+    ----------
+    queue_file_name : str
+        File path to queue csv file.
+    queue_data : list
+        list of rows, with each row in list form.
+
+    Returns
+    -------
+    None.
+
+    """
+    import csv
+    with open(queue_file_name, mode='w', newline='') as file:
+        csv_writer = csv.writer(file)
+        for row in queue_data:
+            csv_writer.writerow(row)
 
 '''https://api.open-elevation.com/api/v1/lookup?locations=51.24885624303748,15.570668663974097'''
 
