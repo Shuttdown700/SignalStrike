@@ -8,6 +8,6 @@
 **/venv
 **/map_tiles
 **/Lib
-**/src/__pycache__
-/src/queue_files/batch_tile_queue.csv
-/src/queue_files/dynamic_tile_queue.csv
+**/src/__pycache__/
+src/queue_files/*
+!src/queue_files/.gitkeep
