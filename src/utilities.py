@@ -861,16 +861,37 @@ def write_queue(queue_file_name,queue_data):
         for row in queue_data:
             csv_writer.writerow(row)
 
-## TEST ###
-if __name__ == '__main__':
-    import os
-    from folium.plugins import MarkerCluster
-    center_coord = [51.62788019542925, 15.274024744828047]
-    adjusted_coord = adjust_coordinate(center_coord,azimuth_degrees=160,shift_m=2000)
-    print(adjusted_coord)
-    print(convert_coords_to_mgrs(adjusted_coord))
+def remove_empty_csv_rows(csv_file):
+    """
+    Removes empty rows from csv file
 
-    '''https://api.open-elevation.com/api/v1/lookup?locations=51.24885624303748,15.570668663974097'''
+    Parameters
+    ----------
+    csv_file : str
+        Path to csv file.
+
+    Returns
+    -------
+    None.
+
+    """
+    import csv, shutil, tempfile
+    # create temp file
+    temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, newline='', encoding='utf-8')
+    # open csv and temp file
+    with open(csv_file, mode='r', newline='', encoding='utf-8') as infile, \
+         open(temp_file.name, mode='w', newline='', encoding='utf-8') as outfile:
+        # create csv reader,writer object
+        reader = csv.reader(infile)
+        writer = csv.writer(outfile)
+        # write non-empty rows to the temp file
+        for row in reader:
+            if any(field.strip() for field in row):
+                writer.writerow(row)
+    # move temp file to csv file
+    shutil.move(temp_file.name, csv_file)
+
+'''https://api.open-elevation.com/api/v1/lookup?locations=51.24885624303748,15.570668663974097'''
 
 
 

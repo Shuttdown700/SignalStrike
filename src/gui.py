@@ -1957,6 +1957,8 @@ class App(customtkinter.CTk):
             self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
             # set sensor 2 distance string to "N/A"
             self.sensor2_distance.configure(text='N/A',text_color='white')
+            # set sensor 3 distance string to "N/A"
+            self.sensor3_distance.configure(text='N/A',text_color='white')
             # set target error to sensor 1 LOB error
             self.target_error.configure(text=f'{sensor1_lob_error_acres:,.0f} acres',text_color='white')
             # define target error
