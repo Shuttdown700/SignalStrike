@@ -100,7 +100,7 @@ def generate_DTG():
     # define today's datetime components
     year = dt.split()[0].split('-')[0]; month = dt.split()[0].split('-')[1]; day = dt.split()[0].split('-')[2]; hour = dt.split()[1].split(':')[0]; minute = dt.split()[1].split(':')[1]
     # log today's DTG
-    dtg = f"{day}{hour}{minute}{calendar.month_abbr[int(month)].upper()}{year}"
+    dtg = f"{day if len(str(day)) == 2 else '0'+day}{hour}{minute}{calendar.month_abbr[int(month)].upper()}{year}"
     return dtg
 
 def convert_coordinates_to_meters(coord):
@@ -189,9 +189,12 @@ def convert_coords_to_mgrs(coords,precision=5):
         Location in MGRS notation.
 
     """
-    assert isinstance(coords,list), 'Coordinate input must be a list.'
-    assert len(coords) == 2, 'Coordinate input must be of length 2.'
-    return mgrs.MGRS().toMGRS(coords[0], coords[1],MGRSPrecision=precision)
+    try:
+        assert isinstance(coords,list), 'Coordinate input must be a list.'
+        assert len(coords) == 2, 'Coordinate input must be of length 2.'
+        return mgrs.MGRS().toMGRS(coords[0], coords[1],MGRSPrecision=precision)
+    except AssertionError:
+        return None
 
 def convert_mgrs_to_coords(milGrid):
     """
@@ -208,8 +211,11 @@ def convert_mgrs_to_coords(milGrid):
         Grid coordinate. Example: [lat,long].
 
     """
-    assert isinstance(milGrid,str), 'MGRS must be a string'
-    return list(mgrs.MGRS().toLatLon(milGrid.encode()))
+    try:
+        assert isinstance(milGrid,str), 'MGRS must be a string'
+        return list(mgrs.MGRS().toLatLon(milGrid.encode()))
+    except AssertionError:
+        return None
 
 def check_mgrs_input(mgrs_input):
     """
@@ -236,7 +242,7 @@ def format_readable_mgrs(mgrs):
     return mgrs
 
 def format_readable_DTG(dtg):
-    return dtg
+    return f'At {dtg[2:6]} on {dtg[:2]} {dtg[6:9]} {dtg[-4:]}'
 
 def covert_degrees_to_radians(degrees):
     """
@@ -624,6 +630,27 @@ def get_intersection(L1, L2):
         return False
 
 def check_for_intersection(sensor1_coord,end_of_lob1,sensor2_coord,end_of_lob2):
+    """
+    Checks if there is an intersection between two LOBs
+
+    Parameters
+    ----------
+    sensor1_coord : list
+        Sensor 1 coordinate in [lat,lon] format
+    end_of_lob1 : list
+        Furthest coordinate at the end of sensor 1's LOB
+    sensor2_coord : list
+        Sensor 2 coordinate in [lat,lon] format
+    end_of_lob2 : list
+        Furthest coordinate at the end of sensor 2's LOB
+
+    Returns
+    -------
+    bool
+        Returns TRUE if intersection exists, FALSE if no intersection or NONEs in input field
+
+    """
+    if None in [sensor1_coord,end_of_lob1,sensor2_coord,end_of_lob2]: return False
     def ccw(A,B,C):
         return (C[0]-A[0]) * (B[1]-A[1]) > (B[0]-A[0]) * (C[1]-A[1])
     return ccw(sensor1_coord,sensor2_coord,end_of_lob2) != ccw(end_of_lob1,sensor2_coord,end_of_lob2) and ccw(sensor1_coord,end_of_lob1,sensor2_coord) != ccw(sensor1_coord,end_of_lob1,end_of_lob2)

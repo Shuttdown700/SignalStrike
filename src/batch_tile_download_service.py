@@ -39,5 +39,6 @@ if __name__ == "__main__":
         if t_delta.total_seconds() < wait_interval_sec:
             print(f'Waiting: {wait_interval_sec - t_delta.total_seconds():,.2f} seconds...',end='\n')
             time.sleep(wait_interval_sec - t_delta.total_seconds())
+            wait_interval_sec = 100
         else:
             time.sleep(1)  
