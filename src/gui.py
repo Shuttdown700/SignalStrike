@@ -1826,13 +1826,20 @@ class App(customtkinter.CTk):
             # set target error field
             target_error_list = [x for x in [self.sensor1_lob_error_acres,self.sensor2_lob_error_acres,self.sensor3_lob_error_acres] if x != None]
             self.target_error.configure(text=f'{max(target_error_list):,.0f} acres',text_color='white')
+            self.target_error_val = max(target_error_list)
             # define multi-target MGRS value
             self.target_mgrs = f'{", ".join(target_grid_list)}'
             # define multi-target coordinates
             target_coord_list = [x for x in [self.sensor1_target_coord,self.sensor2_target_coord,self.sensor3_target_coord] if x != None]
+            # set map position based on target location
             self.map_widget.set_position(np.average([x[0] for x in target_coord_list]), np.average([x[1] for x in target_coord_list]))
-            target_coord_list = [f'{", ".join(x)}' for x in [str(self.sensor1_target_coord),str(self.sensor2_target_coord),str(self.sensor3_target_coord)] if x != None]
-            self.target_coord = f'{" | ".join(target_coord_list)}'
+            target_coord_list = [x for x in [self.sensor1_target_coord,self.sensor2_target_coord,self.sensor3_target_coord] if x != None]
+            if len(target_coord_list) == 1:
+                self.target_coord = target_coord_list[0]
+            elif len(target_coord_list) > 1:
+                target_coord_list = [[str(x[0]),str(x[1])] for x in target_coord_list]
+                target_coord_list = [f'{", ".join(x)}' for x in target_coord_list]
+                self.target_coord = f'{" | ".join(target_coord_list)}'
 
     def ewt_function(self,*args):
         """
@@ -1975,7 +1982,6 @@ class App(customtkinter.CTk):
             self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
             self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.target_coord))
             self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.target_coord))
-            # self.target_error_val = 5
             self.target_error_val = get_polygon_area(fix_polygon)
             fix_description = f"Target FIX at {format_readable_mgrs(self.target_mgrs)} with {self.target_error_val:,.0f} acres of error"
             fix_target_marker = self.map_widget.set_marker(
@@ -2051,66 +2057,6 @@ class App(customtkinter.CTk):
         else:
             print("Unknown case")
         self.set_target_field()
-        # # only sensor 1 and 2 have non-None input values
-        # else:
-        #     sensor3_lob_near_middle_coord = None; sensor3_lob_far_middle_coord = None
-        #     # set map zoon level
-        #     self.map_widget.set_zoom(15)
-        #     # assess if cut exists between EWT 1 & EWT 2 LOBs
-        #     ewt1_ewt2_intersection_bool = check_for_intersection(self.sensor1_coord,sensor1_lob_far_middle_coord,self.sensor2_coord,sensor2_lob_far_middle_coord)
-        #     # if there is an intersection between sensor 1 and 2
-        #     if ewt1_ewt2_intersection_bool:
-        #         self.plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound)
-        #     # if there is no intersection between LOBs
-        #     else:
-        #         self.plot_lobs(sensor1_lob_near_middle_coord,sensor1_lob_far_middle_coord,sensor2_lob_near_middle_coord,sensor2_lob_far_middle_coord,sensor3_lob_near_middle_coord,sensor3_lob_far_middle_coord)
-        #     # if there is only one LOB
-        #     else:
-        #         sensor2_lob_near_middle_coord = None; sensor2_lob_far_middle_coord = None
-        #         sensor3_lob_near_middle_coord = None; sensor3_lob_far_middle_coord = None
-        #         # set mag zoom level
-        #         self.map_widget.set_zoom(16)
-        #         # define target classification
-        #         self.target_class = '(LOB)'
-        #         # set target grid label to include target classification
-        #         self.label_target_grid.configure(text=f'TARGET GRID {self.target_class}'.strip(),text_color='red')
-        #         # calculate target coord
-        #         self.target_coord = [np.average([sensor1_lob_near_middle_coord[0],sensor1_lob_far_middle_coord[0]]),np.average([sensor1_lob_near_middle_coord[1],sensor1_lob_far_middle_coord[1]])]
-        #         # set map position between sensor 1 coord and target coord
-        #         self.map_widget.set_position(np.average([self.sensor1_coord[0],self.target_coord[0]]),np.average([self.sensor1_coord[1],self.target_coord[1]]))
-        #         # determine target MGRS grid
-        #         self.target_mgrs = convert_coords_to_mgrs(self.target_coord)
-                
-        #         self.plot_lobs(sensor1_lob_near_middle_coord,sensor1_lob_far_middle_coord,sensor2_lob_near_middle_coord,sensor2_lob_far_middle_coord,sensor3_lob_near_middle_coord,sensor3_lob_far_middle_coord)
-                
-        #         # define and set single LOB target marker
-        #         single_lob_target_marker = self.map_widget.set_marker(
-        #             deg_x=self.target_coord[0], 
-        #             deg_y=self.target_coord[1], 
-        #             text=f'{format_readable_mgrs(self.target_mgrs)}', 
-        #             image_zoom_visibility=(10, float("inf")),
-        #             marker_color_circle='white',
-        #             icon=self.target_image,
-        #             command=self.marker_click,
-        #             data=f'TGT {self.target_class}\n{format_readable_mgrs(self.target_mgrs)}\n{generate_DTG()}')
-        #         # add single LOB target marker to target marker list
-        #         self.append_object(single_lob_target_marker,"TGT")
-        #         # set target grid field
-        #         self.target_grid.configure(text=f'{format_readable_mgrs(self.target_mgrs)}',text_color='yellow')
-        #         # calculate sensor 1 distance to target
-        #         self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
-        #         # generate sensor 1 distance text
-        #         dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
-        #         # set sensor 1 distance string
-        #         self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
-        #         # set sensor 2 distance string to "N/A"
-        #         self.sensor2_distance.configure(text='N/A',text_color='white')
-        #         # set sensor 3 distance string to "N/A"
-        #         self.sensor3_distance.configure(text='N/A',text_color='white')
-        #         # set target error to sensor 1 LOB error
-        #         self.target_error.configure(text=f'{sensor1_lob_error_acres:,.0f} acres',text_color='white')
-        #         # define target error
-        #         self.target_error_val = sensor1_lob_error_acres
     
     def generate_sensor_distance_text(self,distance):
         """
@@ -2226,6 +2172,7 @@ class App(customtkinter.CTk):
                        'EWT_2_MGRS','EWT_2_LATLON','EWT_2_LOB_DEGREES','EWT_2_PWR_REC_DbM','EWT_2_DIST2TGT_KM','EWT_2_MIN_DIST_KM','EWT_2_MAX_DIST_KM',
                        'EWT_3_MGRS','EWT_3_LATLON','EWT_3_LOB_DEGREES','EWT_3_PWR_REC_DbM','EWT_3_DIST2TGT_KM','EWT_3_MIN_DIST_KM','EWT_3_MAX_DIST_KM']
         num_ewt_datapoints = 7
+        ewt_bool = False
         # assess if directory exists
         if not os.path.exists(self.log_directory):
             # create log directory
@@ -2241,24 +2188,30 @@ class App(customtkinter.CTk):
         else:
             # create log file DataFrame
             log_data = []
+        # initilize log entry
         row_data = []
+        # add DTG to log entry
         dtg = generate_DTG()
         row_data.append(dtg)
         # if there is target data
-        if  self.target_mgrs != None:
+        if  self.target_mgrs != None and self.target_coord != None and self.target_error_val != None:
             row_data.append(self.target_class.split('(')[-1].split(')')[0])
-            if row_data[-1] == '2 LOBs':
+            if row_data[-1] == '2 LOBs' or row_data[-1] == '3 LOBs':
                 row_data.append(self.target_mgrs)
                 row_data.append(self.target_coord)
                 row_data.append(self.target_error_val)
             else:
                 row_data.append(self.target_mgrs)
-                row_data.append(', '.join([str(x) for x in self.target_coord]))
+                print(self.target_coord)
+                if isinstance(self.target_coord,list):
+                    row_data.append(', '.join([str(x) for x in self.target_coord]))
+                elif isinstance(self.target_coord,str):
+                    row_data.append(self.target_coord)
                 row_data.append(f'{self.target_error_val:,.2f}')
         # if there is not target data
         else:
             # end function w/o logging
-            self.show_info("Insufficient input. No data logged.")
+            self.show_info("No target data. No data logged.",icon='warning')
             return
         # if sensor 1 has data in the input fields
         if self.sensor1_mgrs_val != None:
@@ -2269,11 +2222,11 @@ class App(customtkinter.CTk):
             row_data.append(f'{self.sensor1_distance_val/1000:,.2f}')
             row_data.append(f'{self.sensor1_min_distance_km:,.2f}')
             row_data.append(f'{self.sensor1_max_distance_km:,.2f}')
+            ewt_bool = True
         # if sensor 1 has no data in the input fields
         else:
-            # end function w/o logging
-            self.show_info("Insufficient input. No data logged.")
-            return
+            # add blank entries to sensor 2 data log
+            for i in range(num_ewt_datapoints): row_data.append('')
         # if sensor 2 has data in the input fields
         if self.sensor2_mgrs_val != None:
             row_data.append(self.sensor2_mgrs_val)
@@ -2283,6 +2236,7 @@ class App(customtkinter.CTk):
             row_data.append(f'{self.sensor2_distance_val/1000:,.2f}')
             row_data.append(f'{self.sensor2_min_distance_km:,.2f}')
             row_data.append(f'{self.sensor2_max_distance_km:,.2f}')
+            ewt_bool = True
         # if sensor 2 has no data in the input fields
         else:
             # add blank entries to sensor 2 data log
@@ -2296,10 +2250,15 @@ class App(customtkinter.CTk):
             row_data.append(f'{self.sensor3_distance_val/1000:,.2f}')
             row_data.append(f'{self.sensor3_min_distance_km:,.2f}')
             row_data.append(f'{self.sensor3_max_distance_km:,.2f}')
+            ewt_bool = True
         # if sensor 3 has no data in the input fields
         else:
             # add blank entries to sensor 3 data log
             for i in range(num_ewt_datapoints): row_data.append('')
+        if not ewt_bool:
+            # end function w/o logging
+            self.show_info("No EWT data. No data logged.",icon='warning')
+            return
         log_data.append(row_data)
         df_log = pd.DataFrame(log_data,columns=log_columns).set_index(['DTG'],drop=True)
         # try to save the updated log file
@@ -2310,7 +2269,7 @@ class App(customtkinter.CTk):
             # error message if file is currently open
             self.show_info("Log file currently open. Cannot log data!")
             return
-        self.show_info("Data successfully logged!!!")    
+        self.show_info("Data successfully logged!!!",icon='info') 
     
     def add_marker_event(self, coords):
         from utilities import convert_coords_to_mgrs, format_readable_mgrs, get_distance_between_coords
@@ -2328,16 +2287,13 @@ class App(customtkinter.CTk):
             sequencial_coord_list = []
             for i,marker in enumerate(sequencial_marker_list):
                 sequencial_coord_list.append(list(marker.position))
-            distance_unit = 'm'
             distance = get_distance_between_coords(sequencial_coord_list[0],sequencial_coord_list[1])
-            if distance >= 1000:
-                distance /= 1000
-                distance_unit = 'km'
+            distance_text = self.generate_sensor_distance_text(distance)
             dist_line = self.map_widget.set_polygon([(sequencial_coord_list[0][0],sequencial_coord_list[0][1]),
                             (sequencial_coord_list[1][0],sequencial_coord_list[1][1])],outline_color="black")
             coord_x = np.average([sequencial_coord_list[0][0],sequencial_coord_list[1][0]])
             coord_y = np.average([sequencial_coord_list[0][1],sequencial_coord_list[1][1]])
-            marker_dist = self.map_widget.set_marker(coord_x,coord_y,text=f'{distance:,.2f}{distance_unit}',
+            marker_dist = self.map_widget.set_marker(coord_x,coord_y,text=f'{distance_text}',
                                                      text_color='black',
                                                      image_zoom_visibility=(10, float('inf')),
                                                      icon=self.blank_image)
@@ -2649,22 +2605,17 @@ DEV NOTES
 --- MVP Reqs:
     - give estimate warning prior to executing batch download
     - csv log error if file is open (bypass by creating alternate file?)
-    - if cut exists with one random lob, still plot random lob
-    - add enter command to user input
-    - assign LOB targets to EWT in info description
-    - allow user to input LOB 3-liner for EWT 2 or 3 if EWT 1 is empty
-    - change log successful display to info, not warning
-    - single lob not being attributed to ewt 1
-    - lob area tgt data formatting, needs improvement
-    - distance format function that changes km to m based on number (already exists in dist to ewt)
     - better formating in log file
     - BEAST+ df sensor gain RFI...
-    
-- earth curvature limitation identified on elevation map
-    - circle around EWTs with radius being LOS?
+
+- provide user option to copy mgrs from plotted user marker
 - provide option to input coordinates instead of MGRS
 - move batch download function into utilities file
 - add config file for hard-coded data
 - restart app button
+- feature to shut down all services at once
+- move log function to utilities
+- add lob analysis tool (folium?)
+- print statement of log data when logged
 
 """

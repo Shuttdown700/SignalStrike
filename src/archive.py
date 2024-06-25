@@ -228,3 +228,152 @@ Created on Sat Jun  8 12:35:45 2024
 #     fix_intersection = int_poly1.intersection(int_poly2)
 #     fix_coords = get_intersection_coords(fix_intersection)
 #     return fix_coords
+
+# def create_marker(marker_coords,marker_name,marker_color,marker_icon,marker_prefix='fa'):
+#     marker = folium.Marker(marker_coords,
+#                   # popup = f'<input type="text" value="{marker_coords[0]}, {marker_coords[1]}" id="myInput"><button onclick="myFunction()">Copy location</button>',
+#                   popup = f'<input type="text" value="{convert_coords_to_mgrs(marker_coords)}" id="myInput"><button onclick="copyTextFunction()">Copy MGRS Grid</button>',
+#                   tooltip=marker_name,
+#                   icon=folium.Icon(color=marker_color,
+#                                    icon_color='White',
+#                                    icon=marker_icon,
+#                                    prefix=marker_prefix)
+#                   )
+#     return marker
+
+# def add_copiable_markers(m):
+#     import jinja2
+#     el = folium.MacroElement().add_to(m)
+#     el._template = jinja2.Template("""
+#         {% macro script(this, kwargs) %}
+#         function copyTextFunction() {
+#           /* Get the text field */
+#           var copyText = document.getElementById("myInput");
+
+#           /* Select the text field */
+#           copyText.select();
+#           copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+#           /* Copy the text inside the text field */
+#           document.execCommand("copy");
+#         }
+#         {% endmacro %}
+#     """)
+#     return m
+
+# def create_polygon(points,line_color='black',shape_fill_color=None,line_weight=5,text=None):
+#     iframe = folium.IFrame(text, width=250, height=75)
+#     popup = folium.Popup(iframe, max_width=250)
+#     polygon = folium.Polygon(locations = points,
+#                    color=line_color,
+#                    weight=line_weight,
+#                    fill_color=shape_fill_color,
+#                    popup = popup,
+#                    name = 'test',
+#                    overlay = False,
+#                    control = True,
+#                    show=False
+#                    )
+#     return polygon
+
+# def add_tilelayers(m):
+#     """
+#     Adds tilelayers to Folium map object
+
+#     Parameters:
+#     ----------
+#     m : Folium map object
+#         Map object
+    
+#     Returns:
+#     ----------
+#     m : Folium map object
+#         Map object
+
+#     """
+#     # folium.TileLayer(
+#     #     tiles = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+#     #     attr = 'Esri',
+#     #     name = 'Satellite',
+#     #     overlay = False,
+#     #     control = True,
+#     #     ).add_to(m)
+#     folium.TileLayer(
+#         tiles = 'openstreetmap',
+#         name = 'Street Map',
+#         overlay = False,
+#         control = False,
+#         min_zoom = 10,
+#         max_zoom = 13,
+#         ).add_to(m)
+#     # folium.TileLayer(
+#     #     tiles = 'Stamen Toner',
+#     #     name = 'Black & White',
+#     #     overlay = False,
+#     #     control = True
+#     #     ).add_to(m)
+#     return m
+
+# def create_map(center_coordinate,zs=16,min_z=0,max_z=18):
+#     """
+#     Creates a folium basemap for map product development.
+
+#     Parameters
+#     ----------
+#     center_coordinate : list
+#         Grid coordinate. Example: [lat,long]
+#     zs : int, optional
+#         Initial zoom level [0-18]. The default is 14.
+#     min_z: int, optional
+#         Minimum zoom level [0-18]. The default is 0.
+#     max_z: int, optional
+#         Maximum zoom level [0-18]. The default is 18
+
+#     Returns
+#     -------
+#     m : Folium Map Obj
+#         Folium basemap with satellite tile.
+
+#     """
+#     assert isinstance(center_coordinate,list), 'Coordinate input must be a list.'
+#     assert len(center_coordinate) == 2, 'Coordinate input must be of length 2.'
+#     assert min_z <= max_z, 'The max zoom must be greater than the min zoom'
+#     m = folium.Map(
+#         location=center_coordinate,
+#         tiles = None,
+#         attr = '2ABCT CEMA',
+#         zoom_start=zs,
+#         min_zoom = 10,
+#         max_zoom = 13,
+#         control_scale = True,
+#         control_zoom = False,)
+#     return m
+
+# def get_path_loss_description(path_loss_coeff):
+#     """
+#     Return description of RF path-loss situation given a coefficient
+
+#     Parameters:
+#     ----------
+#     path_loss_coeff : float
+#         Path-Loss Coefficient, at least 2
+    
+#     Returns:
+#     ----------
+#     path_loss_description : str
+#         Description of RF path-loss situation
+
+#     """   
+#     if path_loss_coeff <= 3:
+#         path_loss_description = 'Open Terrain'
+#     elif path_loss_coeff <= 4:
+#         path_loss_description = 'Moderate Foliage'
+#     elif path_loss_coeff > 4:
+#         path_loss_description = 'Dense Foliage'
+#     return path_loss_description
+
+# def get_accuracy_improvement_of_cut(lob1_error,lob2_error,cut_error):
+#     return 1 - (cut_error/(lob1_error+lob2_error-cut_error))
+
+# def get_accuracy_improvement_of_fix(fix_area,cut_areas):
+#     return 1-(fix_area/(cut_areas[0] + cut_areas[1] + cut_areas[2] - 2*fix_area))

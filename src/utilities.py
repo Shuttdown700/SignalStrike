@@ -34,17 +34,13 @@ def import_libraries(libraries):
 
 libraries = [['math',['sin','cos','pi']],['collections',['defaultdict']],
              ['branca.colormap'],['datetime',['date']],['jinja2'],['numpy'],
-             ['warnings'],['mgrs'],['haversine'],['haversine',['Unit']],
-             ['sympy',['Point','Polygon']],['folium']]
+             ['warnings'],['mgrs'],['haversine'],['haversine',['Unit']],['folium']]
 
 import_libraries(libraries)
 import folium
-import branca.colormap as cm
-from collections import defaultdict
 import numpy as np
 import warnings
 import mgrs
-from sympy import Point, Polygon
 import os
 import shutil
 import requests
@@ -70,7 +66,7 @@ def is_port_in_use(port: int) -> bool:
         status = s.connect_ex(('localhost', port)) == 0
         return status
     
-def check_internet_connection():
+def check_internet_connection() -> bool:
     """
     Assesses connectivity to the public internet
 
@@ -88,12 +84,105 @@ def check_internet_connection():
     try:
         request.urlopen('http://8.8.8.8', timeout=1)
         return True
-    except request.URLError as err: 
+    except request.URLError: 
         return False
     except TimeoutError:
         return False
 
-def generate_DTG():
+def remove_empty_csv_rows(csv_file: str) -> None:
+    """
+    Removes empty rows from csv file
+
+    Parameters
+    ----------
+    csv_file : str
+        Path to csv file.
+
+    Returns
+    -------
+    None.
+
+    """
+    
+    '''
+    Experiencing access errors... two simualtanious tempfile instances
+    '''
+    
+    import csv, shutil
+    # create temp file
+    temp_file = open(csv_file[:-4]+"_temp.csv",mode='w', newline='', encoding='utf-8')
+    # open csv and temp file
+    with open(csv_file, mode='r', newline='', encoding='utf-8') as infile, \
+         open(temp_file.name, mode='w', newline='', encoding='utf-8') as outfile:
+        # create csv reader,writer object
+        reader = csv.reader(infile)
+        writer = csv.writer(outfile)
+        # write non-empty rows to the temp file
+        for row in reader:
+            if any(field.strip() for field in row):
+                writer.writerow(row)
+    # move temp file to csv file
+    shutil.move(temp_file.name, csv_file)
+    temp_file.close()
+    os.remove(temp_file)
+
+def read_queue(queue_file_name: str) -> None:
+    """
+    Reads a queue csv file
+
+    Parameters
+    ----------
+    queue_file_name : str
+        File path to queue csv file.
+
+    Returns
+    -------
+    tile_queue : list of tuples
+        list of rows, with each row in tuple form.
+
+    """
+    import csv
+    # remove_empty_csv_rows(queue_file_name)
+    with open(queue_file_name, mode='r') as file:
+        csv_reader = csv.reader(file)
+        tile_queue = []
+        for row in csv_reader:
+            if row == []: continue
+            tile_queue.append(tuple(row))
+    return tile_queue
+
+def write_queue(queue_file_name: str,queue_data: list) -> None:
+    """
+    Writes a queue csv file
+
+    Parameters
+    ----------
+    queue_file_name : str
+        File path to queue csv file.
+    queue_data : list
+        list of rows, with each row in list form.
+
+    Returns
+    -------
+    None.
+
+    """
+    import csv
+    with open(queue_file_name, mode='w', newline='') as file:
+        csv_writer = csv.writer(file)
+        for row in queue_data:
+            csv_writer.writerow(row)
+
+def generate_DTG() -> str:
+    """
+    Generate the current date-time group (DTG) in DDTTTTMMMYYYY format
+
+    Returns
+    -------
+    dtg : str
+        DRG in DDTTTTMMMYYYY format.
+
+    """
     import calendar, datetime
     # generate today's date
     dt = str(datetime.datetime.today())
@@ -103,14 +192,31 @@ def generate_DTG():
     dtg = f"{day if len(str(day)) == 2 else '0'+day}{hour}{minute}{calendar.month_abbr[int(month)].upper()}{year}"
     return dtg
 
-def convert_coordinates_to_meters(coord):
+def format_readable_DTG(dtg: str) -> str:
+    """
+    Formats the datetime grouop (DTG) to be more readable
+
+    Parameters
+    ----------
+    dtg : str
+        DTG in DDTTTTMMMYYYY format.
+
+    Returns
+    -------
+    str
+        DTG in TTTT on DD MMM YYYY format..
+
+    """
+    return f'At {dtg[2:6]} on {dtg[:2]} {dtg[6:9]} {dtg[-4:]}'
+
+def convert_coordinates_to_meters(coord_element: float) -> float:
     """
     Converts coodinate distance to meters.
 
     Parameters
     ----------
-    meters : float
-        Length in meters.
+    coord_element : float
+        Coordinate component (either lat or lon).
 
     Returns
     -------
@@ -118,10 +224,10 @@ def convert_coordinates_to_meters(coord):
         Length in coordinates.
 
     """
-    assert isinstance(coord,(float,int)), 'Input needs to be a float.'
-    return coord * 111139
+    assert isinstance(coord_element,(float,int)), 'Input needs to be a float.'
+    return coord_element * 111139
 
-def adjust_coordinate(starting_coord,azimuth_degrees,shift_m):
+def adjust_coordinate(starting_coord: list,azimuth_degrees: (float,int),shift_m: (float,int)) -> list:
     """
     Adjusts input lat-lon coordinate a specified distance in a specified direction
 
@@ -140,21 +246,32 @@ def adjust_coordinate(starting_coord,azimuth_degrees,shift_m):
         Adjusted coordinate based on input in [lat,lon] format
         
     """
+    # import libraries
     import math
-    assert isinstance(starting_coord,list) and len(starting_coord) == 2, 'Coordinate [lat,lon] needs to be a list of length 2.'
-    assert isinstance(shift_m,(float,int)) and shift_m >= 10, 'Adjustment needs to be a float of at least 10m.'
-    assert isinstance(azimuth_degrees,(float,int)) and 0 <= azimuth_degrees <= 360, 'Adjustment needs to be a float betwneen 0 and 360.'
-    def func(degrees, magnitude): # returns in lat,lon format
+    try:
+        # input assertations
+        assert isinstance(starting_coord,list) and len(starting_coord) == 2, 'Coordinate [lat,lon] needs to be a list of length 2.'
+        assert isinstance(shift_m,(float,int)) and shift_m >= 10, 'Adjustment needs to be a float of at least 10m.'
+        assert isinstance(azimuth_degrees,(float,int)) and 0 <= azimuth_degrees <= 360, 'Adjustment needs to be a float betwneen 0 and 360.'
+    except AssertionError:
+        return None
+    # function to generate lat,lon adjustments
+    def func(degrees: (float,int), magnitude: (float,int)) -> tuple: # returns in lat,lon format
         return magnitude * math.cos(math.radians(degrees)), magnitude * math.sin(math.radians(degrees))
+    # earth radius in meters
     earth_radius_meters = 6371000.0
+    # define starting lat,lon
     starting_lat = float(starting_coord[0]); starting_lon = float(starting_coord[1])
+    # define adjustments to lat,lon
     lat_adjustment_m, lon_adjustment_m = func(azimuth_degrees,shift_m)
+    # generate adjusted latitude
     new_lat = starting_lat  + (lat_adjustment_m / earth_radius_meters) * (180 / math.pi)
+    # generate adjusted longitude
     new_lon = starting_lon + (lon_adjustment_m / earth_radius_meters) * (180 / math.pi) / math.cos(starting_lat * math.pi/180)
-    new_coord = [new_lat,new_lon]
-    return new_coord
+    # return adjusted coordinate
+    return [new_lat,new_lon]
 
-def convert_watts_to_dBm(p_watts):
+def convert_watts_to_dBm(p_watts: (float,int)) -> float:
     """
     Converts watts to dBm.
 
@@ -169,7 +286,9 @@ def convert_watts_to_dBm(p_watts):
         Power in dBm.
 
     """
+    # input assertation
     assert isinstance(p_watts,(float,int)) and p_watts >= 0, 'Wattage needs to be a float greater than zero.'
+    # return power in dBm
     return 10*np.log10(1000*p_watts)
 
 def convert_coords_to_mgrs(coords,precision=5):
@@ -240,9 +359,6 @@ def format_readable_mgrs(mgrs):
     if check_mgrs_input(mgrs): 
         return f'{str(mgrs[:prefix_len]).upper()} {mgrs[prefix_len:prefix_len+precision]} {mgrs[prefix_len+precision:]}'
     return mgrs
-
-def format_readable_DTG(dtg):
-    return f'At {dtg[2:6]} on {dtg[:2]} {dtg[6:9]} {dtg[-4:]}'
 
 def covert_degrees_to_radians(degrees):
     """
@@ -448,149 +564,6 @@ def get_emission_distance(P_t_watts,f_MHz,G_t,G_r,R_s,t_h,r_h,temp_f,path_loss_c
         return path_loss
     else:
         return min(emissions_distances)
-    
-def get_path_loss_description(path_loss_coeff):
-    """
-    Return description of RF path-loss situation given a coefficient
-
-    Parameters:
-    ----------
-    path_loss_coeff : float
-        Path-Loss Coefficient, at least 2
-    
-    Returns:
-    ----------
-    path_loss_description : str
-        Description of RF path-loss situation
-
-    """   
-    if path_loss_coeff <= 3:
-        path_loss_description = 'Open Terrain'
-    elif path_loss_coeff <= 4:
-        path_loss_description = 'Moderate Foliage'
-    elif path_loss_coeff > 4:
-        path_loss_description = 'Dense Foliage'
-    return path_loss_description
-
-def create_map(center_coordinate,zs=16,min_z=0,max_z=18):
-    """
-    Creates a folium basemap for map product development.
-
-    Parameters
-    ----------
-    center_coordinate : list
-        Grid coordinate. Example: [lat,long]
-    zs : int, optional
-        Initial zoom level [0-18]. The default is 14.
-    min_z: int, optional
-        Minimum zoom level [0-18]. The default is 0.
-    max_z: int, optional
-        Maximum zoom level [0-18]. The default is 18
-
-    Returns
-    -------
-    m : Folium Map Obj
-        Folium basemap with satellite tile.
-
-    """
-    assert isinstance(center_coordinate,list), 'Coordinate input must be a list.'
-    assert len(center_coordinate) == 2, 'Coordinate input must be of length 2.'
-    assert min_z <= max_z, 'The max zoom must be greater than the min zoom'
-    m = folium.Map(
-        location=center_coordinate,
-        tiles = None,
-        attr = '2ABCT CEMA',
-        zoom_start=zs,
-        min_zoom = 10,
-        max_zoom = 13,
-        control_scale = True,
-        control_zoom = False,)
-    return m
-
-def add_tilelayers(m):
-    """
-    Adds tilelayers to Folium map object
-
-    Parameters:
-    ----------
-    m : Folium map object
-        Map object
-    
-    Returns:
-    ----------
-    m : Folium map object
-        Map object
-
-    """
-    # folium.TileLayer(
-    #     tiles = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    #     attr = 'Esri',
-    #     name = 'Satellite',
-    #     overlay = False,
-    #     control = True,
-    #     ).add_to(m)
-    folium.TileLayer(
-        tiles = 'openstreetmap',
-        name = 'Street Map',
-        overlay = False,
-        control = False,
-        min_zoom = 10,
-        max_zoom = 13,
-        ).add_to(m)
-    # folium.TileLayer(
-    #     tiles = 'Stamen Toner',
-    #     name = 'Black & White',
-    #     overlay = False,
-    #     control = True
-    #     ).add_to(m)
-    return m
-
-def create_marker(marker_coords,marker_name,marker_color,marker_icon,marker_prefix='fa'):
-    marker = folium.Marker(marker_coords,
-                  # popup = f'<input type="text" value="{marker_coords[0]}, {marker_coords[1]}" id="myInput"><button onclick="myFunction()">Copy location</button>',
-                  popup = f'<input type="text" value="{convert_coords_to_mgrs(marker_coords)}" id="myInput"><button onclick="copyTextFunction()">Copy MGRS Grid</button>',
-                  tooltip=marker_name,
-                  icon=folium.Icon(color=marker_color,
-                                   icon_color='White',
-                                   icon=marker_icon,
-                                   prefix=marker_prefix)
-                  )
-    return marker
-
-def add_copiable_markers(m):
-    import jinja2
-    el = folium.MacroElement().add_to(m)
-    el._template = jinja2.Template("""
-        {% macro script(this, kwargs) %}
-        function copyTextFunction() {
-          /* Get the text field */
-          var copyText = document.getElementById("myInput");
-
-          /* Select the text field */
-          copyText.select();
-          copyText.setSelectionRange(0, 99999); /* For mobile devices */
-
-          /* Copy the text inside the text field */
-          document.execCommand("copy");
-        }
-        {% endmacro %}
-    """)
-    return m
-
-def create_polygon(points,line_color='black',shape_fill_color=None,line_weight=5,text=None):
-    iframe = folium.IFrame(text, width=250, height=75)
-    popup = folium.Popup(iframe, max_width=250)
-    polygon = folium.Polygon(locations = points,
-                   color=line_color,
-                   weight=line_weight,
-                   fill_color=shape_fill_color,
-                   popup = popup,
-                   name = 'test',
-                   overlay = False,
-                   control = True,
-                   show=False
-                   )
-    return polygon
 
 def organize_polygon_coords(coord_list):
     def clockwiseangle_and_distance(point,origin,refvec):
@@ -660,12 +633,6 @@ def get_polygon_area(shape_coords): # returns area in acres
     y = [convert_coordinates_to_meters(sc[1]) for sc in shape_coords]    
     return (0.5*np.abs(np.dot(x,np.roll(y,1))-np.dot(y,np.roll(x,1))))/4046.856422
 
-def get_accuracy_improvement_of_cut(lob1_error,lob2_error,cut_error):
-    return 1 - (cut_error/(lob1_error+lob2_error-cut_error))
-
-def get_accuracy_improvement_of_fix(fix_area,cut_areas):
-    return 1-(fix_area/(cut_areas[0] + cut_areas[1] + cut_areas[2] - 2*fix_area))
-
 def get_coords_from_LOBs(sensor_coord,azimuth,error,min_lob_length,max_lob_length):
     center_coord_list = []
     right_error_azimuth = (azimuth+error) % 360
@@ -693,14 +660,6 @@ def get_coords_from_LOBs(sensor_coord,azimuth,error,min_lob_length,max_lob_lengt
     near_center_coord = get_center_coord([near_right_coord,near_left_coord])
     center_coord_list = [c for c in center_coord_list if len(c) <= 2]
     return center_coord, near_right_coord, near_left_coord, near_center_coord, far_right_coord, far_left_coord, running_coord_center, center_coord_list
-
-# def determine_elevation_tif_file(coord):
-#     json_filepath = r'C:\Users\shuttdown\Documents\Coding Projects\EW PLT Targeting App\elevation_data\xml_files'
-#     f = open('data.json')
-#     data = json.load(f)
-#     print(data)
-    # wip
-    
 
 def get_elevation_data(coord_list):
     import csv, time
@@ -844,88 +803,6 @@ def plot_elevation_data(coord_elev_data,target_coords=None,title_args=None):
         plt.show()
     except AttributeError as e:
         return 0
-
-def remove_empty_csv_rows(csv_file):
-    """
-    Removes empty rows from csv file
-
-    Parameters
-    ----------
-    csv_file : str
-        Path to csv file.
-
-    Returns
-    -------
-    None.
-
-    """
-    
-    '''
-    Experiencing access errors...
-    '''
-    
-    import csv, shutil, tempfile
-    # create temp file
-    temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, newline='', encoding='utf-8')
-    # open csv and temp file
-    with open(csv_file, mode='r', newline='', encoding='utf-8') as infile, \
-         open(temp_file.name, mode='w', newline='', encoding='utf-8') as outfile:
-        # create csv reader,writer object
-        reader = csv.reader(infile)
-        writer = csv.writer(outfile)
-        # write non-empty rows to the temp file
-        for row in reader:
-            if any(field.strip() for field in row):
-                writer.writerow(row)
-    # move temp file to csv file
-    shutil.move(temp_file.name, csv_file)
-
-def read_queue(queue_file_name):
-    """
-    Reads a queue csv file
-
-    Parameters
-    ----------
-    queue_file_name : str
-        File path to queue csv file.
-
-    Returns
-    -------
-    tile_queue : list of tuples
-        list of rows, with each row in tuple form.
-
-    """
-    import csv
-    # remove_empty_csv_rows(queue_file_name)
-    with open(queue_file_name, mode='r') as file:
-        csv_reader = csv.reader(file)
-        tile_queue = []
-        for row in csv_reader:
-            if row == []: continue
-            tile_queue.append(tuple(row))
-    return tile_queue
-
-def write_queue(queue_file_name,queue_data):
-    """
-    Writes a queue csv file
-
-    Parameters
-    ----------
-    queue_file_name : str
-        File path to queue csv file.
-    queue_data : list
-        list of rows, with each row in list form.
-
-    Returns
-    -------
-    None.
-
-    """
-    import csv
-    with open(queue_file_name, mode='w', newline='') as file:
-        csv_writer = csv.writer(file)
-        for row in queue_data:
-            csv_writer.writerow(row)
 
 '''https://api.open-elevation.com/api/v1/lookup?locations=51.24885624303748,15.570668663974097'''
 
