@@ -34,10 +34,9 @@ def import_libraries(libraries):
 
 libraries = [['math',['sin','cos','pi']],['collections',['defaultdict']],
              ['branca.colormap'],['datetime',['date']],['jinja2'],['numpy'],
-             ['warnings'],['mgrs'],['haversine'],['haversine',['Unit']],['folium']]
+             ['warnings'],['mgrs'],['haversine'],['haversine',['Unit']]]
 
 import_libraries(libraries)
-import folium
 import numpy as np
 import warnings
 import mgrs
@@ -440,7 +439,7 @@ def get_center_coord(coord_list):
     Parameters
     ----------
     coord_list : list comprehension of length n
-        List of coordinates. Example: [[lat1,long1],[lat2,long2]]
+        List of coordinates. Example: [[lat1,long1],[lat2,long2],...[latN,lonN]]
 
     Returns
     -------
@@ -449,7 +448,7 @@ def get_center_coord(coord_list):
 
     """
     assert isinstance(coord_list,list) and len(coord_list) >= 1, "Coordinates must be in a list comprehension of length 1 or greater"
-    return [np.average([c[0] for c in coord_list]),np.average([c[1] for c in coord_list])]
+    return [float(np.average([c[0] for c in coord_list])),float(np.average([c[1] for c in coord_list]))]
 
 def emission_distance(P_t_watts,f_MHz,G_t,G_r,R_s,path_loss_coeff=3):
     """
@@ -627,7 +626,76 @@ def check_for_intersection(sensor1_coord,end_of_lob1,sensor2_coord,end_of_lob2):
     def ccw(A,B,C):
         return (C[0]-A[0]) * (B[1]-A[1]) > (B[0]-A[0]) * (C[1]-A[1])
     return ccw(sensor1_coord,sensor2_coord,end_of_lob2) != ccw(end_of_lob1,sensor2_coord,end_of_lob2) and ccw(sensor1_coord,end_of_lob1,sensor2_coord) != ccw(sensor1_coord,end_of_lob1,end_of_lob2)
-    
+
+def check_if_point_in_polygon(point,polygon):
+    def inside_sm(point,polygon):
+        length = len(polygon)-1
+        dy2 = point[1] - polygon[0][1]
+        intersections = 0
+        ii = 0
+        jj = 1
+        
+        while ii<length:
+          dy  = dy2
+          dy2 = point[1] - polygon[jj][1]
+        
+          # consider only lines which are not completely above/bellow/right from the point
+          if dy*dy2 <= 0.0 and (point[0] >= polygon[ii][0] or point[0] >= polygon[jj][0]):
+              
+            # non-horizontal line
+            if dy<0 or dy2<0:
+              F = dy*(polygon[jj][0] - polygon[ii][0])/(dy-dy2) + polygon[ii][0]
+        
+              if point[0] > F: # if line is left from the point - the ray moving towards left, will intersect it
+                intersections += 1
+              elif point[0] == F: # point on line
+                return 2
+        
+            # point on upper peak (dy2=dx2=0) or horizontal line (dy=dy2=0 and dx*dx2<=0)
+            elif dy2==0 and (point[0]==polygon[jj][0] or (dy==0 and (point[0]-polygon[ii][0])*(point[0]-polygon[jj][0])<=0)):
+              return 2
+        
+            # there is another posibility: (dy=0 and dy2>0) or (dy>0 and dy2=0). It is skipped 
+            # deliberately to prevent break-points intersections to be counted twice.
+          
+          ii = jj
+          jj += 1
+                  
+        return intersections & 1
+    def postGIS(point,polygon):
+        length = len(polygon)
+        intersections = 0
+        
+        dx2 = point[0] - polygon[0][0]
+        dy2 = point[1] - polygon[0][1]
+        ii = 0
+        jj = 1
+        
+        while jj<length:
+            dx  = dx2
+            dy  = dy2
+            dx2 = point[0] - polygon[jj][0]
+            dy2 = point[1] - polygon[jj][1]
+            F =(dx-dx2)*dy - dx*(dy-dy2);
+            if 0.0==F and dx*dx2<=0 and dy*dy2<=0:
+                return 2;
+        
+            if (dy>=0 and dy2<0) or (dy2>=0 and dy<0):
+                if F > 0:
+                    intersections += 1
+                elif F < 0:
+                    intersections -= 1
+            ii = jj
+            jj += 1
+        return intersections != 0
+    inside_sm_bool = inside_sm(point,polygon)
+    postGIS_bool = postGIS(point,polygon)
+    print(f'Inside SM: {inside_sm_bool} | postGIS: {postGIS_bool}')
+    if inside_sm_bool or postGIS_bool:
+        return True
+    else:
+        return False
+
 def get_polygon_area(shape_coords): # returns area in acres
     x = [convert_coordinates_to_meters(sc[0]) for sc in shape_coords]
     y = [convert_coordinates_to_meters(sc[1]) for sc in shape_coords]    
