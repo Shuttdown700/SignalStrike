@@ -309,7 +309,7 @@ def convert_coords_to_mgrs(coords,precision=5):
     try:
         assert isinstance(coords,list), 'Coordinate input must be a list.'
         assert len(coords) == 2, 'Coordinate input must be of length 2.'
-        return mgrs.MGRS().toMGRS(coords[0], coords[1],MGRSPrecision=precision)
+        return str(mgrs.MGRS().toMGRS(coords[0], coords[1],MGRSPrecision=precision)).strip()
     except AssertionError:
         return None
 
@@ -330,6 +330,7 @@ def convert_mgrs_to_coords(milGrid):
     """
     try:
         assert isinstance(milGrid,str), 'MGRS must be a string'
+        milGrid = milGrid.replace(" ","").strip()
         return list(mgrs.MGRS().toLatLon(milGrid.encode()))
     except AssertionError:
         return None
@@ -350,7 +351,74 @@ def check_mgrs_input(mgrs_input):
 
     """
     prefix_len = 5
+    mgrs_input = mgrs_input.replace(" ","").strip()
     return mgrs_input[:2].isdigit() and mgrs_input[2:prefix_len].isalpha() and mgrs_input[prefix_len:].isdigit() and len(mgrs_input[prefix_len:]) % 2 == 0
+
+def check_coord_input(coord_input):
+    """
+    Determine if the coordinates input is valid
+
+    Parameters
+    ----------
+    coord_input : str,list,tuple
+        Candidate coordinate input
+
+    Returns
+    -------
+    Boolean
+        Determination if coordinate is valid (TRUE) or not (FALSE)
+
+    """
+    def coord_list_range_check(coord_list):
+        if -90 <= coord_list[0] <= 90 and -180 <= coord_list[1] <= 180:
+            return True
+        return False
+    # check if string input
+    if isinstance(coord_input,str):
+        print('string ',coord_input)
+        if len(coord_input.split(',')) == 2:
+            return coord_list_range_check([float(c) for c in coord_input.split(',')])
+        elif len(coord_input.split()) == 2:
+            print('here')
+            return coord_list_range_check([float(c) for c in coord_input.split()])
+        return False
+    # checkc if list input
+    elif isinstance(coord_input, list):
+        if coord_input.count(',') == 0 and len(coord_input.strip().split()) == 2:
+            coord_input = [float(c) for c in coord_input.split()]
+        return coord_list_range_check(coord_input)
+    # check if tuple input
+    elif isinstance(coord_input, tuple):
+        return coord_list_range_check(list(coord_input))
+
+def correct_coord_input(coord):
+    """
+    Corrects coordinate input formats
+
+    Parameters
+    ----------
+    coord : list,str,tuple
+        User's coordinate input
+
+    Returns
+    -------
+    list
+        Coordinate in correct format
+
+    """
+    # if space-seperated string
+    if coord.count(',') == 0 and len(coord.strip().split()) == 2: 
+        return [float(c) for c in coord.split()]
+    # if comma-seperated string
+    elif coord.count(',') == 1 and len(coord.strip().split(',')) == 2: 
+        return [float(c) for c in coord.split(',')]
+    # if list of strings
+    elif isinstance(coord,list) and len(coord) == 2 and (isinstance(coord[0],str) or isinstance(coord[1],str)):
+        return [float(c) for c in coord.split(',')]
+    # if list of strings
+    elif isinstance(coord,tuple) and len(coord) == 2:
+        return [float(c) for c in list(coord)]
+    return coord
 
 def format_readable_mgrs(mgrs):
     prefix_len = 5; mgrs_len = len(mgrs); precision = int((mgrs_len - prefix_len) / 2)

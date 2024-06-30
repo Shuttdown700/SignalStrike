@@ -941,6 +941,10 @@ class App(customtkinter.CTk):
             label="Add Marker",
             command=self.add_marker_event,
             pass_coords=True)
+        self.map_widget.add_right_click_menu_command(
+            label="Copy MGRS Gid",
+            command=self.copy_mgrs_grid,
+            pass_coords=True)
 
     def read_ewt_input_fields(self):
         """
@@ -2172,70 +2176,6 @@ class App(customtkinter.CTk):
         # return distance string
         return f'{distance:,.2f}{distance_unit}'
     
-    def check_coord_input(self,coord_input):
-        """
-        Determine if the coordinates input is valid
-
-        Parameters
-        ----------
-        self: App Object
-            GUI application object
-        coord_input : str,list,tuple
-            Candidate coordinate input
-
-        Returns
-        -------
-        Boolean
-            Determination if coordinate is valid (TRUE) or not (FALSE)
-
-        """
-        def coord_list_range_check(coord_list):
-            if -90 <= coord_list[0] <= 90 and -180 <= coord_list[1] <= 180:
-                return True
-            return False
-        # check if string input
-        if isinstance(coord_input,str):
-            if len(coord_input.split(',')) == 2:
-                return coord_list_range_check([float(c) for c in coord_input.split(',')])
-            elif len(coord_input.split()) == 2:
-                return coord_list_range_check([float(c) for c in coord_input.split()])
-            return False
-        # checkc if list input
-        elif isinstance(coord_input, list):
-            return coord_list_range_check(coord_input)
-        # check if tuple input
-        elif isinstance(coord_input, tuple):
-            return coord_list_range_check(list(coord_input))
-        
-    def correct_coord_input(self,coord):
-        """
-        Corrects coordinate input formats
-
-        Parameters
-        ----------
-        coord : list,str,tuple
-            User's coordinate input
-
-        Returns
-        -------
-        list
-            Coordinate in correct format
-
-        """
-        # if space-seperated string
-        if coord.count(',') == 0 and len(coord.strip().split()) == 2: 
-            return [float(c) for c in coord.split()]
-        # if comma-seperated string
-        elif coord.count(',') == 1 and len(coord.strip().split(',')) == 2: 
-            return [float(c) for c in coord.split(',')]
-        # if list of strings
-        elif isinstance(coord,list) and len(coord) == 2 and (isinstance(coord[0],str) or isinstance(coord[1],str)):
-            return [float(c) for c in coord.split(',')]
-        # if list of strings
-        elif isinstance(coord,tuple) and len(coord) == 2:
-            return [float(c) for c in list(coord)]
-        return coord
-    
     def log_target_data(self):
         from utilities import generate_DTG
         """
@@ -2388,21 +2328,30 @@ class App(customtkinter.CTk):
                                                      image_zoom_visibility=(10, float('inf')),
                                                      icon=self.blank_image)
             self.path_list.append(dist_line)
-            self.path_list.append(marker_dist)        
+            self.path_list.append(marker_dist)
+
+    def copy_mgrs_grid(self, coords):
+        from utilities import convert_coords_to_mgrs
+        def copy2clip(txt):
+            import subprocess
+            cmd='echo '+txt.strip()+'|clip'
+            return subprocess.check_call(cmd, shell=True)
+        mgrs = str(convert_coords_to_mgrs(list(coords))).strip()
+        copy2clip(mgrs)
 
     def search_event(self, event=None):
-        from utilities import check_mgrs_input, convert_mgrs_to_coords
+        from utilities import check_coord_input, check_mgrs_input, convert_mgrs_to_coords, correct_coord_input
         try:
-            search_mgrs = self.search_mgrs.get().replace(" ","")
+            search_mgrs = self.search_mgrs.get()
         except ValueError:
-            self.show_info("Invalid MGRS input!")
+            self.show_info("Error loading Search MGRS")
             return
         if check_mgrs_input(search_mgrs):
             search_coord = convert_mgrs_to_coords(search_mgrs)
             self.map_widget.set_position(search_coord[0],search_coord[1])
             self.add_marker_event(search_coord)
-        elif self.check_coord_input(search_mgrs):
-            search_coord = self.correct_coord_input(search_mgrs)
+        elif check_coord_input(search_mgrs):
+            search_coord = correct_coord_input(search_mgrs)
             self.map_widget.set_position(search_coord[0],search_coord[1])
             self.add_marker_event(search_coord)
         else:
@@ -2506,7 +2455,7 @@ class App(customtkinter.CTk):
         
     def batch_download(self):
         import re
-        from utilities import check_mgrs_input, convert_coords_to_mgrs, convert_mgrs_to_coords, get_coord_box
+        from utilities import check_coord_input, check_mgrs_input, convert_coords_to_mgrs, convert_mgrs_to_coords, get_coord_box
         def append_cmd_to_queue(cmd,file_path=os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\batch_tile_queue.csv"):
             import csv
             if cmd == "" or cmd == []: return
@@ -2520,7 +2469,7 @@ class App(customtkinter.CTk):
         if not check_mgrs_input(center_mgrs):
             # check if a valid coordinate
             center_coord = self.correct_coord_input(center_mgrs)
-            if not self.check_coord_input(center_coord):
+            if not check_coord_input(center_coord):
                 # display input error warning
                 self.show_info("MGRS / coordiante input is invalid",box_title="Input Error",icon='warning')
                 # end function
@@ -2697,11 +2646,13 @@ DEV NOTES
     - pass paramters to batch download... not command
     - better formating in log file
     - BEAST+ df sensor gain RFI...
-    - option to reload last logged data (even of crash...)
+    - option to reload last logged data (event of crash...)
+    - ID EWT to bypass in pop-up
 
 --- Aux Improvements:
     - provide user option to copy mgrs from plotted user marker
     - provide option to input coordinates instead of MGRS
+    - correct error in pasting copied coords (no comma)
     - move batch download function into utilities file
     - add config file for hard-coded data
     - restart app button
@@ -2709,7 +2660,6 @@ DEV NOTES
     - move log function to utilities
     - add lob analysis tool (folium?)
     - print statement of log data when logged
-    - ID EWT to bypass in pop-up
     - remove year from most* pop-ups
     - ewt description grammar after grid, breakup sentence
     - log function causes error in tablet
@@ -2718,5 +2668,6 @@ DEV NOTES
     - add plot_cut_tgt bool for when fix exists
     - better info on user marker popup
     - create a dedicated function to create a marker and polygon ?
+    - function to correct mgrs input format in user input fields
 
 """
