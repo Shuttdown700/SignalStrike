@@ -82,7 +82,11 @@ class App(customtkinter.CTk):
         # define icon file directory
         self.log_directory = "\\".join(self.src_directory.split('\\')[:-1])+"\\logs"
         # define target image icon
-        self.target_image = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "suspected_hostile.png")).resize((40, 40)))
+        self.target_image_LOB = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "target_LOB.png")).resize((40, 40)))
+        # define target image icon
+        self.target_image_CUT = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "target_CUT.png")).resize((40, 40)))
+        # define target image icon
+        self.target_image_FIX = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "target_FIX.png")).resize((40, 40)))
         # define generic EWT icon
         self.ew_team_image = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "ew_team.png")).resize((40, 40)))
         # define EWT 1 icon
@@ -1606,7 +1610,7 @@ class App(customtkinter.CTk):
                         text=f'{format_readable_mgrs(sensor1_target_mgrs)}', 
                         image_zoom_visibility=(10, float("inf")),
                         marker_color_circle='white',
-                        icon=self.target_image,
+                        icon=self.target_image_LOB,
                         command=self.marker_click,
                         data=f'TGT (LOB)\nEWT 1\n{format_readable_mgrs(sensor1_target_mgrs)}\n{format_readable_DTG(generate_DTG())}')
                     # add sensor 1 target marker to target marker list
@@ -1673,7 +1677,7 @@ class App(customtkinter.CTk):
                         text=f'{format_readable_mgrs(sensor2_target_mgrs)}', 
                         image_zoom_visibility=(10, float("inf")),
                         marker_color_circle='white',
-                        icon=self.target_image,
+                        icon=self.target_image_LOB,
                         command=self.marker_click,
                         data=f'TGT (LOB)\nEWT 2\n{format_readable_mgrs(sensor2_target_mgrs)}\n{format_readable_DTG(generate_DTG())}')
                     # add sensor 2 target marker to tarket marker list
@@ -1740,7 +1744,7 @@ class App(customtkinter.CTk):
                         text=f'{format_readable_mgrs(sensor3_target_mgrs)}', 
                         image_zoom_visibility=(10, float("inf")),
                         marker_color_circle='white',
-                        icon=self.target_image,
+                        icon=self.target_image_LOB,
                         command=self.marker_click,
                         data=f'TGT (LOB)\nEWT 3\n{format_readable_mgrs(sensor3_target_mgrs)}\n{format_readable_DTG(generate_DTG())}')
                     # add sensor 3 target marker to target marker list
@@ -1806,7 +1810,7 @@ class App(customtkinter.CTk):
                     text=f'{format_readable_mgrs(self.target_mgrs)}',
                     image_zoom_visibility=(10, float("inf")),
                     marker_color_circle='white',
-                    icon=self.target_image,
+                    icon=self.target_image_CUT,
                     command=self.marker_click,
                     data=f'TGT (CUT)\n{format_readable_mgrs(self.target_mgrs)}\n{format_readable_DTG(generate_DTG())}')
                 # add CUT marker to target marker list
@@ -1848,7 +1852,13 @@ class App(customtkinter.CTk):
             # set map position at CUT target 
             self.map_widget.set_position(self.target_coord[0],self.target_coord[1])
             
-        def plot_fix(lob1_right_bound,lob1_left_bound,lob2_right_bound,lob2_left_bound,lob3_right_bound,lob3_left_bound):
+        def plot_fix(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound):
+            """
+            Still having issues of inconsistency with some assessments of FIX space
+            incorporating alt method as temp solution
+            """
+            
+            from utilities import adjust_coordinate, get_bearing_between_coordinates
             # get intersection of LOB 1 & LOB 2 right-bound errors
             intersection_l1r_l2r = get_intersection(lob1_right_bound, lob2_right_bound)
             # get intersection of LOB 1 right-bound error and LOB 2 left-bound error
@@ -1880,30 +1890,24 @@ class App(customtkinter.CTk):
             # define LOB 2 & LOB 3 CUT polygon
             cut23_polygon = [intersection_l2r_l3r,intersection_l2r_l3l,intersection_l2l_l3r,intersection_l2l_l3l]
             # define candidate points
-            points = list(list(cut12_polygon) + list(cut13_polygon) + list(cut23_polygon))
+            points_unadjusted = list(list(cut12_polygon) + list(cut13_polygon) + list(cut23_polygon))
             # points.append([35.3336198, -116.5212675])
-            
-            '''
-            Possibly round point or polygon coordinates ?
-            perhaps gener
-            '''
-            
+            center_point = get_center_coord(points_unadjusted)
+            fix_buffer_adjustment_m = 5
+            points = [adjust_coordinate(p,get_bearing_between_coordinates(p,center_point),fix_buffer_adjustment_m) for p in points_unadjusted]           
             # organize LOB 1 & LOB 2 CUT polygon
             cut12_polygon = organize_polygon_coords(cut12_polygon)
             # organize LOB 1 & LOB 3 CUT polygon
             cut13_polygon = organize_polygon_coords(cut13_polygon)
             # organize LOB 2 & LOB 3 CUT polygon
-            cut23_polygon = organize_polygon_coords(cut23_polygon)  
-            polygon_names = ["CUT_12","CUT_13","CUT_23",'LOB1','LOB2','LOB3']
-            point_names = ["1R_2R","1R_2L","1L_2R","1L_2L",
-                           "1R_3R","1R_3L","1L_3R","1L_3L",
-                           "2R_3R","2R_3L","2L_3R","2L_3L","BONUS"]
+            cut23_polygon = organize_polygon_coords(cut23_polygon) 
+            # define polygons
             polygons = [cut12_polygon,cut13_polygon,cut23_polygon]
+            # polygons = [self.sensor1_lob_polygon,self.sensor2_lob_polygon,self.sensor3_lob_polygon]
             # define FIX coords list
             fix_polygon = []
             # loop through all CUT intersection points
             for index_point, point in enumerate(points):
-                print(f'Assessing {point_names[index_point]}:\n')
                 # set polygon boolean value to TRUE
                 in_polygon_bool = True
                 # loop through all CUT polygons
@@ -1911,13 +1915,11 @@ class App(customtkinter.CTk):
                     # assess if the point is in the polygon
                     output = check_if_point_in_polygon(point,poly)
                     # print("output ", output)
-                    if output == 0 and output == False:
-                        print(f"Point {point_names[index_point]} not in {polygon_names[index_polygon]}")
+                    if output == 0 or output == False:
                         # set polygon boolean value to FALSE
                         in_polygon_bool = False
                         # end polygon loop
-                    else:
-                        print(f"Point {point_names[index_point]} IS in {polygon_names[index_polygon]}")
+                        break
                 # if point is in all CUT polygons
                 if in_polygon_bool:
                     # append point as a fix coordinate
@@ -1926,27 +1928,20 @@ class App(customtkinter.CTk):
                 else:
                     print(f"NO: {point} is not in the fixn\n")
                 in_polygon_bool = True
-            # print(self.sensor1_lob_polygon)
-            # print(self.sensor2_lob_polygon)
-            # print(self.sensor3_lob_polygon)
-            # poly1 = [[35.32964424739192, -116.49377997733238], [35.33496213639736, -116.53493633725456], [35.334090441298564, -116.5352226767432], [35.32190795339012, -116.4963230181068]]
-            # poly2 = [[35.29962109577436, -116.50527504258493], [35.33740260295264, -116.52304937909227], [35.3371398367051, -116.52425155493134], [35.29716861079728, -116.51649284657017]]
-            # poly3 = [[35.33888484205579, -116.49567714640484], [35.33987130443459, -116.49619049732603], [35.32732924812357, -116.54647648609854], [35.31808765320641, -116.54166494300979]]
-            # pnt = [35.3336294, -116.5212647]
-            # pnt_1l_2l = [35.33316883948238, -116.52105760212083]
-            # pnt_1l_3r = [35.33361655361366, -116.52126822954739]
-            # check_if_point_in_polygon(pnt_1l_3r,poly1)
             # organize fix coordinates
             fix_polygon = organize_polygon_coords(fix_polygon)
-            # intersection_1_2 = get_intersection(lob1_center,lob2_center)
-            # intersection_1_3 = get_intersection(lob1_center,lob3_center)
-            # intersection_2_3 = get_intersection(lob2_center,lob3_center)
-            # fix_polygon = [intersection_1_2,intersection_1_3,intersection_2_3]
-            fix_coord = get_center_coord(fix_polygon)
+            # assess if the fix polygon is not a polygon
+            if len(fix_polygon) < 3:
+                # alternate method of determining fix
+                int_13 = get_intersection(lob1_center, lob3_center)
+                int_12 = get_intersection(lob1_center, lob2_center)
+                int_23 = get_intersection(lob2_center, lob3_center)
+                fix_polygon = [int_12,int_23,int_13]            
             # define target classification
             self.target_class = '(FIX)'
             # set target label with updated target classification
             self.label_target_grid.configure(text=f'TARGET GRID {self.target_class}'.strip(),text_color='red')
+            fix_coord = get_center_coord(fix_polygon)
             self.target_coord = fix_coord
             self.target_mgrs = convert_coords_to_mgrs(self.target_coord)
             self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
@@ -1960,7 +1955,7 @@ class App(customtkinter.CTk):
                 text=f'{format_readable_mgrs(self.target_mgrs)}',
                 image_zoom_visibility=(10, float("inf")),
                 marker_color_circle='white',
-                icon=self.target_image,
+                icon=self.target_image_FIX,
                 command=self.marker_click,
                 data=f'TGT {self.target_class}\n{format_readable_mgrs(self.target_mgrs)}\n{format_readable_DTG(generate_DTG())}')
             # add FIX marker to target marker list
@@ -2126,25 +2121,25 @@ class App(customtkinter.CTk):
             plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound)
         # EWT 1 & 2 CUT, EWT 2 & 3 NO CUT, EWT 1 & 3 CUT (TOTAL 2 CUT)
         elif ewt1_ewt2_intersection_bool and not ewt2_ewt3_intersection_bool and ewt1_ewt3_intersection_bool:
-            plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,True)
-            plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True)
+            plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,True,True)
+            plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True)
         # EWT 1 & 2 CUT, EWT 2 & 3 CUT, EWT 1 & 3 NO CUT (TOTAL 2 CUT)
         elif ewt1_ewt2_intersection_bool and ewt2_ewt3_intersection_bool and not ewt1_ewt3_intersection_bool:
-            plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,True)
-            plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True) 
+            plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,True,True)
+            plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True) 
         # EWT 1 & 2 NO CUT, EWT 2 & 3 CUT, EWT 1 & 3 CUT (TOTAL 2 CUT)
         elif not ewt1_ewt2_intersection_bool and ewt2_ewt3_intersection_bool and ewt1_ewt3_intersection_bool:
-            plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True)
-            plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True)
+            plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True)
+            plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True)
         # No intersections between an EWT LOBs
         elif not ewt1_ewt2_intersection_bool and not ewt2_ewt3_intersection_bool and not ewt1_ewt3_intersection_bool:
             pass
         # EWT 1, 2, & 3 INTERSECTION (TOTAL 1 FIX, 3 CUT)
         elif ewt1_ewt2_intersection_bool and ewt2_ewt3_intersection_bool and ewt1_ewt3_intersection_bool:
-            plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,True)
-            plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True)
-            plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True)
-            plot_fix(lob1_right_bound,lob1_left_bound,lob2_right_bound,lob2_left_bound,lob3_right_bound,lob3_left_bound)
+            plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,True,True)
+            plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True)
+            plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True)
+            plot_fix(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound)
         # Unexpected situation
         else:
             print("Unknown case")
@@ -2362,6 +2357,9 @@ class App(customtkinter.CTk):
             self.show_info("Log file currently open. Cannot log data!")
             return
         self.show_info("Data successfully logged!!!",icon='info') 
+    
+    def reload_last_log():
+        pass
     
     def add_marker_event(self, coords):
         from utilities import convert_coords_to_mgrs, format_readable_mgrs, get_distance_between_coords
@@ -2663,16 +2661,16 @@ class App(customtkinter.CTk):
             self.sensor2_receiver_gain_dBi = 0
             self.sensor1_error = 4
             self.sensor2_error = 4
+            self.sensor3_error = 4
         elif sensor_option == 'VROD/VMAX':
             self.sensor1_receiver_gain_dBi = 0
             self.sensor2_receiver_gain_dBi = 0
             self.sensor1_error = 6
             self.sensor2_error = 6
+            self.sensor3_error = 6
 
     def on_closing(self, event=0):
         import sys
-        # for proc in procs:
-        #     proc.join()
         self.destroy()
         sys.exit()
         
@@ -2697,11 +2695,8 @@ DEV NOTES
 --- MVP Reqs:
     - give estimate warning prior to executing batch download
     - pass paramters to batch download... not command
-    - csv log error if file is open (bypass by creating alternate file?)
     - better formating in log file
     - BEAST+ df sensor gain RFI...
-    - plot cuts when there is a fix
-    - network check on dynamic / batch downloader to kill program if offline
     - option to reload last logged data (even of crash...)
 
 --- Aux Improvements:
@@ -2722,5 +2717,6 @@ DEV NOTES
     - add blank column for ACTUAL target location to log to fill in later???
     - add plot_cut_tgt bool for when fix exists
     - better info on user marker popup
+    - create a dedicated function to create a marker and polygon ?
 
 """

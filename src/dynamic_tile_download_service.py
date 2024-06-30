@@ -1,5 +1,5 @@
 import datetime, os, time
-from utilities import read_queue, write_queue
+from utilities import check_internet_connection, read_queue, write_queue
 
 def download_tile(tile,
              output_dir="\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+'/map_tiles/ESRI/',
@@ -67,6 +67,9 @@ if __name__ == "__main__":
             print(f'Error reading batch queue file: {e}',end='\n')
             time.sleep(5)
             continue
+        if not check_internet_connection():
+            time.sleep(5)
+            if not check_internet_connection(): print('No public internet connection... terminating service'); break
         if len(tile_queue) > 0:
             for tile in tile_queue:
                 download_tile(tile)
@@ -89,5 +92,5 @@ if __name__ == "__main__":
             time.sleep(wait_interval_sec - t_delta.total_seconds())
         else:
             time.sleep(1)              
-    
+time.sleep(5)   
 

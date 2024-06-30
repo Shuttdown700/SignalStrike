@@ -79,13 +79,11 @@ def check_internet_connection() -> bool:
         Boolean status of public internet connectivity (TRUE = connected)
         
     """
-    from urllib import request
+    from urllib.request import urlopen
     try:
-        request.urlopen('http://8.8.8.8', timeout=1)
+        urlopen('https://www.google.com/', timeout=10)
         return True
-    except request.URLError: 
-        return False
-    except TimeoutError:
+    except:
         return False
 
 def remove_empty_csv_rows(csv_file: str) -> None:
@@ -250,9 +248,10 @@ def adjust_coordinate(starting_coord: list,azimuth_degrees: (float,int),shift_m:
     try:
         # input assertations
         assert isinstance(starting_coord,list) and len(starting_coord) == 2, 'Coordinate [lat,lon] needs to be a list of length 2.'
-        assert isinstance(shift_m,(float,int)) and shift_m >= 10, 'Adjustment needs to be a float of at least 10m.'
+        assert isinstance(shift_m,(float,int)) and shift_m >= 5, 'Adjustment needs to be a float of at least 10m.'
         assert isinstance(azimuth_degrees,(float,int)) and 0 <= azimuth_degrees <= 360, 'Adjustment needs to be a float betwneen 0 and 360.'
-    except AssertionError:
+    except AssertionError as ae:
+        print(f"Assertation Error in Adjust Coordinate method: {ae}")
         return None
     # function to generate lat,lon adjustments
     def func(degrees: (float,int), magnitude: (float,int)) -> tuple: # returns in lat,lon format
@@ -431,6 +430,42 @@ def get_distance_between_coords(coord1,coord2):
     # assert isinstance(coord2,list), 'Coordinate 2 must be a list.'
     assert len(coord2) == 2, 'Coordinate 2 must be of length 2.'
     return haversine.haversine(coord1,coord2,unit=haversine.Unit.METERS)
+
+def get_bearing_between_coordinates(coord_origin: list,coord_tgt: list) -> float:
+    """
+    Determines bearing (in degrees) between origin coordinates and target coordinate
+
+    Parameters
+    ----------
+    coord_origin : list
+        Coordinate in [lat, lon] format
+    coord_tgt : list
+        Coordinate in [lat, lon] format
+
+    Returns
+    -------
+    float
+        Bearing in range [0-360]
+
+    """
+    import math
+    import numpy as np
+    # define local variables
+    long1 = coord_origin[1]; lat1 = coord_origin[0]
+    long2 = coord_tgt[1]; lat2 = coord_tgt[0]
+    dLon = (long2 - long1)
+    # translate coordinate formats
+    x = math.cos(math.radians(lat2)) * math.sin(math.radians(dLon))
+    y = math.cos(math.radians(lat1)) * math.sin(math.radians(lat2)) - math.sin(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.cos(math.radians(dLon))
+    # find bearing in radians
+    brng_radians = np.arctan2(x,y)
+    brng_degrees = np.degrees(brng_radians)
+    # adjust negative bearings (below lower bound)
+    while brng_degrees < 0:
+        brng_degrees += 360
+    # adjust large bearings (above upper bound)
+    brng_degrees = brng_degrees % 360
+    return brng_degrees
 
 def get_center_coord(coord_list):
     """
@@ -628,73 +663,10 @@ def check_for_intersection(sensor1_coord,end_of_lob1,sensor2_coord,end_of_lob2):
     return ccw(sensor1_coord,sensor2_coord,end_of_lob2) != ccw(end_of_lob1,sensor2_coord,end_of_lob2) and ccw(sensor1_coord,end_of_lob1,sensor2_coord) != ccw(sensor1_coord,end_of_lob1,end_of_lob2)
 
 def check_if_point_in_polygon(point,polygon):
-    def inside_sm(point,polygon):
-        length = len(polygon)-1
-        dy2 = point[1] - polygon[0][1]
-        intersections = 0
-        ii = 0
-        jj = 1
-        
-        while ii<length:
-          dy  = dy2
-          dy2 = point[1] - polygon[jj][1]
-        
-          # consider only lines which are not completely above/bellow/right from the point
-          if dy*dy2 <= 0.0 and (point[0] >= polygon[ii][0] or point[0] >= polygon[jj][0]):
-              
-            # non-horizontal line
-            if dy<0 or dy2<0:
-              F = dy*(polygon[jj][0] - polygon[ii][0])/(dy-dy2) + polygon[ii][0]
-        
-              if point[0] > F: # if line is left from the point - the ray moving towards left, will intersect it
-                intersections += 1
-              elif point[0] == F: # point on line
-                return 2
-        
-            # point on upper peak (dy2=dx2=0) or horizontal line (dy=dy2=0 and dx*dx2<=0)
-            elif dy2==0 and (point[0]==polygon[jj][0] or (dy==0 and (point[0]-polygon[ii][0])*(point[0]-polygon[jj][0])<=0)):
-              return 2
-        
-            # there is another posibility: (dy=0 and dy2>0) or (dy>0 and dy2=0). It is skipped 
-            # deliberately to prevent break-points intersections to be counted twice.
-          
-          ii = jj
-          jj += 1
-                  
-        return intersections & 1
-    def postGIS(point,polygon):
-        length = len(polygon)
-        intersections = 0
-        
-        dx2 = point[0] - polygon[0][0]
-        dy2 = point[1] - polygon[0][1]
-        ii = 0
-        jj = 1
-        
-        while jj<length:
-            dx  = dx2
-            dy  = dy2
-            dx2 = point[0] - polygon[jj][0]
-            dy2 = point[1] - polygon[jj][1]
-            F =(dx-dx2)*dy - dx*(dy-dy2);
-            if 0.0==F and dx*dx2<=0 and dy*dy2<=0:
-                return 2;
-        
-            if (dy>=0 and dy2<0) or (dy2>=0 and dy<0):
-                if F > 0:
-                    intersections += 1
-                elif F < 0:
-                    intersections -= 1
-            ii = jj
-            jj += 1
-        return intersections != 0
-    inside_sm_bool = inside_sm(point,polygon)
-    postGIS_bool = postGIS(point,polygon)
-    print(f'Inside SM: {inside_sm_bool} | postGIS: {postGIS_bool}')
-    if inside_sm_bool or postGIS_bool:
-        return True
-    else:
-        return False
+    from shapely.geometry import Point, Polygon
+    area = Polygon([tuple(x) for x in polygon])
+    coord_candidate = Point((point[0],point[1]))
+    return area.contains(coord_candidate)
 
 def get_polygon_area(shape_coords): # returns area in acres
     x = [convert_coordinates_to_meters(sc[0]) for sc in shape_coords]

@@ -1,5 +1,5 @@
 import datetime, os, subprocess, time
-from utilities import read_queue, write_queue
+from utilities import check_internet_connection, read_queue, write_queue
 
 if __name__ == "__main__":
     print('Starting Batch Tile Download Service:\n')
@@ -8,6 +8,7 @@ if __name__ == "__main__":
         with open(queue_file_name, mode='w', newline='') as file:
             print("Creating batch queue file...\n")    
     wait_interval_sec = 10
+    offline_indicator = 0
     time.sleep(2)
     while True:
         cmd_complete_list = []
@@ -18,6 +19,9 @@ if __name__ == "__main__":
             print(f'Error reading batch queue file: {e}',end='\n')
             time.sleep(5)
             continue
+        if not check_internet_connection():
+            time.sleep(5)
+            if not check_internet_connection(): print('No public internet connection... terminating service'); break
         if len(cmd_queue) > 0:
             for cmd in cmd_queue:
                 command = cmd[0]
@@ -42,3 +46,4 @@ if __name__ == "__main__":
             wait_interval_sec = 100
         else:
             time.sleep(1)  
+time.sleep(5)
