@@ -5,7 +5,7 @@ from utilities import import_libraries
 libraries = [['customtkinter'],['CTkMessagebox',['CTkMessagebox']],
              ['numpy'],['os'],['PIL',['Image','ImageTK']],
              ['sys'],['threading'],['tkinter',['END']],['tkintermapview',['TkinterMapView']],
-             ['alive_progress'],['pandas'],['urllib.request'],['shapely']]
+             ['pandas'],['urllib.request'],['shapely']]
 import_libraries(libraries)
 
 import customtkinter
@@ -974,17 +974,13 @@ class App(customtkinter.CTk):
         self.option_sensor.set('BEAST+')
         # define right-click attributes
         self.map_widget.add_right_click_menu_command(
-            label="Add Marker",
+            label="Add Generic Marker",
             command=self.add_marker_event,
             pass_coords=True)
         self.map_widget.add_right_click_menu_command(
             label="Copy MGRS Gid",
             command=self.copy_mgrs_grid,
             pass_coords=True)
-        self.map_widget.add_right_click_menu_command(
-            label="Paste",
-            command=self.paste_from_clipboard,
-            pass_coords=False)
 
     def read_ewt_input_fields(self):
         """
@@ -1016,7 +1012,7 @@ class App(customtkinter.CTk):
                 pass
             else:
                 # if MGRS is invalid, give user the option to re-input or use default value
-                choice = self.input_error(category='Sensor 1 Grid',msg=f'Invalid Input {self.sensor1_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True)
+                choice = self.input_error(category='Sensor 1 Grid',msg=f'Invalid Input {self.sensor1_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
                 # assess if user wishes to use the default value or end function
                 if choice == 'Default':
                     # clear the previous sensor 1 MGRS input
@@ -1054,7 +1050,7 @@ class App(customtkinter.CTk):
             # exception handling for ValueError
             except ValueError:
                 # give user option to re-input value or use the default Sensor 1 LOB value
-                choice = self.input_error(category='Sensor 1 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True)
+                choice = self.input_error(category='Sensor 1 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
                 # if user chooses to use the default Sensor 1 LOB value
                 if choice == "Default":
                     # clear Sensor 1 LOB input field
@@ -1089,7 +1085,7 @@ class App(customtkinter.CTk):
             # exception for ValueError
             except ValueError:
                 # give user option to re-input value or use the default Sensor 1 PWR received value
-                choice = self.input_error(category='Sensor 1 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True)
+                choice = self.input_error(category='Sensor 1 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
                 # if user chooses to use the default Sensor 1 PWR Received value
                 if choice == "Default":
                     # clear the Sensor 1 PWR Received value
@@ -1124,7 +1120,7 @@ class App(customtkinter.CTk):
                     pass
                 else:
                     # if MGRS is invalid, give user the option to re-input or use default value
-                    choice = self.input_error(category='Sensor 2 Grid',msg=f'Invalid Input {self.sensor2_mgrs_val}',single_lob_option=True)
+                    choice = self.input_error(category='Sensor 2 Grid',msg=f'Invalid Input {self.sensor2_mgrs_val}',single_lob_option=True,cut_option=False,ewt_bypass_option=False,EWT_num='2')
                     # if user chooses to use default Sensor 2 MGRS value
                     if choice == 'Default':
                         # clear Sensor 2 MGRS input field
@@ -1185,7 +1181,7 @@ class App(customtkinter.CTk):
             # exception for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input or use default value
-                choice = self.input_error(category='Sensor 2 Grid Azimuth',msg='Invalid Input',single_lob_option=True)
+                choice = self.input_error(category='Sensor 2 Grid Azimuth',msg='Invalid Input',single_lob_option=True,cut_option=False,ewt_bypass_option=False,EWT_num='2')
                 # if users chooses to utilize the default Sensor 2 LOB value
                 if choice == 'Default':
                     # clear the Sensor 2 LOB input field
@@ -1240,7 +1236,7 @@ class App(customtkinter.CTk):
             # exception handling for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input or use default value
-                choice = self.input_error(category='Sensor 2 Power Received',msg='Invalid Input',single_lob_option=True)
+                choice = self.input_error(category='Sensor 2 Power Received',msg='Invalid Input',single_lob_option=True,cut_option=False,ewt_bypass_option=False,EWT_num='2')
                 # if user chooses to utilize the default Sensor 2 LOB value
                 if choice == 'Default':
                     # clear the Sensor 2 Received PWR input field
@@ -1292,7 +1288,7 @@ class App(customtkinter.CTk):
                     pass
                 else:
                     # if MGRS is invalid, give user the option to re-input or use default value
-                    choice = self.input_error(category='Sensor 3 Grid',msg=f'Invalid Input {self.sensor3_mgrs_val}',single_lob_option=True,cut_option=True)
+                    choice = self.input_error(category='Sensor 3 Grid',msg=f'Invalid Input {self.sensor3_mgrs_val}',single_lob_option=True,cut_option=True,ewt_bypass_option=False,EWT_num='3')
                     # if user chooses to use default Sensor 3 MGRS value
                     if choice == 'Default':
                         # clear Sensor 3 MGRS input field
@@ -1362,7 +1358,7 @@ class App(customtkinter.CTk):
             # exception for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input or use default value
-                choice = self.input_error(category='Sensor 3 Grid Azimuth',msg='Invalid Input',single_lob_option=True,cut_option=True)
+                choice = self.input_error(category='Sensor 3 Grid Azimuth',msg='Invalid Input',single_lob_option=True,cut_option=True,ewt_bypass_option=False,EWT_num='3')
                 # if users chooses to utilize the default Sensor 3 LOB value
                 if choice == 'Default':
                     # clear the Sensor 3 LOB input field
@@ -1419,7 +1415,7 @@ class App(customtkinter.CTk):
             # exception handling for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input or use default value
-                choice = self.input_error(category='Sensor 3 Power Received',msg='Invalid Input',single_lob_option=True,cut_option=True)
+                choice = self.input_error(category='Sensor 3 Power Received',msg='Invalid Input',single_lob_option=True,cut_option=True,ewt_bypass_option=False,EWT_num='3')
                 # if user chooses to utilize the default Sensor 3 LOB value
                 if choice == 'Default':
                     # clear the Sensor 3 Received PWR input field
@@ -1611,7 +1607,7 @@ class App(customtkinter.CTk):
                 # calculate sensor 1 LOB error (in acres)
                 self.sensor1_lob_error_acres = get_polygon_area(self.sensor1_lob_polygon)
                 # define sensor 1 LOB description
-                sensor1_lob_description = f"EWT 1 at {format_readable_mgrs(self.sensor1_mgrs_val)}\nLOB at bearing {int(self.sensor1_grid_azimuth_val)}° between {self.sensor1_min_distance_m/1000:,.2f}km and {self.sensor1_max_distance_m/1000:,.2f}km with {self.sensor1_lob_error_acres:,.0f} acres of error"
+                sensor1_lob_description = f"EWT 1 at {format_readable_mgrs(self.sensor1_mgrs_val)}\nwith a LOB at bearing {int(self.sensor1_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor1_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor1_max_distance_m)} with {self.sensor1_lob_error_acres:,.0f} acres of error"
                 # define and set sensor 1 marker on the map
                 
                 ew_team1_marker = self.map_widget.set_marker(
@@ -1679,7 +1675,7 @@ class App(customtkinter.CTk):
                 # calculate LOB 2 sensor error (in acres)
                 self.sensor2_lob_error_acres = get_polygon_area(self.sensor2_lob_polygon)
                 # define LOB 2 description
-                sensor2_lob_description = f"EWT 2 at {format_readable_mgrs(self.sensor2_mgrs_val)}\nLOB at bearing {int(self.sensor2_grid_azimuth_val)}° between {self.sensor2_min_distance_m/1000:,.2f}km and {self.sensor2_max_distance_m/1000:,.2f}km with {self.sensor2_lob_error_acres:,.0f} acres of error"
+                sensor2_lob_description = f"EWT 2 at {format_readable_mgrs(self.sensor2_mgrs_val)}\nwith a LOB at bearing {int(self.sensor2_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor2_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor2_max_distance_m)} with {self.sensor2_lob_error_acres:,.0f} acres of error"
                 # define and set sensor 2 marker on the map
                 ew_team2_marker = self.map_widget.set_marker(
                     deg_x=self.sensor2_coord[0], 
@@ -1746,7 +1742,7 @@ class App(customtkinter.CTk):
                 # calculate LOB 3 sensor error (in acres)
                 self.sensor3_lob_error_acres = get_polygon_area(self.sensor3_lob_polygon)
                 # define sensor 3 LOB description
-                sensor3_lob_description = f"EWT 3 at {format_readable_mgrs(self.sensor3_mgrs_val)}\nLOB at bearing {int(self.sensor3_grid_azimuth_val)}° between {self.sensor3_min_distance_m/1000:,.2f}km and {self.sensor3_max_distance_m/1000:,.2f}km with {self.sensor3_lob_error_acres:,.0f} acres of error"
+                sensor3_lob_description = f"EWT 3 at {format_readable_mgrs(self.sensor3_mgrs_val)}\nwith a LOB at bearing {int(self.sensor3_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor3_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor3_max_distance_m)} with {self.sensor3_lob_error_acres:,.0f} acres of error"
                 # define and plot sensor 3 marker on the map
                 ew_team3_marker = self.map_widget.set_marker(
                     deg_x=self.sensor3_coord[0], 
@@ -1980,7 +1976,16 @@ class App(customtkinter.CTk):
                 int_13 = get_intersection(lob1_center, lob3_center)
                 int_12 = get_intersection(lob1_center, lob2_center)
                 int_23 = get_intersection(lob2_center, lob3_center)
-                fix_polygon = [int_12,int_23,int_13]            
+                fix_polygon = [int_12,int_23,int_13]
+                # plot cuts with the CUT target icon
+                plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,True,True)
+                plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True)
+                plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True)
+            else:
+                # plot cuts without the CUT target icon
+                plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,True,False)
+                plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,False)
+                plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,False)
             # define target classification
             self.target_class = '(FIX)'
             # set target label with updated target classification
@@ -2180,9 +2185,6 @@ class App(customtkinter.CTk):
             pass
         # EWT 1, 2, & 3 INTERSECTION (TOTAL 1 FIX, 3 CUT)
         elif ewt1_ewt2_intersection_bool and ewt2_ewt3_intersection_bool and ewt1_ewt3_intersection_bool:
-            plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,True,True)
-            plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True)
-            plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True)
             plot_fix(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound)
         # Unexpected situation
         else:
@@ -2638,20 +2640,20 @@ class App(customtkinter.CTk):
         from CTkMessagebox import CTkMessagebox
         CTkMessagebox(title=box_title, message=msg, icon=icon,option_1='Ackowledged')
 
-    def input_error(self,category,msg,single_lob_option=False,cut_option=False,ewt_bypass_option=False):
+    def input_error(self,category,msg,single_lob_option=False,cut_option=False,ewt_bypass_option=False,EWT_num=''):
         from CTkMessagebox import CTkMessagebox
         if not single_lob_option and not cut_option and not ewt_bypass_option:
             msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','Use Default'])
         if not single_lob_option and not cut_option and ewt_bypass_option:
-            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','Bypass EWT','Use Default'])
+            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input',f'Bypass EWT {EWT_num}'.strip(),'Use Default'])
         elif single_lob_option and not cut_option:
-            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','LOB','Bypass EWT','Use Default'])            
+            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','LOB',f'Bypass EWT {EWT_num}'.strip(),'Use Default'])            
         elif cut_option:
-            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','LOB/CUT','Bypass EWT','Use Default'])
+            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','LOB/CUT',f'Bypass EWT {EWT_num}'.strip(),'Use Default'])
         response = msgBox.get()
         if response == 'Re-input':
             return 'Re-input'
-        elif response == 'Bypass EWT':
+        elif "Bypass" in response:
             return 'Bypass'
         elif response == 'Use Default':
             return 'Default'
@@ -2728,34 +2730,30 @@ if __name__ == "__main__":
 DEV NOTES
 
 --- MVP Reqs:
-    - give estimate warning prior to executing batch download
-    - pass paramters to batch download... not command
-    - better formating in log file
-    - BEAST+ df sensor gain RFI...
     - option to reload last logged data (event of crash...)
-    - ID EWT to bypass in pop-up
 
 --- Aux Improvements:
-    - provide user option to copy mgrs from plotted user marker
-    - provide option to input coordinates instead of MGRS
-    - correct error in pasting copied coords (no comma)
-    - move batch download function into utilities file
-    - add config file for hard-coded data
-    - restart app button
-    - feature to shut down all services at once
-    - move log function to utilities
-    - add lob analysis tool (folium?)
+    (High)
+    - restart app button / method
+    - clean way to close all associated services upon closing
+    - add plot_cut_tgt bool for when fix exists, move plot_cut inside fix function
+    - better info on user marker popup (data attribute: DTG placed?, distance from last marker, number)
+    - function to correct mgrs input format in user input fields 
+    (Medium)
+    - BEAST+ df sensor gain RFI...
+    - better formating in log file
+    - give estimate warning prior to executing batch download
+    - pass paramters to batch download... not command
     - print statement of log data when logged
-    - remove year from most* pop-ups
-    - ewt description grammar after grid, breakup sentence
-    - log function causes error in tablet
-    - add EWT-specific LOB-based target to LOB (for future analysis)
+    - add EWT-specific LOB-based target to log (for future analysis)
     - add blank column for ACTUAL target location to log to fill in later???
-    - add plot_cut_tgt bool for when fix exists
-    - better info on user marker popup
-    - create a dedicated function to create a marker and polygon ?
-    - function to correct mgrs input format in user input fields
     - remove pandas, branca, folium, alive_progress dependencies
-    - different icon for user marker
-
+    - different icon for user marker (based on number???)
+    - option to plot objectives w/ radius, would require forked marker removal method
+    (Low) 
+    - provide option to input coordinates instead of MGRS
+    - remove year from most* pop-ups
+    - add config file for hard-coded data
+    - move log function to utilities
+    - move batch download function into utilities file
 """
