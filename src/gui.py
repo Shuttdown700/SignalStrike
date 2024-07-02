@@ -9,6 +9,8 @@ libraries = [['customtkinter'],['CTkMessagebox',['CTkMessagebox']],
 import_libraries(libraries)
 
 import customtkinter
+from _tkinter import TclError
+
 customtkinter.set_default_color_theme(os.path.dirname(os.path.abspath(__file__))+"/config_files/color_theme.json")
 class App(customtkinter.CTk):
     """
@@ -213,6 +215,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.sensor1_mgrs.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor1_mgrs))
         # bind EWT function to RETURN keystroke in Sensor 1 MGRS input field
         self.sensor1_mgrs.bind("<Return>", self.ewt_function)
         # define sensor 1 LOB label
@@ -241,6 +245,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind LOB entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.sensor1_lob.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor1_lob))
         # bind EWT function to RETURN keystroke in Sensor 1 LOB input field
         self.sensor1_lob.bind("<Return>", self.ewt_function)
         # define sensor 1 received power label attributes
@@ -269,6 +275,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind power entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.sensor1_Rpwr.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor1_Rpwr))
         # bind EWT function to RETURN keystroke in Sensor 1 Rpwr input field
         self.sensor1_Rpwr.bind("<Return>", self.ewt_function)
         # define sensor 2 mgrs label attributes
@@ -297,6 +305,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.sensor2_mgrs.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor2_mgrs))
         # bind EWT function to RETURN keystroke in Sensor 2 MGRS input field
         self.sensor2_mgrs.bind("<Return>", self.ewt_function)
         # define sensor 2 LOB label attributes
@@ -325,6 +335,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind LOB entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.sensor2_lob.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor2_lob))
         # bind EWT function to RETURN keystroke in Sensor 2 LOB input field
         self.sensor2_lob.bind("<Return>", self.ewt_function)
         # define sensor 2 received power attributes
@@ -353,6 +365,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind Rpwr entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.sensor2_Rpwr.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor2_Rpwr))
         # bind EWT function to RETURN keystroke in Sensor 2 Rpwr input field
         self.sensor2_Rpwr.bind("<Return>", self.ewt_function)
         # define sensor 3 mgrs label attributes
@@ -381,6 +395,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.sensor3_mgrs.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor3_mgrs))
         # bind EWT function to RETURN keystroke in Sensor 3 MGRS input field
         self.sensor3_mgrs.bind("<Return>", self.ewt_function)
         # define sensor 3 LOB label attributes
@@ -409,6 +425,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.sensor3_lob.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor3_lob))
         # bind EWT function to RETURN keystroke in Sensor 3 LOB input field
         self.sensor3_lob.bind("<Return>", self.ewt_function)
         # define sensor 3 received power label attributes
@@ -437,6 +455,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.sensor3_Rpwr.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor3_Rpwr))
         # bind EWT function to RETURN keystroke in Sensor 3 Rpwr input field
         self.sensor3_Rpwr.bind("<Return>", self.ewt_function)
         # define target frequency label attributes
@@ -465,6 +485,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,), 
             pady=(0,0))
+        # bind freq entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.frequency.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.frequency))
         # bind EWT function to RETURN keystroke in Frequency input field
         self.frequency.bind("<Return>", self.ewt_function)
         # define min ERP label attributes
@@ -493,6 +515,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind ERP entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.min_ERP.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.min_ERP))
         # bind EWT function to RETURN keystroke in Min ERP input field
         self.min_ERP.bind("<Return>", self.ewt_function)
         # define max ERP label attributes
@@ -521,6 +545,8 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # bind ERP entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.max_ERP.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.max_ERP))
         # bind EWT function to RETURN keystroke in Max ERP input field
         self.max_ERP.bind("<Return>", self.ewt_function)
         # define path-loss coefficient label attributes
@@ -592,6 +618,8 @@ class App(customtkinter.CTk):
             columnspan=1,
             padx=(0,0), 
             pady=(0,0))
+        # bind TGT grid label "Right Click" to copy
+        self.target_grid.bind("<Button-3>", lambda cTk_obj: self.copy_selection(self.target_grid))
         # define sensor 1 distance label attributes
         self.label_sensor1_distance = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -810,6 +838,8 @@ class App(customtkinter.CTk):
             sticky="ew")
         # bind mgrs entry RETURN keystroke to search function
         self.search_mgrs.bind("<Return>", self.search_event)
+        # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.search_mgrs.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.search_mgrs))
         # define search button attributes
         self.button_search = customtkinter.CTkButton(
             master=self.frame_right,
@@ -879,6 +909,8 @@ class App(customtkinter.CTk):
             padx=(12, 0), 
             pady=12,
             sticky="we")
+        # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.batch_download_center_mgrs.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.batch_download_center_mgrs))
         # define batch download radius (in m)
         self.batch_download_radius = customtkinter.CTkEntry(
             master=self.frame_right,
@@ -890,6 +922,8 @@ class App(customtkinter.CTk):
             padx=(12, 0), 
             pady=12,
             sticky="we")
+        # bind radius entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.batch_download_radius.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.batch_download_radius))
         # define batch download zoom range 
         self.batch_download_zoom_range = customtkinter.CTkEntry(
             master=self.frame_right,
@@ -901,6 +935,8 @@ class App(customtkinter.CTk):
             padx=(12, 0), 
             pady=12,
             sticky="we")
+        # bind zoom range entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.batch_download_zoom_range.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.batch_download_zoom_range))
         # define target error attributes
         self.label_batch_download_time_estimate = customtkinter.CTkLabel(
             master=self.frame_right, 
@@ -945,6 +981,10 @@ class App(customtkinter.CTk):
             label="Copy MGRS Gid",
             command=self.copy_mgrs_grid,
             pass_coords=True)
+        self.map_widget.add_right_click_menu_command(
+            label="Paste",
+            command=self.paste_from_clipboard,
+            pass_coords=False)
 
     def read_ewt_input_fields(self):
         """
@@ -2331,13 +2371,61 @@ class App(customtkinter.CTk):
             self.path_list.append(marker_dist)
 
     def copy_mgrs_grid(self, coords):
+        """
+        Function to copy MGRS coordinates to clipboard
+
+        Parameters
+        ----------
+        coords : tuple
+            Coordinates in (lat,lon) format
+
+        Returns
+        -------
+        None
+
+        """
         from utilities import convert_coords_to_mgrs
+        # function to write text to clipboard
         def copy2clip(txt):
-            import subprocess
-            cmd='echo '+txt.strip()+'|clip'
-            return subprocess.check_call(cmd, shell=True)
+            self.clipboard_clear()
+            self.clipboard_append(txt)
+        # define MGRS string from coordinate
         mgrs = str(convert_coords_to_mgrs(list(coords))).strip()
+        # write MGRS to clipboard
         copy2clip(mgrs)
+
+    def copy_selection(self,entry_object):
+        try:
+            selected_text = entry_object.get()
+        except AttributeError:
+            selected_text = entry_object.cget("text")
+        except:
+            "Error in copy_selection method"
+            return
+        if len(selected_text.strip()) == 0: return
+        self.clipboard_clear()
+        self.clipboard_append(selected_text)
+        if isinstance(selected_text,list):
+            msg = f'"{selected_text[0]}" copied to clipboard'
+        elif isinstance(selected_text,str):
+            msg = f'"{selected_text}" copied to clipboard'
+        self.show_info(msg,box_title="Selection Copied",icon="info")
+    
+    def paste_from_clipboard(self,entry_object):
+        try:
+            selected_text = entry_object.selection_get().split()
+            if len(selected_text) > 0:
+                self.clipboard_clear()
+                self.clipboard_append(selected_text)
+                if isinstance(selected_text,list):
+                    msg = f'"{selected_text[0]}" copied to clipboard'
+                elif isinstance(selected_text,str):
+                    msg = f'"{selected_text}" copied to clipboard'
+                self.show_info(msg,box_title="Selection Copied",icon="info")
+            else:
+                entry_object.insert('end', self.selection_get(selection='CLIPBOARD'))
+        except TclError:
+            entry_object.insert('end', self.selection_get(selection='CLIPBOARD'))
 
     def search_event(self, event=None):
         from utilities import check_coord_input, check_mgrs_input, convert_mgrs_to_coords, correct_coord_input
@@ -2359,11 +2447,9 @@ class App(customtkinter.CTk):
             return
 
     def check_if_object_in_object_list(self,map_object,map_object_list):
-        # got to assess marker details... not just the object
         map_object_data = map_object.data
         object_data_list = [mo.data for mo in map_object_list]
         if map_object_data in object_data_list:
-            # print(f"denied marker to object list: {object_data_list}")
             # delete redudant map object
             map_object.delete()
             return True
@@ -2669,5 +2755,7 @@ DEV NOTES
     - better info on user marker popup
     - create a dedicated function to create a marker and polygon ?
     - function to correct mgrs input format in user input fields
+    - remove pandas, branca, folium, alive_progress dependencies
+    - different icon for user marker
 
 """

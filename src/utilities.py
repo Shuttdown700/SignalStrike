@@ -25,6 +25,8 @@ def import_libraries(libraries):
             print(f'Installing... {s[0].split(".")[0]}')
             cmd = f'python -m pip install {s[0].split(".")[0]}'
             subprocess.call(cmd, shell=True, stdout=subprocess.PIPE)
+        except ModuleNotFoundError as mnfe:
+            print(f"Module error: {mnfe}"); continue
         if len(s) == 1: continue
         for sl in s[1]:
             try:
@@ -33,13 +35,12 @@ def import_libraries(libraries):
                 pass
 
 libraries = [['math',['sin','cos','pi']],['collections',['defaultdict']],
-             ['branca.colormap'],['datetime',['date']],['jinja2'],['numpy'],
-             ['warnings'],['mgrs'],['haversine'],['haversine',['Unit']]]
+             ['datetime',['date']],['jinja2'],['numpy'],
+             ['warnings'],['mgrs'],['haversine',['Unit']]]
 
 import_libraries(libraries)
 import numpy as np
 import warnings
-import mgrs
 import os
 import shutil
 import requests
@@ -306,6 +307,7 @@ def convert_coords_to_mgrs(coords,precision=5):
         Location in MGRS notation.
 
     """
+    import mgrs
     try:
         assert isinstance(coords,list), 'Coordinate input must be a list.'
         assert len(coords) == 2, 'Coordinate input must be of length 2.'
@@ -328,6 +330,7 @@ def convert_mgrs_to_coords(milGrid):
         Grid coordinate. Example: [lat,long].
 
     """
+    import mgrs
     try:
         assert isinstance(milGrid,str), 'MGRS must be a string'
         milGrid = milGrid.replace(" ","").strip()

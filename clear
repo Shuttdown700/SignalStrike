@@ -1,8 +1,0 @@
-
-Pinging 8.8.8.8 with 32 bytes of data:
-Request timed out.
-Request timed out.
-Request timed out.
-
-Ping statistics for 8.8.8.8:
-    Packets: Sent = 3, Received = 0, Lost = 3 (100% loss),

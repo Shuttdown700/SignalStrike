@@ -2,6 +2,7 @@
 *.cfg
 *.pyc
 **/ewta_venv
+**/venv_ewta
 **/Include
 **/logs
 **/Scripts
