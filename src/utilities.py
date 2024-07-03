@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-# folium icons: https://fontawesome.com/icons?d=gallery
-# folium icon colors: ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 'darkblue', 'darkgreen', 'cadetblue', 'darkpurple', 'white', 'pink', 'lightblue', 'lightgreen', 'gray', 'black', 'lightgray']
-# folium tiles: OpenStreetMap , Stamen Terrain, Stamen Toner
+#!/usr/bin/env python
 
 def import_libraries(libraries):
     """
@@ -124,41 +122,37 @@ def remove_empty_csv_rows(csv_file: str) -> None:
     temp_file.close()
     os.remove(temp_file)
 
-def read_queue(queue_file_name: str) -> None:
+def read_csv(file_path: str) -> None:
     """
-    Reads a queue csv file
+    Reads a csv file
 
     Parameters
     ----------
-    queue_file_name : str
-        File path to queue csv file.
+    file_path : str
+        File path to csv file.
 
     Returns
     -------
-    tile_queue : list of tuples
-        list of rows, with each row in tuple form.
+    csv_data : list of dict rows
+        list of rows, with each row in dict form.
 
     """
     import csv
-    # remove_empty_csv_rows(queue_file_name)
-    with open(queue_file_name, mode='r') as file:
-        csv_reader = csv.reader(file)
-        tile_queue = []
-        for row in csv_reader:
-            if row == []: continue
-            tile_queue.append(tuple(row))
-    return tile_queue
+    with open(file_path, mode='r', newline='') as file:
+        reader = csv.DictReader(file)
+        csv_data = [row for row in reader]
+    return csv_data
 
-def write_queue(queue_file_name: str,queue_data: list) -> None:
+def write_csv(file_path: str,csv_data: list) -> None:
     """
-    Writes a queue csv file
+    Writes a csv file
 
     Parameters
     ----------
-    queue_file_name : str
-        File path to queue csv file.
-    queue_data : list
-        list of rows, with each row in list form.
+    file_path : str
+        File path to csv file.
+    csv_data : list
+        list of rows, with each row in dict form.
 
     Returns
     -------
@@ -166,10 +160,15 @@ def write_queue(queue_file_name: str,queue_data: list) -> None:
 
     """
     import csv
-    with open(queue_file_name, mode='w', newline='') as file:
-        csv_writer = csv.writer(file)
-        for row in queue_data:
-            csv_writer.writerow(row)
+    with open(file_path, mode='w', newline='') as file:
+        try:
+            fieldnames = csv_data[0].keys()
+        except IndexError:
+            if 'dynamic_tile_queue' in file_path:
+                fieldnames = {'Z':'','Y':'','X':''}.keys()
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(csv_data)
 
 def generate_DTG() -> str:
     """
@@ -205,7 +204,7 @@ def format_readable_DTG(dtg: str) -> str:
         DTG in TTTT on DD MMM YYYY format..
 
     """
-    return f'At {dtg[2:6]} on {dtg[:2]} {dtg[6:9]} {dtg[-4:]}'
+    return f'{dtg[2:6]} on {dtg[:2]} {dtg[6:9]} {dtg[-4:]}'
 
 def convert_coordinates_to_meters(coord_element: float) -> float:
     """
@@ -661,10 +660,11 @@ def get_emission_distance(P_t_watts,f_MHz,G_t,G_r,R_s,t_h,r_h,temp_f,path_loss_c
         Maximum line-of-sight due to path-loss, Earth curvature and ducting in km.
 
     """
+    path_loss_coeff = float(path_loss_coeff)
     path_loss = emission_distance(P_t_watts,f_MHz,G_t,G_r,R_s,path_loss_coeff)
-    earth_curve = emission_optical_maximum_distance(t_h,r_h)
+    # earth_curve = emission_optical_maximum_distance(t_h,r_h)
     earth_curve_with_ducting = emission_optical_maximum_distance_with_ducting(t_h,r_h,f_MHz,temp_f,weather_coeff)
-    emissions_distances = [path_loss,earth_curve,earth_curve_with_ducting]
+    emissions_distances = [path_loss,earth_curve_with_ducting]
     if pure_pathLoss:
         return path_loss
     else:

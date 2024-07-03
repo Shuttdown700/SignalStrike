@@ -1,6 +1,7 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
-import csv, os, sys
+from utilities import read_csv, write_csv
+import os, sys
 
 def append_tile_to_queue(tile,file_path=os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\dynamic_tile_queue.csv"):
     """
@@ -22,13 +23,14 @@ def append_tile_to_queue(tile,file_path=os.path.dirname(os.path.abspath(__file__
     if tile == "" or tile == []: return
     # open csv file
     if not os.path.isfile(file_path): 
-        with open(file_path, mode='w', newline='') as file:
+        with open(file_path, mode='w', newline=''):
             print("Creating batch queue file...\n")
-    with open(file_path, mode='a', newline='') as file:
-        # read file as csv file object
-        csv_writer = csv.writer(file)
-        # append row to csv file
-        csv_writer.writerow(tile)
+    tile_data = {"Z":tile[0],
+                 "Y":tile[1],
+                 "X":tile[2]}
+    queue_data = read_csv(file_path)
+    queue_data.append(tile_data)
+    write_csv(file_path,queue_data)
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):

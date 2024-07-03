@@ -1,5 +1,5 @@
 import datetime, os, subprocess, time
-from utilities import check_internet_connection, read_queue, write_queue
+from utilities import check_internet_connection, read_csv, write_csv
 
 if __name__ == "__main__":
     print('Starting Batch Tile Download Service:\n')
@@ -14,7 +14,7 @@ if __name__ == "__main__":
         cmd_complete_list = []
         t1 = datetime.datetime.today()
         try:
-            cmd_queue = read_queue(queue_file_name)
+            cmd_queue = read_csv(queue_file_name)
         except Exception as e:
             print(f'Error reading batch queue file: {e}',end='\n')
             time.sleep(5)
@@ -28,21 +28,21 @@ if __name__ == "__main__":
                 print(f'Executing the following command:\n\n{command}')
                 subprocess.run(command, shell=True, start_new_session=True)
                 cmd_complete_list.append(cmd)
-            cmd_queue = read_queue(queue_file_name)
+            cmd_queue = read_csv(queue_file_name)
             cmd_queue_updated = []
             for cmd in cmd_queue:
                 if cmd in cmd_complete_list:
                     continue
                 else:
-                    cmd_queue_updated.append([cmd])
-            write_queue(queue_file_name,cmd_queue_updated)
+                    cmd_queue_updated.append({'Command':cmd})
+            write_csv(queue_file_name,cmd_queue_updated)
         else:
             print('Batch download queue is empty.\n')
         t2 = datetime.datetime.today()
         t_delta = t1 - t2
         if t_delta.total_seconds() < wait_interval_sec:
             print(f'Waiting: {wait_interval_sec - t_delta.total_seconds():,.2f} seconds...',end='\n')
-            time.sleep(wait_interval_sec - t_delta.total_seconds())
+            time.sleep(min(wait_interval_sec - t_delta.total_seconds(),wait_interval_sec))
             wait_interval_sec = 100
         else:
             time.sleep(1)  

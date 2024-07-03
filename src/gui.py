@@ -1,11 +1,12 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+
 import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 from utilities import import_libraries
 libraries = [['customtkinter'],['CTkMessagebox',['CTkMessagebox']],
              ['numpy'],['os'],['PIL',['Image','ImageTK']],
              ['sys'],['threading'],['tkinter',['END']],['tkintermapview',['TkinterMapView']],
-             ['pandas'],['urllib.request'],['shapely']]
+             ['urllib.request'],['shapely']]
 import_libraries(libraries)
 
 import customtkinter
@@ -54,6 +55,14 @@ class App(customtkinter.CTk):
         "FIX Area Outline Color":"Yellow",
         "Initial Latitude":31.8691,
         "Initial Longitude":-81.6090,
+    }
+    PATH_LOSS_DICT = {
+        'Free Space (Theoretical)':2,
+        'Light Foliage':3,
+        'Light-Moderate Foliage':3.5,
+        'Moderate Foliage':4,
+        'Moderate-Dense Foliage':4.5,
+        'Dense Foliage':5        
     }
 
     def __init__(self, *args, **kwargs):
@@ -761,7 +770,7 @@ class App(customtkinter.CTk):
             master=self.frame_left, 
             text="LOG DATA",
             fg_color='green',
-            command = self.log_target_data)
+            command = self.log_button_command)
         # assign log entries button grid position
         self.button_log_data.grid(
             row=self.button_clear_entries.grid_info()["row"]+1,
@@ -1619,7 +1628,7 @@ class App(customtkinter.CTk):
                     text_color='black',
                     icon=self.ew_team1_image,
                     command=self.marker_click,
-                    data=f'EWT 1\n{format_readable_mgrs(self.sensor1_mgrs_val)}\n{format_readable_DTG(generate_DTG())}')
+                    data=f'EWT 1\n{format_readable_mgrs(self.sensor1_mgrs_val)}\nat {format_readable_DTG(generate_DTG())}')
                 # add sensor 1 marker to EWT marker list
                 self.append_object(ew_team1_marker,"EWT")
                 # define and set sensor 1 center line
@@ -1652,7 +1661,7 @@ class App(customtkinter.CTk):
                         marker_color_circle='white',
                         icon=self.target_image_LOB,
                         command=self.marker_click,
-                        data=f'TGT (LOB)\nEWT 1\n{format_readable_mgrs(sensor1_target_mgrs)}\n{format_readable_DTG(generate_DTG())}')
+                        data=f'TGT (LOB)\nEWT 1\n{format_readable_mgrs(sensor1_target_mgrs)}\nat {format_readable_DTG(generate_DTG())}')
                     # add sensor 1 target marker to target marker list
                     self.append_object(target1_marker,"TGT")
                 # calculate sensor 1 distance to target 1
@@ -1686,7 +1695,7 @@ class App(customtkinter.CTk):
                     text_color='black',
                     icon=self.ew_team2_image,
                     command=self.marker_click,
-                    data=f'EWT 2\n{format_readable_mgrs(self.sensor2_mgrs_val)}\n{format_readable_DTG(generate_DTG())}')
+                    data=f'EWT 2\n{format_readable_mgrs(self.sensor2_mgrs_val)}\nat {format_readable_DTG(generate_DTG())}')
                 # add sensor 2 marker to EWT marker list
                 self.append_object(ew_team2_marker,"EWT")
                 # define and set sensor 2 LOB area
@@ -1719,7 +1728,7 @@ class App(customtkinter.CTk):
                         marker_color_circle='white',
                         icon=self.target_image_LOB,
                         command=self.marker_click,
-                        data=f'TGT (LOB)\nEWT 2\n{format_readable_mgrs(sensor2_target_mgrs)}\n{format_readable_DTG(generate_DTG())}')
+                        data=f'TGT (LOB)\nEWT 2\n{format_readable_mgrs(sensor2_target_mgrs)}\nat {format_readable_DTG(generate_DTG())}')
                     # add sensor 2 target marker to tarket marker list
                     self.append_object(target2_marker,"TGT")
                 # calculate sensor 1 distance to target 2
@@ -1753,7 +1762,7 @@ class App(customtkinter.CTk):
                     text_color='black',
                     icon=self.ew_team3_image,
                     command=self.marker_click,
-                    data=f'EWT 3\n{format_readable_mgrs(self.sensor3_mgrs_val)}\n{format_readable_DTG(generate_DTG())}')
+                    data=f'EWT 3\n{format_readable_mgrs(self.sensor3_mgrs_val)}\nat {format_readable_DTG(generate_DTG())}')
                 # add sensor 3 marker to EWT marker list
                 self.append_object(ew_team3_marker,"EWT")
                 # define and set sensor 3 LOB area
@@ -1786,7 +1795,7 @@ class App(customtkinter.CTk):
                         marker_color_circle='white',
                         icon=self.target_image_LOB,
                         command=self.marker_click,
-                        data=f'TGT (LOB)\nEWT 3\n{format_readable_mgrs(sensor3_target_mgrs)}\n{format_readable_DTG(generate_DTG())}')
+                        data=f'TGT (LOB)\nEWT 3\n{format_readable_mgrs(sensor3_target_mgrs)}\nat {format_readable_DTG(generate_DTG())}')
                     # add sensor 3 target marker to target marker list
                     self.append_object(target3_marker,"TGT")
                 # calculate sensor 3 distance to target 3
@@ -1852,7 +1861,7 @@ class App(customtkinter.CTk):
                     marker_color_circle='white',
                     icon=self.target_image_CUT,
                     command=self.marker_click,
-                    data=f'TGT (CUT)\n{format_readable_mgrs(self.target_mgrs)}\n{format_readable_DTG(generate_DTG())}')
+                    data=f'TGT (CUT)\n{format_readable_mgrs(self.target_mgrs)}\nat {format_readable_DTG(generate_DTG())}')
                 # add CUT marker to target marker list
                 self.append_object(cut_target_marker,"TGT")
             # generate sensor 1 distance from target text     
@@ -1964,9 +1973,10 @@ class App(customtkinter.CTk):
                 if in_polygon_bool:
                     # append point as a fix coordinate
                     fix_polygon.append(point)
-                    print(f"YES: {point} is in the fix\n\n")
+                    # print(f"YES: {point} is in the fix\n\n")
                 else:
-                    print(f"NO: {point} is not in the fixn\n")
+                    pass
+                    # print(f"NO: {point} is not in the fixn\n")
                 in_polygon_bool = True
             # organize fix coordinates
             fix_polygon = organize_polygon_coords(fix_polygon)
@@ -2006,7 +2016,7 @@ class App(customtkinter.CTk):
                 marker_color_circle='white',
                 icon=self.target_image_FIX,
                 command=self.marker_click,
-                data=f'TGT {self.target_class}\n{format_readable_mgrs(self.target_mgrs)}\n{format_readable_DTG(generate_DTG())}')
+                data=f'TGT {self.target_class}\n{format_readable_mgrs(self.target_mgrs)}\nat {format_readable_DTG(generate_DTG())}')
             # add FIX marker to target marker list
             self.append_object(fix_target_marker,"TGT")
             # generate sensor 1 distance from target text     
@@ -2218,8 +2228,25 @@ class App(customtkinter.CTk):
         # return distance string
         return f'{distance:,.2f}{distance_unit}'
     
+    def log_button_command(self) -> None:
+        """
+        Provides user the option to log data or reload the last logged data
+
+        Returns
+        -------
+        None.
+
+        """
+        from CTkMessagebox import CTkMessagebox 
+        msgBox = CTkMessagebox(title="User Option", message="Choose Log Function:", icon='info',options=['Log Data','Reload Last Log'])
+        response = msgBox.get()
+        if response == "Log Data":
+            self.log_target_data()
+        elif response == "Reload Last Log":
+            self.reload_last_log()
+    
     def log_target_data(self):
-        from utilities import generate_DTG
+        from utilities import convert_coords_to_mgrs, generate_DTG
         """
         Logs current input fields and targeting data in a date-specific csv file
 
@@ -2234,13 +2261,15 @@ class App(customtkinter.CTk):
 
         """        
         import datetime
-        import pandas as pd
+        from utilities import read_csv, write_csv
         # define log columns
-        log_columns = ['DTG','TGT_CLASS','TGT_MGRS','TGT_LATLON','TGT_ERROR_ACRES',
-                       'EWT_1_MGRS','EWT_1_LATLON','EWT_1_LOB_DEGREES','EWT_1_PWR_REC_DbM','EWT_1_DIST2TGT_KM','EWT_1_MIN_DIST_KM','EWT_1_MAX_DIST_KM',
-                       'EWT_2_MGRS','EWT_2_LATLON','EWT_2_LOB_DEGREES','EWT_2_PWR_REC_DbM','EWT_2_DIST2TGT_KM','EWT_2_MIN_DIST_KM','EWT_2_MAX_DIST_KM',
-                       'EWT_3_MGRS','EWT_3_LATLON','EWT_3_LOB_DEGREES','EWT_3_PWR_REC_DbM','EWT_3_DIST2TGT_KM','EWT_3_MIN_DIST_KM','EWT_3_MAX_DIST_KM']
-        num_ewt_datapoints = 7
+        log_columns = ['DTG','FREQ','MIN_ERP_W','MAX_ERP_W','PATH_LOSS_COEFF',
+                       'TGT_CLASS','TGT_MGRS','TGT_LATLON','TGT_ERROR_ACRES',
+                       'EWT_1_MGRS','EWT_1_LATLON','EWT_1_LOB_DEGREES','EWT_1_PWR_REC_DbM','EWT_1_LOB_TGT_MGRS','EWT_1_LOB_TGT_LATLON','EWT_1_DIST2TGT_KM','EWT_1_MIN_DIST_KM','EWT_1_MAX_DIST_KM',
+                       'EWT_2_MGRS','EWT_2_LATLON','EWT_2_LOB_DEGREES','EWT_2_PWR_REC_DbM','EWT_2_LOB_TGT_MGRS','EWT_2_LOB_TGT_LATLON','EWT_2_DIST2TGT_KM','EWT_2_MIN_DIST_KM','EWT_2_MAX_DIST_KM',
+                       'EWT_3_MGRS','EWT_3_LATLON','EWT_3_LOB_DEGREES','EWT_3_PWR_REC_DbM','EWT_3_LOB_TGT_MGRS','EWT_3_LOB_TGT_LATLON','EWT_3_DIST2TGT_KM','EWT_3_MIN_DIST_KM','EWT_3_MAX_DIST_KM',
+                       'TGT_MGRS_ACTUAL']
+        num_ewt_datapoints = 9
         ewt_bool = False
         # assess if directory exists
         if not os.path.exists(self.log_directory):
@@ -2251,8 +2280,7 @@ class App(customtkinter.CTk):
         # if log file already exists
         if os.path.isfile(os.path.join(self.log_directory, filename)):
             # read current log file
-            df_log = pd.read_csv(os.path.join(self.log_directory, filename))
-            log_data = list(df_log.to_numpy())
+            log_data = read_csv(os.path.join(self.log_directory, filename))
         # if log file does not yet exist
         else:
             # create log file DataFrame
@@ -2263,7 +2291,11 @@ class App(customtkinter.CTk):
         dtg = generate_DTG()
         row_data.append(dtg)
         # if there is target data
-        if  self.target_mgrs != None and self.target_coord != None and self.target_error_val != None:
+        if self.frequency_MHz_val != None and self.min_wattage_val != None and self.max_wattage_val != None and self.path_loss_coeff_val != None and self.target_mgrs != None and self.target_coord != None and self.target_error_val != None:
+            row_data.append(f'{self.frequency_MHz_val:,.2f}')
+            row_data.append(f'{self.min_wattage_val:,.3f}')
+            row_data.append(f'{self.max_wattage_val:,.3f}')
+            row_data.append(self.path_loss_coeff_val)
             row_data.append(self.target_class.split('(')[-1].split(')')[0])
             if row_data[-1] == '2 LOBs' or row_data[-1] == '3 LOBs':
                 row_data.append(self.target_mgrs)
@@ -2277,7 +2309,7 @@ class App(customtkinter.CTk):
                 elif isinstance(self.target_coord,str):
                     row_data.append(self.target_coord)
                 row_data.append(f'{self.target_error_val:,.2f}')
-        # if there is not target data
+        # if there is not target data or transmission data
         else:
             # end function w/o logging
             self.show_info("No target data. No data logged.",icon='warning')
@@ -2288,9 +2320,12 @@ class App(customtkinter.CTk):
             row_data.append(', '.join([str(x) for x in self.sensor1_coord]))
             row_data.append(self.sensor1_grid_azimuth_val)
             row_data.append(self.sensor1_power_received_dBm_val)
+            row_data.append(convert_coords_to_mgrs(self.sensor1_target_coord))
+            row_data.append(self.sensor1_target_coord)
             row_data.append(f'{self.sensor1_distance_val/1000:,.2f}')
             row_data.append(f'{self.sensor1_min_distance_km:,.2f}')
             row_data.append(f'{self.sensor1_max_distance_km:,.2f}')
+            
             ewt_bool = True
         # if sensor 1 has no data in the input fields
         else:
@@ -2302,6 +2337,8 @@ class App(customtkinter.CTk):
             row_data.append(', '.join([str(x) for x in self.sensor2_coord]))
             row_data.append(self.sensor2_grid_azimuth_val)
             row_data.append(self.sensor2_power_received_dBm_val)
+            row_data.append(convert_coords_to_mgrs(self.sensor2_target_coord))
+            row_data.append(self.sensor2_target_coord)
             row_data.append(f'{self.sensor2_distance_val/1000:,.2f}')
             row_data.append(f'{self.sensor2_min_distance_km:,.2f}')
             row_data.append(f'{self.sensor2_max_distance_km:,.2f}')
@@ -2316,6 +2353,8 @@ class App(customtkinter.CTk):
             row_data.append(', '.join([str(x) for x in self.sensor3_coord]))
             row_data.append(self.sensor3_grid_azimuth_val)
             row_data.append(self.sensor3_power_received_dBm_val)
+            row_data.append(convert_coords_to_mgrs(self.sensor3_target_coord))
+            row_data.append(self.sensor3_target_coord)
             row_data.append(f'{self.sensor3_distance_val/1000:,.2f}')
             row_data.append(f'{self.sensor3_min_distance_km:,.2f}')
             row_data.append(f'{self.sensor3_max_distance_km:,.2f}')
@@ -2328,51 +2367,125 @@ class App(customtkinter.CTk):
             # end function w/o logging
             self.show_info("No EWT data. No data logged.",icon='warning')
             return
-        log_data.append(row_data)
-        df_log = pd.DataFrame(log_data,columns=log_columns).set_index(['DTG'],drop=True)
+        # append empty column for ACTUAL_TGT_MGRS to data row
+        row_data.append('')
+
+        # convert log row into dictionary
+        log_row_dict = dict(zip(log_columns, row_data))
+        # append data row (dict) to log data
+        log_data.append(log_row_dict)
         # try to save the updated log file
         try:
-            df_log.to_csv(os.path.join(self.log_directory, filename))
+            write_csv(os.path.join(self.log_directory, filename),log_data)
         # if file permissions prevent log file saving
         except PermissionError:
             # error message if file is currently open
             self.show_info("Log file currently open. Cannot log data!")
             return
+        # success pop-up
         self.show_info("Data successfully logged!!!",icon='info') 
     
-    def reload_last_log():
-        pass
+    def reload_last_log(self):
+        from utilities import read_csv
+        def get_most_recently_modified_file(directory):
+            # Get list of all files in the directory
+            files = [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
+            
+            # Sort files based on modification time
+            files.sort(key=lambda x: os.stat(x).st_mtime, reverse=True)
+            
+            # Return the most recently modified file
+            if files:
+                return files[0]
+            else:
+                return None
+        # read last log
+        recent_file = get_most_recently_modified_file(self.log_directory)
+        log_data = read_csv(os.path.join(self.log_directory, recent_file))
+        last_log_entry = log_data[-1]
+        # clear current entries
+        self.clear_entries()
+        # configure EWT entries
+        self.sensor1_mgrs.insert(0,last_log_entry['EWT_1_MGRS'])
+        self.sensor1_lob.insert(0,last_log_entry['EWT_1_LOB_DEGREES'])
+        self.sensor1_Rpwr.insert(0,last_log_entry['EWT_1_PWR_REC_DbM'])
+        self.sensor2_mgrs.insert(0,last_log_entry['EWT_2_MGRS'])
+        self.sensor2_lob.insert(0,last_log_entry['EWT_2_LOB_DEGREES'])
+        self.sensor2_Rpwr.insert(0,last_log_entry['EWT_2_PWR_REC_DbM'])
+        self.sensor3_mgrs.insert(0,last_log_entry['EWT_3_MGRS'])
+        self.sensor3_lob.insert(0,last_log_entry['EWT_3_LOB_DEGREES'])
+        self.sensor3_Rpwr.insert(0,last_log_entry['EWT_3_PWR_REC_DbM'])
+        self.frequency.insert(0,last_log_entry['FREQ'])
+        self.min_ERP.insert(0,last_log_entry['MIN_ERP_W'])
+        self.max_ERP.insert(0,last_log_entry['MAX_ERP_W'])
+        self.path_loss_coeff = last_log_entry['PATH_LOSS_COEFF']
+        self.option_path_loss_coeff.set(self.get_pathloss_description_from_coeff(last_log_entry['PATH_LOSS_COEFF']))
+        # run EWT function
+        self.ewt_function()
     
-    def add_marker_event(self, coords):
-        from utilities import convert_coords_to_mgrs, format_readable_mgrs, get_distance_between_coords
+    def add_marker_event(self, coord: list) -> None:
+        """
+        Plot a "user marker" on the map at user discretion
+
+        Parameters
+        ----------
+        coord : list
+            Marker coordinates in [lat,lon] format.
+
+        Returns
+        -------
+        None.
+
+        """
+        # import libraries
+        from utilities import convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, get_distance_between_coords
         import numpy as np
-        marker_text = f"{format_readable_mgrs(convert_coords_to_mgrs(list(coords)))}"
-        print("Added marker:", marker_text)
-        new_marker = self.map_widget.set_marker(coords[0], coords[1], 
-                                                text=marker_text,
+        # define marker's mgrs string
+        marker_mgrs = f"{format_readable_mgrs(convert_coords_to_mgrs(list(coord)))}"
+        # define marker's number
+        marker_num = len(self.user_marker_list) + 1
+        # define marker's data string
+        maker_data = f"User marker (No. {marker_num}) plotted at {format_readable_mgrs(convert_coords_to_mgrs(list(coord)))} on {format_readable_DTG(generate_DTG())}"
+        '''
+        *****Have a marker icon with a number for first n markers plotted
+        '''
+        # plot marker
+        new_marker = self.map_widget.set_marker(coord[0], coord[1], 
+                                                text=marker_mgrs,
                                                 image_zoom_visibility=(10, float("inf")),
                                                 command=self.marker_click,
-                                                data=marker_text)
+                                                data=maker_data)
+        # append marker object to marker list
         self.append_object(new_marker,"USER")
+        # if other markers current exist
         if len(self.user_marker_list) > 1:
+            # reverse user marker list (last marker first)
             sequencial_marker_list = self.user_marker_list[::-1]
+            # initialize coordinate list
             sequencial_coord_list = []
+            # create list of user marker coordinates
             for i,marker in enumerate(sequencial_marker_list):
                 sequencial_coord_list.append(list(marker.position))
+            # determine distance between last two user markers
             distance = get_distance_between_coords(sequencial_coord_list[0],sequencial_coord_list[1])
+            # generate distance text
             distance_text = self.generate_sensor_distance_text(distance)
+            # plot line between last two user markers
             dist_line = self.map_widget.set_polygon([(sequencial_coord_list[0][0],sequencial_coord_list[0][1]),
                             (sequencial_coord_list[1][0],sequencial_coord_list[1][1])],outline_color="black")
+            # determine middle coordinate between the last two coordinates
             coord_x = np.average([sequencial_coord_list[0][0],sequencial_coord_list[1][0]])
             coord_y = np.average([sequencial_coord_list[0][1],sequencial_coord_list[1][1]])
+            # plot marker distance at center coordinate
             marker_dist = self.map_widget.set_marker(coord_x,coord_y,text=f'{distance_text}',
                                                      text_color='black',
                                                      image_zoom_visibility=(10, float('inf')),
                                                      icon=self.blank_image)
+            # add distance marker and connecting line to list
             self.path_list.append(dist_line)
             self.path_list.append(marker_dist)
 
-    def copy_mgrs_grid(self, coords):
+    def copy_mgrs_grid(self, coords: list) -> None:
         """
         Function to copy MGRS coordinates to clipboard
 
@@ -2679,18 +2792,11 @@ class App(customtkinter.CTk):
         # https://tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=8242f8cd508342868f3d7d29e472aca9
 
     def change_path_loss(self, path_loss_description: str):
-        if path_loss_description == 'Free Space (Theoretical)':
-            self.path_loss_coeff = 2
-        elif path_loss_description == 'Light Foliage':
-            self.path_loss_coeff = 3
-        elif path_loss_description == 'Light-Moderate Foliage':
-            self.path_loss_coeff = 3.5
-        elif path_loss_description == 'Moderate Foliage':
-            self.path_loss_coeff = 4
-        elif path_loss_description == 'Moderate-Dense Foliage':
-            self.path_loss_coeff = 4.5
-        elif path_loss_description == 'Dense Foliage':
-            self.path_loss_coeff = 5
+        self.path_loss_coeff = App.PATH_LOSS_DICT.get(path_loss_description,4)
+    
+    def get_pathloss_description_from_coeff(self,coeff):
+        reversed_dict = {str(value): str(key) for key, value in App.PATH_LOSS_DICT.items()}
+        return reversed_dict.get(str(coeff).strip(),'Moderate Foliage')
     
     def change_sensor(self,sensor_option):
         if sensor_option == 'BEAST+':
@@ -2734,21 +2840,14 @@ DEV NOTES
 
 --- Aux Improvements:
     (High)
-    - restart app button / method
     - clean way to close all associated services upon closing
-    - add plot_cut_tgt bool for when fix exists, move plot_cut inside fix function
-    - better info on user marker popup (data attribute: DTG placed?, distance from last marker, number)
+    - dynamic user marker icons based on marker number
     - function to correct mgrs input format in user input fields 
     (Medium)
     - BEAST+ df sensor gain RFI...
     - better formating in log file
     - give estimate warning prior to executing batch download
     - pass paramters to batch download... not command
-    - print statement of log data when logged
-    - add EWT-specific LOB-based target to log (for future analysis)
-    - add blank column for ACTUAL target location to log to fill in later???
-    - remove pandas, branca, folium, alive_progress dependencies
-    - different icon for user marker (based on number???)
     - option to plot objectives w/ radius, would require forked marker removal method
     (Low) 
     - provide option to input coordinates instead of MGRS
@@ -2756,4 +2855,5 @@ DEV NOTES
     - add config file for hard-coded data
     - move log function to utilities
     - move batch download function into utilities file
+    - print statement of log data when logged
 """

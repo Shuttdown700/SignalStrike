@@ -1,5 +1,5 @@
 import datetime, os, time
-from utilities import check_internet_connection, read_queue, write_queue
+from utilities import check_internet_connection, read_csv, write_csv
 
 def download_tile(tile,
              output_dir="\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+'/map_tiles/ESRI/',
@@ -11,9 +11,9 @@ def download_tile(tile,
     basepath = tileurl.split("/")[-1]  # ?foo=bar&z={z}.ext
     segments = basepath.split(".")
     ext = "." + segments[-1] if len(segments) > 1 else ".png"
-    val_z = str(tile[0])
-    val_y = str(tile[2])
-    val_x = str(tile[1])
+    val_z = str(tile["Z"]) # index 0
+    val_y = str(tile["Y"]) # index 2
+    val_x = str(tile['X']) # index 1
     write_dir = os.path.join(output_dir, val_z, val_x)
     write_filepath = os.path.join(write_dir, val_y) + ext
 
@@ -62,7 +62,7 @@ if __name__ == "__main__":
         downloaded_tile_list = []
         t1 = datetime.datetime.today()
         try:
-            tile_queue = read_queue(queue_file_name)
+            tile_queue = read_csv(queue_file_name)
         except Exception as e:
             print(f'Error reading batch queue file: {e}',end='\n')
             time.sleep(5)
@@ -71,25 +71,26 @@ if __name__ == "__main__":
             time.sleep(5)
             if not check_internet_connection(): print('No public internet connection... terminating service'); break
         if len(tile_queue) > 0:
+            print(tile_queue)
             for tile in tile_queue:
                 download_tile(tile)
                 print(f"Tile {tile} downloaded")
                 downloaded_tile_list.append(tile)
-            tile_queue = read_queue(queue_file_name)
+            tile_queue = read_csv(queue_file_name)
             tile_queue_updated = []
             for tile in tile_queue:
                 if tile in downloaded_tile_list:
                     continue
                 else:
-                    tile_queue_updated.append(list(tile))
-            write_queue(queue_file_name,tile_queue_updated)
+                    tile_queue_updated.append(tile)
+            write_csv(queue_file_name,tile_queue_updated)
         else:
             print('Dynamic download queue is empty.\n')
         t2 = datetime.datetime.today()
         t_delta = t1 - t2
         if t_delta.total_seconds() < wait_interval_sec:
             print(f'Waiting: {wait_interval_sec - t_delta.total_seconds():,.2f} seconds...',end='\n')
-            time.sleep(wait_interval_sec - t_delta.total_seconds())
+            time.sleep(min(wait_interval_sec - t_delta.total_seconds(),10))
         else:
             time.sleep(1)              
 time.sleep(5)   
