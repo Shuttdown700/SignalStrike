@@ -2837,6 +2837,7 @@ DEV NOTES
 
 --- MVP Reqs:
     - option to reload last logged data (event of crash...)
+    - add feature to determine user's location IRL
 
 --- Aux Improvements:
     (High)
@@ -2857,3 +2858,10 @@ DEV NOTES
     - move batch download function into utilities file
     - print statement of log data when logged
 """
+
+'''
+IDEA!!!!!
+ - GPS JAMMER DETECTION TOOL
+
+'''
+
