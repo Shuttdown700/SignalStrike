@@ -33,7 +33,7 @@ def import_libraries(libraries):
                 pass
 
 libraries = [['math',['sin','cos','pi']],['collections',['defaultdict']],
-             ['datetime',['date']],['jinja2'],['numpy'],
+             ['datetime',['date']],['jinja2'],['numpy'],['winsdk'],
              ['warnings'],['mgrs'],['haversine',['Unit']]]
 
 import_libraries(libraries)
@@ -205,6 +205,33 @@ def format_readable_DTG(dtg: str) -> str:
 
     """
     return f'{dtg[2:6]} on {dtg[:2]} {dtg[6:9]} {dtg[-4:]}'
+
+def generate_EUD_coordinate():
+    import asyncio
+    import winsdk.windows.devices.geolocation as wdg
+    async def getCoords():
+        locator = wdg.Geolocator()
+        pos = await locator.get_geoposition_async()
+        return [pos.coordinate.latitude, pos.coordinate.longitude]
+    def getLoc():
+        try:
+            return asyncio.run(getCoords())
+        except PermissionError:
+            print("ERROR: You need to allow applications to access you location in Windows settings")
+        except Exception as e:
+            print(e)
+
+def get_EUD_coord_on_internval(interval_sec):
+    import time
+    while True:
+        time.sleep(interval_sec)
+        try:
+            print(generate_EUD_coordinate())
+        except Exception as e:
+            print(e)
+            break
+
+get_EUD_coord_on_internval(10)
 
 def convert_coordinates_to_meters(coord_element: float) -> float:
     """

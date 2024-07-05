@@ -2838,6 +2838,9 @@ DEV NOTES
 --- MVP Reqs:
     - option to reload last logged data (event of crash...)
     - add feature to determine user's location IRL
+        - switch to turn automatic GPS location marker
+        - need to add a new marker class (GPS)
+        - should create a GPS log for when GPS data is retreived
 
 --- Aux Improvements:
     (High)
