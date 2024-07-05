@@ -377,3 +377,150 @@ Created on Sat Jun  8 12:35:45 2024
 
 # def get_accuracy_improvement_of_fix(fix_area,cut_areas):
 #     return 1-(fix_area/(cut_areas[0] + cut_areas[1] + cut_areas[2] - 2*fix_area))
+
+# def get_elevation_data(coord_list):
+#     import csv, time
+#     def read_elevation_data(src_file):
+#         with open(src_file,mode='r',newline='') as elev_data_file:
+#             csv_reader = csv.reader(elev_data_file)
+#             csv_data = []
+#             for row in csv_reader:
+#                 csv_data.append(row)
+#         return csv_data
+#     def save_elevation_data(save_file,csv_data):
+#         with open(save_file,mode='w',newline='') as elev_data_file:
+#             csv_writer = csv.writer(elev_data_file)
+#             csv_writer.writerows(csv_data)
+#     coord_elev_data=[]
+#     src_file = rf'{os.path.realpath(os.path.dirname(__file__))}\elevation\elev_data.csv'
+#     cp_file = rf'{os.path.realpath(os.path.dirname(__file__))}\elevation\elev_data_preop_copy.csv'
+#     if os.path.getsize(src_file) >= os.path.getsize(cp_file):
+#         shutil.copyfile(src_file, cp_file)
+#     request_string = ''; request_list = []; request_list_conmprehension = []
+#     csv_data = read_elevation_data(src_file)
+#     if len(csv_data) > 1:
+#         mgrs_list = [d[-2] for d in csv_data[1:]]
+#         elevation_list = [d[-1] for d in csv_data[1:]]
+#     else:
+#         mgrs_list = []; elevation_list = []
+#     num_coords_in_request = 0; max_request_length = 50; num_stored = 0; num_requested = 0
+#     for i,coord in enumerate(coord_list):
+#         mgrs = convert_coords_to_mgrs(coord,precision=4)
+#         if mgrs in mgrs_list:
+#             elevation = elevation_list[mgrs_list.index(mgrs)]
+#             coord_elev_data.append([coord[0],coord[1],mgrs,elevation])
+#             num_stored += 1
+#             continue
+#         else:
+#             request_list.append(','.join([str(c) for c in coord]))
+#             num_coords_in_request += 1
+#             num_requested += 1
+#         if num_coords_in_request >= max_request_length:
+#             request_list_conmprehension.append(request_list)
+#             request_list = []
+#             num_coords_in_request = 0
+#             max_request_length = np.random.uniform(48,52)
+#     if num_requested + num_stored > 0: print(f'{num_stored:,.2f} ({num_stored/(num_requested + num_stored)*100:,.2f}%) tiles already in database')
+#     if num_requested > num_stored and not check_internet_connection(): return []
+#     if len(request_list) > 0: request_list_conmprehension.append(request_list)
+#     if len(request_list_conmprehension) > 0 and len(request_list_conmprehension[0]) > 0:
+#         for i,requested_coords in enumerate(request_list_conmprehension):
+#             print(f"Request {i+1} of {len(request_list_conmprehension)}")
+#             csv_data = read_elevation_data(src_file)
+#             request_string = '|'.join(requested_coords)
+#             request = f"https://api.open-elevation.com/api/v1/lookup?locations={request_string}"
+#             try:
+#                 response = requests.get(request)
+#                 for result in response.json()['results']:
+#                     latitude = result['latitude']
+#                     longitude = result['longitude']
+#                     elevation = result['elevation']
+#                     mgrs_8digit = convert_coords_to_mgrs([latitude,longitude],precision=4)
+#                     coord_elev_data.append([latitude,longitude,mgrs_8digit,elevation])
+#                     csv_data.append([latitude,longitude,mgrs_8digit,elevation])
+#                 print(f'Success: {len(requested_coords)} datapoints added to elevation database')
+#             except:
+#                 print(f"Elevation request {i+1} failed.")
+#             save_elevation_data(src_file,csv_data)
+#             time.sleep(np.random.exponential(0.125))
+#     return coord_elev_data
+
+# def plot_elevation_data(coord_elev_data,target_coords=None,title_args=None):
+#     import datetime
+#     if coord_elev_data == None or len(coord_elev_data) == 0: return 0
+#     def get_dist_interval(target_distance,dist_interval):
+#         if target_distance is None: return -1
+#         for i, di in enumerate(dist_interval[:-1]):
+#             if int(di) <= target_distance < int(dist_interval[i+1]):
+#                 return i
+#         return -1
+#     # input maybe title?, maybe filename?
+#     import matplotlib.pyplot as plt
+#     elev_list = [float(x[-1]) for x in coord_elev_data]
+#     base_reg=0
+#     sensor_coord = [coord_elev_data[0][0],coord_elev_data[0][1]]
+#     sensor_mgrs = convert_coords_to_mgrs(sensor_coord)
+#     far_side_coord = [coord_elev_data[-1][0],coord_elev_data[-1][1]]
+#     far_side_coord_mgrs = convert_coords_to_mgrs(far_side_coord)
+#     distance = int(get_distance_between_coords(sensor_coord,far_side_coord))
+#     coord_interval = int(distance/len(elev_list))
+#     dist_interval = list(range(0,distance,coord_interval))
+#     target_dist_indices = []
+#     if target_coords is not None:
+#         for i,target_coord in enumerate(target_coords):
+#             if i == len(target_coords)-1: target_dist_indices.append(-1); break
+#             target_dist = get_distance_between_coords(sensor_coord,target_coord)
+#             target_dist_index = get_dist_interval(target_dist,dist_interval)
+#             target_dist_indices.append(target_dist_index)
+#     while len(dist_interval) > len(elev_list):
+#         dist_interval = dist_interval[:-1]
+#     while len(dist_interval) < len(elev_list):
+#         dist_interval = dist_interval + [dist_interval[-1]+coord_interval]
+#     try:   
+#         plt.figure(figsize=(10,4))
+#         # plt.style.use('ggplot')
+#         plt.style.use('classic')
+#         plt.plot(dist_interval,elev_list)
+#         min_elev = min(elev_list)
+#         max_elev = max(elev_list)
+#         plt.plot([0,dist_interval[-1]],[min_elev,min_elev],'--g',label='min: '+str(min_elev)+' m')
+#         plt.plot([0,dist_interval[-1]],[max_elev,max_elev],'--r',label='max: '+str(max_elev)+' m')
+#         # plt.scatter([0],[elev_list[0]],label='Sensor',color='blue',marker='^',s=100)
+#         buffer = int(min_elev *.25)
+#         plt.ylim(int(min_elev - buffer), int(max_elev + buffer))
+#         plt.xlim(dist_interval[0],dist_interval[-1])
+#         if target_coords is not None:
+#             target_dists = []; target_elevations = []
+#             for i,target_coord in enumerate(target_coords):
+#                 if i == len(target_coords)-1: target_dists.append(dist_interval[-1]); target_elevations.append(elev_list[-1]); break
+#                 target_dist = get_distance_between_coords(sensor_coord,target_coord)
+#                 target_dists.append(target_dist)
+#                 target_elevations.append(elev_list[target_dist_indices[i]])
+#             plt.vlines(target_dists,[min_elev - buffer for td in target_dists],[max_elev + buffer for td in target_dists],colors=['black' for dt in target_dists],linestyles=['dashed' for dt in target_dists],label='Target Distances')
+#             plt.scatter(target_dists,target_elevations,label='Possible Targets',color='red',marker='D',s=100)
+#         plt.fill_between(dist_interval,elev_list,base_reg,alpha=0.1,color='green')
+#         plt.xlabel("Distance (m)")
+#         plt.ylabel("Elevation (m)")
+#         plt.grid()
+#         plt.legend(fontsize='small')
+#         if title_args is None:
+#             plt.title(f'Elevation data from {sensor_mgrs} to {far_side_coord_mgrs}')
+#         else:
+#             if len(title_args) == 1:
+#                 plt.title(f'Elevation data from {title_args[0]} to {far_side_coord_mgrs}')
+#             elif len(title_args) == 2:
+#                 plt.title(f'Elevation data from {title_args[0]} to {title_args[1]}')
+#         dt = str(datetime.datetime.today()).split()[0].replace('-','')
+#         num = 0
+#         output_filename = (rf'{os.path.realpath(os.path.dirname(__file__))}\elevation_plots\{dt}_elevation_data_{num:02}.png')
+#         while os.path.exists(output_filename):
+#             num +=1 
+#             output_filename = (rf'{os.path.realpath(os.path.dirname(__file__))}\elevation_plots\{dt}_elevation_data_{num:02}.png')
+#         plt.savefig(output_filename)
+#         plt.show()
+#     except AttributeError as e:
+#         return 0
+
+# '''https://api.open-elevation.com/api/v1/lookup?locations=51.24885624303748,15.570668663974097'''
+
+

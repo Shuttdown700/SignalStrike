@@ -110,8 +110,10 @@ class App(customtkinter.CTk):
         self.blank_image = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "empty.png")).resize((40, 40)))
         # set app icon
         self.iconbitmap(os.path.join(self.icon_directory, "app_icon.ico"))
-        # define initial marker list
+        # define initial user marker list
         self.user_marker_list = []
+        # define initial EDU marker list
+        self.eud_marker_list = []
         # define initial LOB list
         self.lob_list = []
         # define initial CUT list
@@ -782,7 +784,7 @@ class App(customtkinter.CTk):
         # define TBD button attributes
         self.button_TBD = customtkinter.CTkButton(
             master=self.frame_left, 
-            text="TBD Feature",
+            text="",
             fg_color='brown')
         # assign TBD button grid position
         self.button_TBD.grid(
@@ -996,7 +998,7 @@ class App(customtkinter.CTk):
         Function to read and ajudicate EWT input
         """
         from tkinter import END
-        from utilities import check_mgrs_input
+        from utilities import check_mgrs_input, correct_mgrs_input
         # resets boolean values to FALSE, allowing EWT input
         single_lob_bool = False; cut_bool = False; bypass_ewt1_bool = False; bypass_ewt2_bool = False; bypass_ewt3_bool = False
         # reset sensor mgrs/coord reading to None, conditional in log method
@@ -1020,7 +1022,7 @@ class App(customtkinter.CTk):
                 # if MGRS value is valid, pass on to next portion of function code
                 pass
             else:
-                # if MGRS is invalid, give user the option to re-input or use default value
+                # if MGRS is invalid, give user the option to re-input, bypass EWT, or use default value
                 choice = self.input_error(category='Sensor 1 Grid',msg=f'Invalid Input {self.sensor1_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
                 # assess if user wishes to use the default value or end function
                 if choice == 'Default':
@@ -1044,6 +1046,10 @@ class App(customtkinter.CTk):
                 elif choice == 'Re-input':
                     # end function
                     return
+            # clear the previous sensor 1 MGRS input
+            self.sensor1_mgrs.delete(0,END)
+            # insert the default sensor 1 MGRS value
+            self.sensor1_mgrs.insert(0,correct_mgrs_input(self.sensor1_mgrs_val))
         # exception handling for ValueError
         except ValueError:
             # if value error occurs, set Sensor 1 MGRS value to None
@@ -1058,7 +1064,7 @@ class App(customtkinter.CTk):
                     raise ValueError
             # exception handling for ValueError
             except ValueError:
-                # give user option to re-input value or use the default Sensor 1 LOB value
+                # give user option to re-input value, bypass EWT, or use the default Sensor 1 LOB value
                 choice = self.input_error(category='Sensor 1 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
                 # if user chooses to use the default Sensor 1 LOB value
                 if choice == "Default":
@@ -1093,7 +1099,7 @@ class App(customtkinter.CTk):
                     raise ValueError
             # exception for ValueError
             except ValueError:
-                # give user option to re-input value or use the default Sensor 1 PWR received value
+                # give user option to re-input value, bypass EWT, or use the default Sensor 1 PWR received value
                 choice = self.input_error(category='Sensor 1 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
                 # if user chooses to use the default Sensor 1 PWR Received value
                 if choice == "Default":
@@ -1128,7 +1134,7 @@ class App(customtkinter.CTk):
                     # if MGRS value is valid, pass on to next portion of function code
                     pass
                 else:
-                    # if MGRS is invalid, give user the option to re-input or use default value
+                    # if MGRS is invalid, give user the option to re-input, bypass EWT, or use default value
                     choice = self.input_error(category='Sensor 2 Grid',msg=f'Invalid Input {self.sensor2_mgrs_val}',single_lob_option=True,cut_option=False,ewt_bypass_option=False,EWT_num='2')
                     # if user chooses to use default Sensor 2 MGRS value
                     if choice == 'Default':
@@ -1161,6 +1167,10 @@ class App(customtkinter.CTk):
                         self.sensor2_mgrs_val = None
                         # clear Sensor 2 MGRS input field
                         self.sensor2_mgrs.delete(0,END)
+                # clear the previous sensor 2 MGRS input
+                self.sensor2_mgrs.delete(0,END)
+                # insert the default sensor 2 MGRS value
+                self.sensor2_mgrs.insert(0,correct_mgrs_input(self.sensor2_mgrs_val))
             # if Single LOB Boolean value is TRUE
             else:
                 # set all local Sensor 2 values to None
@@ -1189,7 +1199,7 @@ class App(customtkinter.CTk):
                     raise ValueError
             # exception for ValueError
             except ValueError:
-                # if ValueError occurs, give user the option to re-input or use default value
+                # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
                 choice = self.input_error(category='Sensor 2 Grid Azimuth',msg='Invalid Input',single_lob_option=True,cut_option=False,ewt_bypass_option=False,EWT_num='2')
                 # if users chooses to utilize the default Sensor 2 LOB value
                 if choice == 'Default':
@@ -1244,7 +1254,7 @@ class App(customtkinter.CTk):
                     raise ValueError
             # exception handling for ValueError
             except ValueError:
-                # if ValueError occurs, give user the option to re-input or use default value
+                # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
                 choice = self.input_error(category='Sensor 2 Power Received',msg='Invalid Input',single_lob_option=True,cut_option=False,ewt_bypass_option=False,EWT_num='2')
                 # if user chooses to utilize the default Sensor 2 LOB value
                 if choice == 'Default':
@@ -1296,7 +1306,7 @@ class App(customtkinter.CTk):
                     # if MGRS value is valid, pass on to next portion of function code
                     pass
                 else:
-                    # if MGRS is invalid, give user the option to re-input or use default value
+                    # if MGRS is invalid, give user the option to re-input, bypass EWT, or use default value
                     choice = self.input_error(category='Sensor 3 Grid',msg=f'Invalid Input {self.sensor3_mgrs_val}',single_lob_option=True,cut_option=True,ewt_bypass_option=False,EWT_num='3')
                     # if user chooses to use default Sensor 3 MGRS value
                     if choice == 'Default':
@@ -1340,6 +1350,10 @@ class App(customtkinter.CTk):
                         self.sensor3_mgrs_val = None
                         # clear Sensor 3 MGRS input field
                         self.sensor3_mgrs.delete(0,END)   
+                # clear the previous sensor 2 MGRS input
+                self.sensor3_mgrs.delete(0,END)
+                # insert the default sensor 3 MGRS value
+                self.sensor3_mgrs.insert(0,correct_mgrs_input(self.sensor3_mgrs_val))
             # if Single LOB Boolean value is TRUE
             else:
                 # set all local Sensor 3 values to None
@@ -1366,7 +1380,7 @@ class App(customtkinter.CTk):
                     raise ValueError
             # exception for ValueError
             except ValueError:
-                # if ValueError occurs, give user the option to re-input or use default value
+                # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
                 choice = self.input_error(category='Sensor 3 Grid Azimuth',msg='Invalid Input',single_lob_option=True,cut_option=True,ewt_bypass_option=False,EWT_num='3')
                 # if users chooses to utilize the default Sensor 3 LOB value
                 if choice == 'Default':
@@ -1423,7 +1437,7 @@ class App(customtkinter.CTk):
                     raise ValueError
             # exception handling for ValueError
             except ValueError:
-                # if ValueError occurs, give user the option to re-input or use default value
+                # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
                 choice = self.input_error(category='Sensor 3 Power Received',msg='Invalid Input',single_lob_option=True,cut_option=True,ewt_bypass_option=False,EWT_num='3')
                 # if user chooses to utilize the default Sensor 3 LOB value
                 if choice == 'Default':
@@ -1480,7 +1494,7 @@ class App(customtkinter.CTk):
                 raise ValueError
         # exception handling for ValueError
         except ValueError:
-            # if ValueError occurs, give user the option to re-input or use default value
+            # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
             choice = self.input_error(category='Frequency',msg='Invalid Input')
             # if user chooses to use the default frequency value
             if choice == 'Default':
@@ -2200,6 +2214,7 @@ class App(customtkinter.CTk):
         else:
             print("Unknown case")
         self.set_target_field()
+        # self.plot_EUD_position()
     
     def generate_sensor_distance_text(self,distance):
         """
@@ -2543,13 +2558,17 @@ class App(customtkinter.CTk):
             entry_object.insert('end', self.selection_get(selection='CLIPBOARD'))
 
     def search_event(self, event=None):
-        from utilities import check_coord_input, check_mgrs_input, convert_mgrs_to_coords, correct_coord_input
+        from tkinter import END
+        from utilities import check_coord_input, check_mgrs_input, convert_mgrs_to_coords, correct_coord_input, correct_mgrs_input
         try:
             search_mgrs = self.search_mgrs.get()
         except ValueError:
             self.show_info("Error loading Search MGRS")
             return
         if check_mgrs_input(search_mgrs):
+            search_mgrs = correct_mgrs_input(search_mgrs)
+            self.search_mgrs.delete(0,END)
+            self.search_mgrs.insert(0,correct_mgrs_input(search_mgrs))
             search_coord = convert_mgrs_to_coords(search_mgrs)
             self.map_widget.set_position(search_coord[0],search_coord[1])
             self.add_marker_event(search_coord)
@@ -2560,6 +2579,58 @@ class App(customtkinter.CTk):
         else:
             self.show_info("Invalid MGRS input!")
             return
+
+    def plot_EUD_position(self):
+        from utilities import convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, generate_EUD_coordinate
+        data_position = generate_EUD_coordinate(method='ps',acc=3)
+        lat = data_position['lat']
+        lon = data_position['lon']
+        eud_marker_text = f"{format_readable_mgrs(convert_coords_to_mgrs([lat,lon]))}"
+        eud_marker_data = f"EUD at {format_readable_mgrs(convert_coords_to_mgrs([lat,lon]))} at {format_readable_DTG(generate_DTG())}"
+        eud_marker = self.map_widget.set_marker(lat, lon, 
+                                                text=eud_marker_text,
+                                                image_zoom_visibility=(10, float("inf")),
+                                                command=self.marker_click,
+                                                data=eud_marker_data)
+        self.append_object(eud_marker,"EUD")
+        self.log_eud_location([lat,lon])
+
+    def log_eud_location(self,eud_coord):
+        import datetime
+        from utilities import convert_coords_to_mgrs, generate_DTG, read_csv, write_csv
+        eud_mgrs = convert_coords_to_mgrs(eud_coord)
+        dtg = generate_DTG()
+        # assess if directory exists
+        if not os.path.exists(self.log_directory):
+            # create log directory
+            os.makedirs(self.log_directory)
+        # define log file name
+        filename = f"EUD-Location-log-{str(datetime.datetime.today()).split()[0]}.csv"
+        # if log file already exists
+        if os.path.isfile(os.path.join(self.log_directory, filename)):
+            # read current log file
+            log_data = read_csv(os.path.join(self.log_directory, filename))
+        # if log file does not yet exist
+        else:
+            # create log file DataFrame
+            log_data = []
+        log_columns = ['DTG','LOC_MGRS','LOC_LATLON']
+        row_data = [dtg,eud_mgrs,', '.join([str(x) for x in self.sensor1_coord])]
+        # convert log row into dictionary
+        log_row_dict = dict(zip(log_columns, row_data))
+        # append data row (dict) to log data
+        log_data.append(log_row_dict)
+        # try to save the updated log file
+        try:
+            write_csv(os.path.join(self.log_directory, filename),log_data)
+        # if file permissions prevent log file saving
+        except PermissionError:
+            # error message if file is currently open
+            self.show_info("Log file currently open. Cannot log data!")
+            return
+        # success pop-up
+        self.show_info("EUD location data successfully logged!!!",icon='info')
+
 
     def check_if_object_in_object_list(self,map_object,map_object_list):
         map_object_data = map_object.data
@@ -2591,6 +2662,12 @@ class App(customtkinter.CTk):
             if not self.check_if_object_in_object_list(map_object,self.user_marker_list):
                 # append the EWT marker to the EWT marker list
                 self.user_marker_list.append(map_object)
+        # check if map object is a EUD marker
+        if map_object_list_name.upper() == 'EUD':
+            # check if EWT marker already exists in the EWT marker list
+            if not self.check_if_object_in_object_list(map_object,self.eud_marker_list):
+                # append the EWT marker to the EWT marker list
+                self.eud_marker_list.append(map_object)        
         # check if map object is a LOB
         elif map_object_list_name.upper() == 'LOB':
             # check if LOB already exists in the LOB list
@@ -2611,12 +2688,15 @@ class App(customtkinter.CTk):
                 self.fix_list.append(map_object)     
 
     def clear_user_markers(self):
-        for marker in self.user_marker_list:
-            marker.delete()
+        for user_marker in self.user_marker_list:
+            user_marker.delete()
         for path in self.path_list:
             path.delete()
+        for eud_marker in self.eud_marker_list:
+            eud_marker.delete()
         self.user_marker_list = []
         self.path_list = []
+        self.eud_marker_list = []
 
     def clear_target_overlays(self):
         for ewt_marker in self.ewt_marker_list:
@@ -2832,39 +2912,4 @@ if __name__ == "__main__":
     # procs.append(proc_app)
     proc_app.start()
 
-"""
-DEV NOTES
-
---- MVP Reqs:
-    - option to reload last logged data (event of crash...)
-    - add feature to determine user's location IRL
-        - switch to turn automatic GPS location marker
-        - need to add a new marker class (GPS)
-        - should create a GPS log for when GPS data is retreived
-
---- Aux Improvements:
-    (High)
-    - clean way to close all associated services upon closing
-    - dynamic user marker icons based on marker number
-    - function to correct mgrs input format in user input fields 
-    (Medium)
-    - BEAST+ df sensor gain RFI...
-    - better formating in log file
-    - give estimate warning prior to executing batch download
-    - pass paramters to batch download... not command
-    - option to plot objectives w/ radius, would require forked marker removal method
-    (Low) 
-    - provide option to input coordinates instead of MGRS
-    - remove year from most* pop-ups
-    - add config file for hard-coded data
-    - move log function to utilities
-    - move batch download function into utilities file
-    - print statement of log data when logged
-"""
-
-'''
-IDEA!!!!!
- - GPS JAMMER DETECTION TOOL
-
-'''
 

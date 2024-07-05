@@ -206,32 +206,64 @@ def format_readable_DTG(dtg: str) -> str:
     """
     return f'{dtg[2:6]} on {dtg[:2]} {dtg[6:9]} {dtg[-4:]}'
 
-def generate_EUD_coordinate():
-    import asyncio
-    import winsdk.windows.devices.geolocation as wdg
-    async def getCoords():
-        locator = wdg.Geolocator()
-        pos = await locator.get_geoposition_async()
-        return [pos.coordinate.latitude, pos.coordinate.longitude]
-    def getLoc():
-        try:
-            return asyncio.run(getCoords())
-        except PermissionError:
-            print("ERROR: You need to allow applications to access you location in Windows settings")
-        except Exception as e:
-            print(e)
+def generate_EUD_coordinate(method='ps',acc=3):
+    def generate_EUD_coordinate_winsdk():
+        import asyncio
+        import winsdk.windows.devices.geolocation as wdg
+        async def getCoords():
+            locator = wdg.Geolocator()
+            pos = await locator.get_geoposition_async()
+            return [pos.coordinate.latitude, pos.coordinate.longitude]
+        def getLoc():
+            try:
+                latlon = asyncio.run(getCoords())
+                output = {'lat':latlon[0],'lon':latlon[1],'acc':100}
+                return output
+            except PermissionError:
+                print("ERROR: You need to allow applications to access you location in Windows settings")
+            except Exception as e:
+                print(e)
+    def generate_EUD_coordinate_ps(accuracy):
+        import re, subprocess
+        from subprocess import PIPE, STDOUT
+        pshellcomm = ['powershell']
+        pshellcomm.append('add-type -assemblyname system.device; '\
+                          '$loc = new-object system.device.location.geocoordinatewatcher;'\
+                          '$loc.start(); '\
+                          'while(($loc.status -ne "Ready") -and ($loc.permission -ne "Denied")) '\
+                          '{start-sleep -milliseconds 100}; '\
+                          '$acc = %d; '\
+                          'while($loc.position.location.horizontalaccuracy -gt $acc) '\
+                          '{start-sleep -milliseconds 100; $acc = [math]::Round($acc*1.25)}; '\
+                          '$loc.position.location.latitude; '\
+                          '$loc.position.location.longitude; '\
+                          '$loc.position.location.horizontalaccuracy; '\
+                          '$loc.stop()' %(accuracy))
+        p = subprocess.Popen(pshellcomm, stdin = PIPE, stdout = PIPE, stderr = STDOUT, text=True)
+        (out, err) = p.communicate()
+        out = re.split('\n', out)[:-1]
+        out = {"lat":float(out[0]),"lon":float(out[1]),"acc":int(out[2])}
+        return out
+    if method == 'ps':
+        return generate_EUD_coordinate_ps(acc)
+    elif method == 'winsdk':
+        return generate_EUD_coordinate_winsdk()
 
-def get_EUD_coord_on_internval(interval_sec):
+def get_EUD_coord_on_internval(interval_sec,method='ps'):
     import time
+    acc = 3
     while True:
         time.sleep(interval_sec)
         try:
-            print(generate_EUD_coordinate())
+            output = generate_EUD_coordinate(method,int(acc))
+            lat = output['lat']
+            lon = output['lon']
+            acc = output['acc']
+            print(output, lat, lon, acc)
+            acc = int(acc * 0.95)
         except Exception as e:
             print(e)
             break
-
-get_EUD_coord_on_internval(10)
 
 def convert_coordinates_to_meters(coord_element: float) -> float:
     """
@@ -296,27 +328,7 @@ def adjust_coordinate(starting_coord: list,azimuth_degrees: (float,int),shift_m:
     # return adjusted coordinate
     return [new_lat,new_lon]
 
-def convert_watts_to_dBm(p_watts: (float,int)) -> float:
-    """
-    Converts watts to dBm.
-
-    Parameters
-    ----------
-    p_watts : float
-        Power in watts (W).
-
-    Returns
-    -------
-    float
-        Power in dBm.
-
-    """
-    # input assertation
-    assert isinstance(p_watts,(float,int)) and p_watts >= 0, 'Wattage needs to be a float greater than zero.'
-    # return power in dBm
-    return 10*np.log10(1000*p_watts)
-
-def convert_coords_to_mgrs(coords,precision=5):
+def convert_coords_to_mgrs(coords: list,precision:int = 5) -> (str,None):
     """
     Convert location from coordinates to MGRS.
 
@@ -341,7 +353,7 @@ def convert_coords_to_mgrs(coords,precision=5):
     except AssertionError:
         return None
 
-def convert_mgrs_to_coords(milGrid):
+def convert_mgrs_to_coords(milGrid: str) -> (list,None):
     """
     Convert location from MGRS to coordinates.
 
@@ -364,7 +376,7 @@ def convert_mgrs_to_coords(milGrid):
     except AssertionError:
         return None
 
-def check_mgrs_input(mgrs_input):
+def check_mgrs_input(mgrs_input: str) -> str:
     """
     Determine if the MGRS input is valid 
 
@@ -382,6 +394,33 @@ def check_mgrs_input(mgrs_input):
     prefix_len = 5
     mgrs_input = mgrs_input.replace(" ","").strip()
     return mgrs_input[:2].isdigit() and mgrs_input[2:prefix_len].isalpha() and mgrs_input[prefix_len:].isdigit() and len(mgrs_input[prefix_len:]) % 2 == 0
+
+def correct_mgrs_input(mgrs_input: str) -> str:
+    """
+    Corrects MGRS input format
+
+    Parameters
+    ----------
+    mgrs_input : str
+        MGRS input.
+
+    Returns
+    -------
+    mgrs_corrected
+        Corrected format of MGRS.
+
+    """
+    if check_mgrs_input(mgrs_input):
+        mgrs_input = mgrs_input.replace(" ","").strip()
+        zone_number = mgrs_input[:2]
+        band_letter = mgrs_input[2].upper()
+        mgrs_column_letter = mgrs_input[3].upper()
+        mgrs_row_letter = mgrs_input[4].upper()
+        mgrs_easting_northing = mgrs_input[5:]
+        mgrs_corrected = zone_number+band_letter+mgrs_column_letter+mgrs_row_letter+mgrs_easting_northing
+        return mgrs_corrected
+    return mgrs_input
+        
 
 def check_coord_input(coord_input):
     """
@@ -581,6 +620,26 @@ def get_center_coord(coord_list):
     """
     assert isinstance(coord_list,list) and len(coord_list) >= 1, "Coordinates must be in a list comprehension of length 1 or greater"
     return [float(np.average([c[0] for c in coord_list])),float(np.average([c[1] for c in coord_list]))]
+
+def convert_watts_to_dBm(p_watts: (float,int)) -> float:
+    """
+    Converts watts to dBm.
+
+    Parameters
+    ----------
+    p_watts : float
+        Power in watts (W).
+
+    Returns
+    -------
+    float
+        Power in dBm.
+
+    """
+    # input assertation
+    assert isinstance(p_watts,(float,int)) and p_watts >= 0, 'Wattage needs to be a float greater than zero.'
+    # return power in dBm
+    return 10*np.log10(1000*p_watts)
 
 def emission_distance(P_t_watts,f_MHz,G_t,G_r,R_s,path_loss_coeff=3):
     """
@@ -798,151 +857,6 @@ def get_coords_from_LOBs(sensor_coord,azimuth,error,min_lob_length,max_lob_lengt
     near_center_coord = get_center_coord([near_right_coord,near_left_coord])
     center_coord_list = [c for c in center_coord_list if len(c) <= 2]
     return center_coord, near_right_coord, near_left_coord, near_center_coord, far_right_coord, far_left_coord, running_coord_center, center_coord_list
-
-def get_elevation_data(coord_list):
-    import csv, time
-    def read_elevation_data(src_file):
-        with open(src_file,mode='r',newline='') as elev_data_file:
-            csv_reader = csv.reader(elev_data_file)
-            csv_data = []
-            for row in csv_reader:
-                csv_data.append(row)
-        return csv_data
-    def save_elevation_data(save_file,csv_data):
-        with open(save_file,mode='w',newline='') as elev_data_file:
-            csv_writer = csv.writer(elev_data_file)
-            csv_writer.writerows(csv_data)
-    coord_elev_data=[]
-    src_file = rf'{os.path.realpath(os.path.dirname(__file__))}\elevation\elev_data.csv'
-    cp_file = rf'{os.path.realpath(os.path.dirname(__file__))}\elevation\elev_data_preop_copy.csv'
-    if os.path.getsize(src_file) >= os.path.getsize(cp_file):
-        shutil.copyfile(src_file, cp_file)
-    request_string = ''; request_list = []; request_list_conmprehension = []
-    csv_data = read_elevation_data(src_file)
-    if len(csv_data) > 1:
-        mgrs_list = [d[-2] for d in csv_data[1:]]
-        elevation_list = [d[-1] for d in csv_data[1:]]
-    else:
-        mgrs_list = []; elevation_list = []
-    num_coords_in_request = 0; max_request_length = 50; num_stored = 0; num_requested = 0
-    for i,coord in enumerate(coord_list):
-        mgrs = convert_coords_to_mgrs(coord,precision=4)
-        if mgrs in mgrs_list:
-            elevation = elevation_list[mgrs_list.index(mgrs)]
-            coord_elev_data.append([coord[0],coord[1],mgrs,elevation])
-            num_stored += 1
-            continue
-        else:
-            request_list.append(','.join([str(c) for c in coord]))
-            num_coords_in_request += 1
-            num_requested += 1
-        if num_coords_in_request >= max_request_length:
-            request_list_conmprehension.append(request_list)
-            request_list = []
-            num_coords_in_request = 0
-            max_request_length = np.random.uniform(48,52)
-    if num_requested + num_stored > 0: print(f'{num_stored:,.2f} ({num_stored/(num_requested + num_stored)*100:,.2f}%) tiles already in database')
-    if num_requested > num_stored and not check_internet_connection(): return []
-    if len(request_list) > 0: request_list_conmprehension.append(request_list)
-    if len(request_list_conmprehension) > 0 and len(request_list_conmprehension[0]) > 0:
-        for i,requested_coords in enumerate(request_list_conmprehension):
-            print(f"Request {i+1} of {len(request_list_conmprehension)}")
-            csv_data = read_elevation_data(src_file)
-            request_string = '|'.join(requested_coords)
-            request = f"https://api.open-elevation.com/api/v1/lookup?locations={request_string}"
-            try:
-                response = requests.get(request)
-                for result in response.json()['results']:
-                    latitude = result['latitude']
-                    longitude = result['longitude']
-                    elevation = result['elevation']
-                    mgrs_8digit = convert_coords_to_mgrs([latitude,longitude],precision=4)
-                    coord_elev_data.append([latitude,longitude,mgrs_8digit,elevation])
-                    csv_data.append([latitude,longitude,mgrs_8digit,elevation])
-                print(f'Success: {len(requested_coords)} datapoints added to elevation database')
-            except:
-                print(f"Elevation request {i+1} failed.")
-            save_elevation_data(src_file,csv_data)
-            time.sleep(np.random.exponential(0.125))
-    return coord_elev_data
-
-def plot_elevation_data(coord_elev_data,target_coords=None,title_args=None):
-    import datetime
-    if coord_elev_data == None or len(coord_elev_data) == 0: return 0
-    def get_dist_interval(target_distance,dist_interval):
-        if target_distance is None: return -1
-        for i, di in enumerate(dist_interval[:-1]):
-            if int(di) <= target_distance < int(dist_interval[i+1]):
-                return i
-        return -1
-    # input maybe title?, maybe filename?
-    import matplotlib.pyplot as plt
-    elev_list = [float(x[-1]) for x in coord_elev_data]
-    base_reg=0
-    sensor_coord = [coord_elev_data[0][0],coord_elev_data[0][1]]
-    sensor_mgrs = convert_coords_to_mgrs(sensor_coord)
-    far_side_coord = [coord_elev_data[-1][0],coord_elev_data[-1][1]]
-    far_side_coord_mgrs = convert_coords_to_mgrs(far_side_coord)
-    distance = int(get_distance_between_coords(sensor_coord,far_side_coord))
-    coord_interval = int(distance/len(elev_list))
-    dist_interval = list(range(0,distance,coord_interval))
-    target_dist_indices = []
-    if target_coords is not None:
-        for i,target_coord in enumerate(target_coords):
-            if i == len(target_coords)-1: target_dist_indices.append(-1); break
-            target_dist = get_distance_between_coords(sensor_coord,target_coord)
-            target_dist_index = get_dist_interval(target_dist,dist_interval)
-            target_dist_indices.append(target_dist_index)
-    while len(dist_interval) > len(elev_list):
-        dist_interval = dist_interval[:-1]
-    while len(dist_interval) < len(elev_list):
-        dist_interval = dist_interval + [dist_interval[-1]+coord_interval]
-    try:   
-        plt.figure(figsize=(10,4))
-        # plt.style.use('ggplot')
-        plt.style.use('classic')
-        plt.plot(dist_interval,elev_list)
-        min_elev = min(elev_list)
-        max_elev = max(elev_list)
-        plt.plot([0,dist_interval[-1]],[min_elev,min_elev],'--g',label='min: '+str(min_elev)+' m')
-        plt.plot([0,dist_interval[-1]],[max_elev,max_elev],'--r',label='max: '+str(max_elev)+' m')
-        # plt.scatter([0],[elev_list[0]],label='Sensor',color='blue',marker='^',s=100)
-        buffer = int(min_elev *.25)
-        plt.ylim(int(min_elev - buffer), int(max_elev + buffer))
-        plt.xlim(dist_interval[0],dist_interval[-1])
-        if target_coords is not None:
-            target_dists = []; target_elevations = []
-            for i,target_coord in enumerate(target_coords):
-                if i == len(target_coords)-1: target_dists.append(dist_interval[-1]); target_elevations.append(elev_list[-1]); break
-                target_dist = get_distance_between_coords(sensor_coord,target_coord)
-                target_dists.append(target_dist)
-                target_elevations.append(elev_list[target_dist_indices[i]])
-            plt.vlines(target_dists,[min_elev - buffer for td in target_dists],[max_elev + buffer for td in target_dists],colors=['black' for dt in target_dists],linestyles=['dashed' for dt in target_dists],label='Target Distances')
-            plt.scatter(target_dists,target_elevations,label='Possible Targets',color='red',marker='D',s=100)
-        plt.fill_between(dist_interval,elev_list,base_reg,alpha=0.1,color='green')
-        plt.xlabel("Distance (m)")
-        plt.ylabel("Elevation (m)")
-        plt.grid()
-        plt.legend(fontsize='small')
-        if title_args is None:
-            plt.title(f'Elevation data from {sensor_mgrs} to {far_side_coord_mgrs}')
-        else:
-            if len(title_args) == 1:
-                plt.title(f'Elevation data from {title_args[0]} to {far_side_coord_mgrs}')
-            elif len(title_args) == 2:
-                plt.title(f'Elevation data from {title_args[0]} to {title_args[1]}')
-        dt = str(datetime.datetime.today()).split()[0].replace('-','')
-        num = 0
-        output_filename = (rf'{os.path.realpath(os.path.dirname(__file__))}\elevation_plots\{dt}_elevation_data_{num:02}.png')
-        while os.path.exists(output_filename):
-            num +=1 
-            output_filename = (rf'{os.path.realpath(os.path.dirname(__file__))}\elevation_plots\{dt}_elevation_data_{num:02}.png')
-        plt.savefig(output_filename)
-        plt.show()
-    except AttributeError as e:
-        return 0
-
-'''https://api.open-elevation.com/api/v1/lookup?locations=51.24885624303748,15.570668663974097'''
 
 
 

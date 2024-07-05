@@ -1,0 +1,30 @@
+--- MVP Reqs:
+    - add feature to determine user's EUD location
+        - button to turn plot EUD GPS location  on top-right banner
+        - plot circle of inaccuracy along with EUD point
+        - ensure app cannot get hung if this feature hangs / stalls / fails
+    - dynamic user marker icons based on marker number
+
+--- Improvements:
+    (High)
+    - clean way to close all associated services upon closing
+    (Medium)
+    - BEAST+ df sensor gain RFI...
+    - give estimate warning prior to executing batch download
+    - pass paramters to batch download... not command
+    - right-click option to plot objectives w/ radius, would require forked marker removal method
+    (Low)
+    - add config file for hard-coded data
+    - move log function to utilities
+    - move batch download function into utilities file
+    - split utilities file into utilities by type (RF, map, log, files, etc.)
+    - provide option to input coordinates instead of MGRS
+    - log analysis tools
+    - incorporation of elevation plotting / 3D modeling
+
+
+
+
+'''
+IDEA!!!!!
+ - GPS JAMMER DETECTION TOOL
