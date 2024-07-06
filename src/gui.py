@@ -6,7 +6,7 @@ from utilities import import_libraries
 libraries = [['customtkinter'],['CTkMessagebox',['CTkMessagebox']],
              ['numpy'],['os'],['PIL',['Image','ImageTK']],
              ['sys'],['threading'],['tkinter',['END']],['tkintermapview',['TkinterMapView']],
-             ['urllib.request'],['shapely']]
+             ['urllib.request'],['shapely'],['timezonefinder']]
 import_libraries(libraries)
 
 import customtkinter
@@ -883,7 +883,7 @@ class App(customtkinter.CTk):
         # define clear markers button attributes
         self.button_clear_markers = customtkinter.CTkButton(
             master=self.frame_right,
-            text="Clear Markers",
+            text="Clear Generic Markers",
             command=self.clear_user_markers)
         # assign clear markers button grid position
         self.button_clear_markers.grid(
@@ -1046,10 +1046,11 @@ class App(customtkinter.CTk):
                 elif choice == 'Re-input':
                     # end function
                     return
-            # clear the previous sensor 1 MGRS input
-            self.sensor1_mgrs.delete(0,END)
-            # insert the default sensor 1 MGRS value
-            self.sensor1_mgrs.insert(0,correct_mgrs_input(self.sensor1_mgrs_val))
+            if not bypass_ewt1_bool:
+                # clear the previous sensor 1 MGRS input
+                self.sensor1_mgrs.delete(0,END)
+                # insert the default sensor 1 MGRS value
+                self.sensor1_mgrs.insert(0,correct_mgrs_input(self.sensor1_mgrs_val))
         # exception handling for ValueError
         except ValueError:
             # if value error occurs, set Sensor 1 MGRS value to None
@@ -1167,10 +1168,11 @@ class App(customtkinter.CTk):
                         self.sensor2_mgrs_val = None
                         # clear Sensor 2 MGRS input field
                         self.sensor2_mgrs.delete(0,END)
-                # clear the previous sensor 2 MGRS input
-                self.sensor2_mgrs.delete(0,END)
-                # insert the default sensor 2 MGRS value
-                self.sensor2_mgrs.insert(0,correct_mgrs_input(self.sensor2_mgrs_val))
+                if not bypass_ewt2_bool:
+                    # clear the previous sensor 2 MGRS input
+                    self.sensor2_mgrs.delete(0,END)
+                    # insert the default sensor 2 MGRS value
+                    self.sensor2_mgrs.insert(0,correct_mgrs_input(self.sensor2_mgrs_val))
             # if Single LOB Boolean value is TRUE
             else:
                 # set all local Sensor 2 values to None
@@ -1349,11 +1351,12 @@ class App(customtkinter.CTk):
                         # set Sensor 3 MGRS value to None
                         self.sensor3_mgrs_val = None
                         # clear Sensor 3 MGRS input field
-                        self.sensor3_mgrs.delete(0,END)   
-                # clear the previous sensor 2 MGRS input
-                self.sensor3_mgrs.delete(0,END)
-                # insert the default sensor 3 MGRS value
-                self.sensor3_mgrs.insert(0,correct_mgrs_input(self.sensor3_mgrs_val))
+                        self.sensor3_mgrs.delete(0,END)
+                if not bypass_ewt3_bool:
+                    # clear the previous sensor 2 MGRS input
+                    self.sensor3_mgrs.delete(0,END)
+                    # insert the default sensor 3 MGRS value
+                    self.sensor3_mgrs.insert(0,correct_mgrs_input(self.sensor3_mgrs_val))
             # if Single LOB Boolean value is TRUE
             else:
                 # set all local Sensor 3 values to None
@@ -1611,8 +1614,7 @@ class App(customtkinter.CTk):
         Function to calculate target location given EWT input(s)
         """
         from utilities import check_if_point_in_polygon, check_for_intersection, convert_coords_to_mgrs, convert_mgrs_to_coords, format_readable_DTG, format_readable_mgrs, generate_DTG, get_center_coord, get_coords_from_LOBs, get_distance_between_coords, get_emission_distance, get_intersection, get_line, get_polygon_area, organize_polygon_coords
-        
-        def plot_lobs(s1lnmc,s1lfmc,s2lnmc,s2lfmc,s3lnmc,s3lfmc,plot_lob_tgt_bool=True):
+        def plot_lobs(s1lnmc,s1lfmc,s2lnmc,s2lfmc,s3lnmc,s3lfmc,plot_ewt1_lob_tgt_bool=True,plot_ewt2_lob_tgt_bool=True,plot_ewt3_lob_tgt_bool=True):
             import numpy as np
             num_lobs = 3-[self.sensor1_mgrs_val,self.sensor2_mgrs_val,self.sensor3_mgrs_val].count(None)
             # assess if there is no target class
@@ -1630,7 +1632,7 @@ class App(customtkinter.CTk):
                 # calculate sensor 1 LOB error (in acres)
                 self.sensor1_lob_error_acres = get_polygon_area(self.sensor1_lob_polygon)
                 # define sensor 1 LOB description
-                sensor1_lob_description = f"EWT 1 at {format_readable_mgrs(self.sensor1_mgrs_val)}\nwith a LOB at bearing {int(self.sensor1_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor1_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor1_max_distance_m)} with {self.sensor1_lob_error_acres:,.0f} acres of error"
+                sensor1_lob_description = f"EWT 1 at {format_readable_mgrs(self.sensor1_mgrs_val)} with a LOB at bearing {int(self.sensor1_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor1_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor1_max_distance_m)} with {self.sensor1_lob_error_acres:,.0f} acres of error"
                 # define and set sensor 1 marker on the map
                 
                 ew_team1_marker = self.map_widget.set_marker(
@@ -1652,7 +1654,7 @@ class App(customtkinter.CTk):
                     outline_color=App.DEFAULT_VALUES['LOB Center Line Color'],
                     border_width=App.DEFAULT_VALUES['Border Width'],
                     command=self.polygon_click,
-                    data="(LINE) "+sensor1_lob_description)
+                    data="LOB Line\n"+sensor1_lob_description)
                 # add sensor 1 LOB center-line to polygon list
                 self.append_object(sensor1_lob,"LOB")
                 # define and set sensor 1 LOB area
@@ -1662,10 +1664,10 @@ class App(customtkinter.CTk):
                     outline_color=App.DEFAULT_VALUES['LOB Area Outline Color'],
                     border_width=App.DEFAULT_VALUES['Border Width'],
                     command=self.polygon_click,
-                    data="(AREA) "+sensor1_lob_description)
+                    data="LOB Area\n"+sensor1_lob_description)
                 # add sensor 1 LOB area to polygon list
                 self.append_object(sensor1_lob_area,"LOB")
-                if plot_lob_tgt_bool:
+                if plot_ewt1_lob_tgt_bool:
                     # define and set sensor 1 target marker
                     target1_marker = self.map_widget.set_marker(
                         deg_x=self.sensor1_target_coord[0], 
@@ -1698,7 +1700,7 @@ class App(customtkinter.CTk):
                 # calculate LOB 2 sensor error (in acres)
                 self.sensor2_lob_error_acres = get_polygon_area(self.sensor2_lob_polygon)
                 # define LOB 2 description
-                sensor2_lob_description = f"EWT 2 at {format_readable_mgrs(self.sensor2_mgrs_val)}\nwith a LOB at bearing {int(self.sensor2_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor2_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor2_max_distance_m)} with {self.sensor2_lob_error_acres:,.0f} acres of error"
+                sensor2_lob_description = f"EWT 2 at {format_readable_mgrs(self.sensor2_mgrs_val)} with a LOB at bearing {int(self.sensor2_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor2_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor2_max_distance_m)} with {self.sensor2_lob_error_acres:,.0f} acres of error"
                 # define and set sensor 2 marker on the map
                 ew_team2_marker = self.map_widget.set_marker(
                     deg_x=self.sensor2_coord[0], 
@@ -1719,7 +1721,7 @@ class App(customtkinter.CTk):
                     outline_color=App.DEFAULT_VALUES['LOB Center Line Color'],
                     border_width=App.DEFAULT_VALUES['Border Width'],
                     command=self.polygon_click,
-                    data="(LINE) "+sensor2_lob_description)
+                    data="LOB Line\n"+sensor2_lob_description)
                 # add sensor 2 LOB area to polygon list
                 self.append_object(sensor2_lob,"LOB")
                 # define and set sensor 2 LOB area
@@ -1729,10 +1731,10 @@ class App(customtkinter.CTk):
                     outline_color=App.DEFAULT_VALUES['LOB Area Outline Color'],
                     border_width=App.DEFAULT_VALUES['Border Width'],
                     command=self.polygon_click,
-                    data="(AREA) "+sensor2_lob_description)
+                    data="LOB Area\n"+sensor2_lob_description)
                 # add LOB area to polygon list
                 self.append_object(sensor2_lob_area,"LOB")
-                if plot_lob_tgt_bool:
+                if plot_ewt2_lob_tgt_bool:
                     # define and set sensor 2 target marker
                     target2_marker = self.map_widget.set_marker(
                         deg_x=self.sensor2_target_coord[0], 
@@ -1765,7 +1767,7 @@ class App(customtkinter.CTk):
                 # calculate LOB 3 sensor error (in acres)
                 self.sensor3_lob_error_acres = get_polygon_area(self.sensor3_lob_polygon)
                 # define sensor 3 LOB description
-                sensor3_lob_description = f"EWT 3 at {format_readable_mgrs(self.sensor3_mgrs_val)}\nwith a LOB at bearing {int(self.sensor3_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor3_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor3_max_distance_m)} with {self.sensor3_lob_error_acres:,.0f} acres of error"
+                sensor3_lob_description = f"EWT 3 at {format_readable_mgrs(self.sensor3_mgrs_val)} with a LOB at bearing {int(self.sensor3_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor3_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor3_max_distance_m)} with {self.sensor3_lob_error_acres:,.0f} acres of error"
                 # define and plot sensor 3 marker on the map
                 ew_team3_marker = self.map_widget.set_marker(
                     deg_x=self.sensor3_coord[0], 
@@ -1786,7 +1788,7 @@ class App(customtkinter.CTk):
                     outline_color=App.DEFAULT_VALUES['LOB Center Line Color'],
                     border_width=App.DEFAULT_VALUES['Border Width'],
                     command=self.polygon_click,
-                    data="(LINE) "+sensor3_lob_description)
+                    data="LOB Line\n"+sensor3_lob_description)
                 # add sensor 2 LOB area to polygon list
                 self.append_object(sensor3_lob,"LOB")
                 # define and set sensor 2 LOB area
@@ -1796,10 +1798,10 @@ class App(customtkinter.CTk):
                     outline_color=App.DEFAULT_VALUES['LOB Area Outline Color'],
                     border_width=App.DEFAULT_VALUES['Border Width'],
                     command=self.polygon_click,
-                    data="(AREA) "+sensor3_lob_description)
+                    data="LOB Area\n"+sensor3_lob_description)
                 # add LOB area to polygon list
                 self.append_object(sensor3_lob_area,"LOB")
-                if plot_lob_tgt_bool:
+                if plot_ewt3_lob_tgt_bool:
                     # define and set sensor 3 target marker
                     target3_marker = self.map_widget.set_marker(
                         deg_x=self.sensor3_target_coord[0], 
@@ -1825,6 +1827,9 @@ class App(customtkinter.CTk):
                 self.sensor3_distance.configure(text="N/A",text_color='white')
     
         def plot_cut(l1c,l1r,l1l,l2c,l2r,l2l,multi_cut_bool=False,plot_cut_tgts=True):
+            """
+            Detect intersection between lob bounds and other lob's far bound, choose the four closes points for cut polygon'
+            """
             # define target classification
             self.target_class = '(CUT)'
             # set target label with updated target classification
@@ -1839,6 +1844,10 @@ class App(customtkinter.CTk):
             intersection_l1l_l2r = get_intersection(l1l, l2r)
             # get intersection of left-bound LOB errors 
             intersection_l1l_l2l = get_intersection(l1l, l2l)
+            '''
+            Assess if the backstops of LOBs intersect with LOB left-right bounds, need to know which LOBs are being assessed
+            '''
+            
             # define CUT polygon
             cut_polygon = [intersection_l1r_l2r,intersection_l1r_l2l,intersection_l1l_l2l,intersection_l1l_l2r]
             # organize CUT polygon
@@ -1992,6 +2001,12 @@ class App(customtkinter.CTk):
                     pass
                     # print(f"NO: {point} is not in the fixn\n")
                 in_polygon_bool = True
+            if len(fix_polygon) == 0:
+                # plot cuts with the CUT target icon
+                plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,True,True)
+                plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True)
+                plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True)
+                return
             # organize fix coordinates
             fix_polygon = organize_polygon_coords(fix_polygon)
             # assess if the fix polygon is not a polygon
@@ -2101,6 +2116,8 @@ class App(customtkinter.CTk):
             self.sensor1_lob_polygon = [sensor1_lob_near_right_coord,sensor1_lob_far_right_coord,sensor1_lob_far_left_coord,sensor1_lob_near_left_coord]
             # organize sensor 1 LOB polygon points
             self.sensor1_lob_polygon = organize_polygon_coords(self.sensor1_lob_polygon)
+            # define sensor 1 LOB backstop Line
+            self.sensor1_lob_backstop = get_line(sensor1_lob_far_right_coord,sensor1_lob_far_left_coord)
             # define sensor 1 LOB's center line
             lob1_center = get_line(self.sensor1_coord, sensor1_lob_far_middle_coord)
             # define sensor 1 LOB's right-bound error line
@@ -2110,7 +2127,7 @@ class App(customtkinter.CTk):
         # if sensor 1 has None input values
         else:
             # set sensor 1 input values to None
-            self.sensor1_mgrs_val = None; self.sensor1_grid_azimuth_val = None; self.sensor1_power_received_dBm_val = None; self.sensor1_lob_polygon = None
+            self.sensor1_mgrs_val = None; self.sensor1_grid_azimuth_val = None; self.sensor1_power_received_dBm_val = None; self.sensor1_lob_polygon = None; self.sensor1_lob_backstop = None
         # if sensor 2 has non-None input values
         if self.sensor2_mgrs_val != None and self.sensor2_grid_azimuth_val != None and self.sensor2_power_received_dBm_val != None:
             # convert sensor 2 MGRS to coordinates
@@ -2133,6 +2150,8 @@ class App(customtkinter.CTk):
             self.sensor2_lob_polygon = [sensor2_lob_near_right_coord,sensor2_lob_far_right_coord,sensor2_lob_far_left_coord,sensor2_lob_near_left_coord]
             # organize sensor 2 LOB polygon
             self.sensor2_lob_polygon = organize_polygon_coords(self.sensor2_lob_polygon)
+            # define sensor 2 LOB backstop Line
+            self.sensor2_lob_backstop = get_line(sensor2_lob_far_right_coord,sensor2_lob_far_left_coord)
             # define sensor 2 LOB center-line
             lob2_center = get_line(self.sensor2_coord, sensor2_lob_far_middle_coord)
             # define sensor 2 LOB right-bound error line
@@ -2142,7 +2161,7 @@ class App(customtkinter.CTk):
         # if sensor 2 has None input values
         else:
             # set sensor 2 input values to None
-            self.sensor2_mgrs_val = None; self.sensor2_grid_azimuth_val = None; self.sensor2_power_received_dBm_val = None; self.sensor2_lob_polygon = None
+            self.sensor2_mgrs_val = None; self.sensor2_grid_azimuth_val = None; self.sensor2_power_received_dBm_val = None; self.sensor2_lob_polygon = None; self.sensor2_lob_backstop = None
         # if sensor 3 has non-None input values 
         if self.sensor3_mgrs_val != None and self.sensor3_grid_azimuth_val != None and self.sensor3_power_received_dBm_val != None:
             # convert sensor 3 MGRS to coordinates
@@ -2163,6 +2182,8 @@ class App(customtkinter.CTk):
             self.sensor3_lob_polygon = [sensor3_lob_near_right_coord,sensor3_lob_far_right_coord,sensor3_lob_far_left_coord,sensor3_lob_near_left_coord]
             # organize sensor 3 LOB polygon
             self.sensor3_lob_polygon = organize_polygon_coords(self.sensor3_lob_polygon)
+            # define sensor 3 LOB backstop Line
+            self.sensor3_lob_backstop = get_line(sensor3_lob_far_right_coord,sensor3_lob_far_left_coord)
             # define sensor 3 LOB center-line
             lob3_center = get_line(self.sensor3_coord, sensor3_lob_far_middle_coord)
             # define sensor 3 LOB right-bound error line
@@ -2172,43 +2193,45 @@ class App(customtkinter.CTk):
         # if sensor 3 has None input values
         else:
             # set sensor 3 input values to None
-            self.sensor3_mgrs_val = None; self.sensor3_grid_azimuth_val = None; self.sensor3_power_received_dBm_val = None; self.sensor3_lob_polygon = None
+            self.sensor3_mgrs_val = None; self.sensor3_grid_azimuth_val = None; self.sensor3_power_received_dBm_val = None; self.sensor3_lob_polygon = None; self.sensor3_lob_backstop
         # assess which LOBs have intersections
         ewt1_ewt2_intersection_bool = check_for_intersection(self.sensor1_coord,sensor1_lob_far_middle_coord,self.sensor2_coord,sensor2_lob_far_middle_coord)
         ewt2_ewt3_intersection_bool = check_for_intersection(self.sensor2_coord,sensor2_lob_far_middle_coord,self.sensor3_coord,sensor3_lob_far_middle_coord)
         ewt1_ewt3_intersection_bool = check_for_intersection(self.sensor1_coord,sensor1_lob_far_middle_coord,self.sensor3_coord,sensor3_lob_far_middle_coord)
-        # plot LOBs
-        if ewt1_ewt2_intersection_bool or ewt2_ewt3_intersection_bool or ewt1_ewt3_intersection_bool:
-            plot_lob_tgt_bool = False
-        else:
-            plot_lob_tgt_bool = True
-        plot_lobs(sensor1_lob_near_middle_coord,sensor1_lob_far_middle_coord,sensor2_lob_near_middle_coord,sensor2_lob_far_middle_coord,sensor3_lob_near_middle_coord,sensor3_lob_far_middle_coord,plot_lob_tgt_bool)
-        # EWT 1 & 2 CUT, EWT 3 LOB (TOTAL 1 CUT)
+        # EWT 1 & 2 CUT, EWT 3 LOB (TOTAL 1 CUT, 1 LOB)
         if ewt1_ewt2_intersection_bool and not ewt2_ewt3_intersection_bool and not ewt1_ewt3_intersection_bool:
+            plot_lobs(sensor1_lob_near_middle_coord,sensor1_lob_far_middle_coord,sensor2_lob_near_middle_coord,sensor2_lob_far_middle_coord,sensor3_lob_near_middle_coord,sensor3_lob_far_middle_coord,False,False,True)
             plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound)
-        # EWT 2 & 3 CUT, EWT 1 LOB (TOTAL 1 CUT)
+        # EWT 2 & 3 CUT, EWT 1 LOB (TOTAL 1 CUT, 1 LOB)
         elif not ewt1_ewt2_intersection_bool and ewt2_ewt3_intersection_bool and not ewt1_ewt3_intersection_bool:
+            plot_lobs(sensor1_lob_near_middle_coord,sensor1_lob_far_middle_coord,sensor2_lob_near_middle_coord,sensor2_lob_far_middle_coord,sensor3_lob_near_middle_coord,sensor3_lob_far_middle_coord,True,False,False)
             plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound)
-        # EWT 1 & 3 CUT, EWT 2 LOB (TOTAL 1 CUT)
+        # EWT 1 & 3 CUT, EWT 2 LOB (TOTAL 1 CUT, 1 LOB)
         elif not ewt1_ewt2_intersection_bool and not ewt2_ewt3_intersection_bool and ewt1_ewt3_intersection_bool:
+            plot_lobs(sensor1_lob_near_middle_coord,sensor1_lob_far_middle_coord,sensor2_lob_near_middle_coord,sensor2_lob_far_middle_coord,sensor3_lob_near_middle_coord,sensor3_lob_far_middle_coord,False,True,False)
             plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound)
         # EWT 1 & 2 CUT, EWT 2 & 3 NO CUT, EWT 1 & 3 CUT (TOTAL 2 CUT)
         elif ewt1_ewt2_intersection_bool and not ewt2_ewt3_intersection_bool and ewt1_ewt3_intersection_bool:
+            plot_lobs(sensor1_lob_near_middle_coord,sensor1_lob_far_middle_coord,sensor2_lob_near_middle_coord,sensor2_lob_far_middle_coord,sensor3_lob_near_middle_coord,sensor3_lob_far_middle_coord,False,False,False)
             plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,True,True)
             plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True)
         # EWT 1 & 2 CUT, EWT 2 & 3 CUT, EWT 1 & 3 NO CUT (TOTAL 2 CUT)
         elif ewt1_ewt2_intersection_bool and ewt2_ewt3_intersection_bool and not ewt1_ewt3_intersection_bool:
+            plot_lobs(sensor1_lob_near_middle_coord,sensor1_lob_far_middle_coord,sensor2_lob_near_middle_coord,sensor2_lob_far_middle_coord,sensor3_lob_near_middle_coord,sensor3_lob_far_middle_coord,False,False,False)
             plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,True,True)
             plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True) 
         # EWT 1 & 2 NO CUT, EWT 2 & 3 CUT, EWT 1 & 3 CUT (TOTAL 2 CUT)
         elif not ewt1_ewt2_intersection_bool and ewt2_ewt3_intersection_bool and ewt1_ewt3_intersection_bool:
+            plot_lobs(sensor1_lob_near_middle_coord,sensor1_lob_far_middle_coord,sensor2_lob_near_middle_coord,sensor2_lob_far_middle_coord,sensor3_lob_near_middle_coord,sensor3_lob_far_middle_coord,False,False,False)
             plot_cut(lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True)
             plot_cut(lob1_center,lob1_right_bound,lob1_left_bound,lob3_center,lob3_right_bound,lob3_left_bound,True,True)
         # No intersections between an EWT LOBs
         elif not ewt1_ewt2_intersection_bool and not ewt2_ewt3_intersection_bool and not ewt1_ewt3_intersection_bool:
+            plot_lobs(sensor1_lob_near_middle_coord,sensor1_lob_far_middle_coord,sensor2_lob_near_middle_coord,sensor2_lob_far_middle_coord,sensor3_lob_near_middle_coord,sensor3_lob_far_middle_coord,True,True,True)
             pass
         # EWT 1, 2, & 3 INTERSECTION (TOTAL 1 FIX, 3 CUT)
         elif ewt1_ewt2_intersection_bool and ewt2_ewt3_intersection_bool and ewt1_ewt3_intersection_bool:
+            plot_lobs(sensor1_lob_near_middle_coord,sensor1_lob_far_middle_coord,sensor2_lob_near_middle_coord,sensor2_lob_far_middle_coord,sensor3_lob_near_middle_coord,sensor3_lob_far_middle_coord,False,False,False)
             plot_fix(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound)
         # Unexpected situation
         else:
@@ -2453,20 +2476,26 @@ class App(customtkinter.CTk):
 
         """
         # import libraries
+        from PIL import Image, ImageTk
         from utilities import convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, get_distance_between_coords
         import numpy as np
+        import os
         # define marker's mgrs string
         marker_mgrs = f"{format_readable_mgrs(convert_coords_to_mgrs(list(coord)))}"
         # define marker's number
         marker_num = len(self.user_marker_list) + 1
         # define marker's data string
-        maker_data = f"User marker (No. {marker_num}) plotted at {format_readable_mgrs(convert_coords_to_mgrs(list(coord)))} on {format_readable_DTG(generate_DTG())}"
-        '''
-        *****Have a marker icon with a number for first n markers plotted
-        '''
+        try:
+            maker_data = f"User marker (No. {marker_num%10}) plotted at {format_readable_mgrs(convert_coords_to_mgrs(list(coord)))} on {format_readable_DTG(generate_DTG())}"
+            marker_icon = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "user_markers", f"user_marker_{marker_num}.png")).resize((40, 40)))
+        except FileNotFoundError:
+            maker_data = f"User marker plotted at {format_readable_mgrs(convert_coords_to_mgrs(list(coord)))} on {format_readable_DTG(generate_DTG())}"
+            marker_icon = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "user_markers", "generic_marker.png")).resize((40, 40)))
         # plot marker
         new_marker = self.map_widget.set_marker(coord[0], coord[1], 
                                                 text=marker_mgrs,
+                                                text_color='white', # #9E3939
+                                                icon=marker_icon,
                                                 image_zoom_visibility=(10, float("inf")),
                                                 command=self.marker_click,
                                                 data=maker_data)
@@ -2580,15 +2609,20 @@ class App(customtkinter.CTk):
             self.show_info("Invalid MGRS input!")
             return
 
-    def plot_EUD_position(self):
+    def plot_EUD_position(self,coord=None):
+        from PIL import Image, ImageTk
         from utilities import convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, generate_EUD_coordinate
-        data_position = generate_EUD_coordinate(method='ps',acc=3)
-        lat = data_position['lat']
-        lon = data_position['lon']
+        if coord == None:
+            data_position = generate_EUD_coordinate(method='ps',acc=3)
+            lat = data_position['lat']; lon = data_position['lon']
+        else:
+            lat = coord[0]; lon = coord[1]
+        marker_icon = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "eud_marker.png")).resize((40, 40)))
         eud_marker_text = f"{format_readable_mgrs(convert_coords_to_mgrs([lat,lon]))}"
         eud_marker_data = f"EUD at {format_readable_mgrs(convert_coords_to_mgrs([lat,lon]))} at {format_readable_DTG(generate_DTG())}"
         eud_marker = self.map_widget.set_marker(lat, lon, 
                                                 text=eud_marker_text,
+                                                icon=marker_icon,
                                                 image_zoom_visibility=(10, float("inf")),
                                                 command=self.marker_click,
                                                 data=eud_marker_data)

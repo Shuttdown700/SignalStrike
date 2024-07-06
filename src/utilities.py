@@ -104,7 +104,7 @@ def remove_empty_csv_rows(csv_file: str) -> None:
     Experiencing access errors... two simualtanious tempfile instances
     '''
     
-    import csv, shutil
+    import csv
     # create temp file
     temp_file = open(csv_file[:-4]+"_temp.csv",mode='w', newline='', encoding='utf-8')
     # open csv and temp file
@@ -206,6 +206,13 @@ def format_readable_DTG(dtg: str) -> str:
     """
     return f'{dtg[2:6]} on {dtg[:2]} {dtg[6:9]} {dtg[-4:]}'
 
+def datetime_from_utc_to_local(utc_datetime):
+    from datetime import datetime
+    import time
+    now_timestamp = time.time()
+    offset = datetime.fromtimestamp(now_timestamp) - datetime.utcfromtimestamp(now_timestamp)
+    return utc_datetime + offset
+
 def generate_EUD_coordinate(method='ps',acc=3):
     def generate_EUD_coordinate_winsdk():
         import asyncio
@@ -242,7 +249,13 @@ def generate_EUD_coordinate(method='ps',acc=3):
         p = subprocess.Popen(pshellcomm, stdin = PIPE, stdout = PIPE, stderr = STDOUT, text=True)
         (out, err) = p.communicate()
         out = re.split('\n', out)[:-1]
-        out = {"lat":float(out[0]),"lon":float(out[1]),"acc":int(out[2])}
+        lat = float(out[0])
+        lon = float(out[1])
+        try:
+            acc = int(out[2])
+        except ValueError:
+            acc = 100
+        out = {"lat":lat,"lon":lon,"acc":acc}
         return out
     if method == 'ps':
         return generate_EUD_coordinate_ps(acc)
@@ -410,16 +423,19 @@ def correct_mgrs_input(mgrs_input: str) -> str:
         Corrected format of MGRS.
 
     """
-    if check_mgrs_input(mgrs_input):
-        mgrs_input = mgrs_input.replace(" ","").strip()
-        zone_number = mgrs_input[:2]
-        band_letter = mgrs_input[2].upper()
-        mgrs_column_letter = mgrs_input[3].upper()
-        mgrs_row_letter = mgrs_input[4].upper()
-        mgrs_easting_northing = mgrs_input[5:]
-        mgrs_corrected = zone_number+band_letter+mgrs_column_letter+mgrs_row_letter+mgrs_easting_northing
-        return mgrs_corrected
-    return mgrs_input
+    try:
+        if check_mgrs_input(mgrs_input):
+            mgrs_input = mgrs_input.replace(" ","").strip()
+            zone_number = mgrs_input[:2]
+            band_letter = mgrs_input[2].upper()
+            mgrs_column_letter = mgrs_input[3].upper()
+            mgrs_row_letter = mgrs_input[4].upper()
+            mgrs_easting_northing = mgrs_input[5:]
+            mgrs_corrected = zone_number+band_letter+mgrs_column_letter+mgrs_row_letter+mgrs_easting_northing
+            return mgrs_corrected
+        return mgrs_input
+    except AttributeError:
+        return mgrs_input
         
 
 def check_coord_input(coord_input):
