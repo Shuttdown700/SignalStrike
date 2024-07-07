@@ -2660,15 +2660,19 @@ class App(customtkinter.CTk):
     def plot_EUD_position(self,coord=None):
         from PIL import Image, ImageTk
         from utilities import adjust_coordinate, convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, generate_EUD_coordinate
-        if coord == None:
-            data_position = generate_EUD_coordinate(method='winsdk',acc=3)
-            if data_position is None:
-                print("The output of the 'generate_EUD_coordinate' method is a NoneType")
-                self.show_info("Error in determining your position")
-                return
-            lat = data_position['lat']; lon = data_position['lon']; acc = data_position['acc']
-        else:
-            lat = coord[0]; lon = coord[1]
+        try:
+            if coord == None:
+                data_position = generate_EUD_coordinate(method='ps',acc=3)
+                if data_position is None:
+                    print("The output of the 'generate_EUD_coordinate' method is a NoneType")
+                    self.show_info("Error in determining your position")
+                    return
+                lat = data_position['lat']; lon = data_position['lon']; acc = data_position['acc']
+            else:
+                lat = coord[0]; lon = coord[1]
+        except:
+            print("Unknown error is 'generate_EUD_coordinate' method")
+            return
         marker_icon = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "eud_marker.png")).resize((40, 40)))
         eud_marker_text = f"{format_readable_mgrs(convert_coords_to_mgrs([lat,lon]))}"
         eud_marker_data = f"EUD at {format_readable_mgrs(convert_coords_to_mgrs([lat,lon]))} at {format_readable_DTG(generate_DTG())}"
@@ -2679,22 +2683,25 @@ class App(customtkinter.CTk):
                                                 command=self.marker_click,
                                                 data=eud_marker_data)
         self.append_object(eud_marker,"EUD")
-        if acc > 20:
-            circle_top_left = adjust_coordinate([lat,lon], 315, acc)
-            circle_bottom_right = adjust_coordinate([lat,lon], 135, acc)
-            eud_position_error = self.map_widget.canvas.create_oval(circle_top_left[0],
-                                                                    circle_top_left[1],
-                                                                    circle_bottom_right[0],
-                                                                    circle_bottom_right[1],
-                                                                    dash=True,
-                                                                    disabledfill=True,
-                                                                    outline='black')
-            self.append_object(eud_position_error,"EUD")
-        self.log_eud_location([lat,lon])
+        self.show_info("Current position successfully plotted.",icon='info')
+        # if acc > 20:
+        #     circle_top_left = adjust_coordinate([lat,lon], 315, acc)
+        #     circle_bottom_right = adjust_coordinate([lat,lon], 135, acc)
+        #     print(type(circle_top_left),type(circle_bottom_right))
+        #     eud_position_error = self.map_widget.canvas.create_oval(circle_top_left[0],
+        #                                                             circle_top_left[1],
+        #                                                             circle_bottom_right[0],
+        #                                                             circle_bottom_right[1],
+        #                                                             dash=True,
+        #                                                             disabledfill=True,
+        #                                                             outline='black')
+        #     self.append_object(eud_position_error,"EUD")
+        self.log_eud_location([lat,lon,acc])
 
-    def log_eud_location(self,eud_coord):
+    def log_eud_location(self,eud_location_data):
         import datetime
         from utilities import convert_coords_to_mgrs, generate_DTG, read_csv, write_csv
+        eud_coord = [eud_location_data[0],eud_location_data[1]]
         eud_mgrs = convert_coords_to_mgrs(eud_coord)
         dtg = generate_DTG()
         # assess if directory exists
@@ -2702,7 +2709,7 @@ class App(customtkinter.CTk):
             # create log directory
             os.makedirs(self.log_directory)
         # define log file name
-        filename = f"EUD-Location-log-{str(datetime.datetime.today()).split()[0]}.csv"
+        filename = f"EUD-location-log-{str(datetime.datetime.today()).split()[0]}.csv"
         # if log file already exists
         if os.path.isfile(os.path.join(self.log_directory, filename)):
             # read current log file
@@ -2711,8 +2718,8 @@ class App(customtkinter.CTk):
         else:
             # create log file DataFrame
             log_data = []
-        log_columns = ['DTG_LOCAL','LOC_MGRS','LOC_LATLON']
-        row_data = [dtg,eud_mgrs,', '.join([str(x) for x in self.sensor1_coord])]
+        log_columns = ['DTG_LOCAL','LOC_MGRS','LOC_LATLON','LOC_ERROR_M']
+        row_data = [dtg,eud_mgrs,', '.join([str(x) for x in eud_coord]),eud_location_data[2]]
         # convert log row into dictionary
         log_row_dict = dict(zip(log_columns, row_data))
         # append data row (dict) to log data
@@ -2723,10 +2730,10 @@ class App(customtkinter.CTk):
         # if file permissions prevent log file saving
         except PermissionError:
             # error message if file is currently open
-            self.show_info("Log file currently open. Cannot log data!")
+            self.show_info("EUD Log file currently open. Cannot log data!")
             return
         # success pop-up
-        self.show_info("EUD location data successfully logged!!!",icon='info')
+        # self.show_info("EUD location data successfully logged!!!",icon='info')
 
 
     def check_if_object_in_object_list(self,map_object,map_object_list):
@@ -2790,7 +2797,6 @@ class App(customtkinter.CTk):
         for path in self.path_list:
             path.delete()
         for eud_marker in self.eud_marker_list:
-            print(type(eud_marker))
             eud_marker.delete()
             self.map_widget.canvas.delete(eud_marker)
         self.user_marker_list = []

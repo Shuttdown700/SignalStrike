@@ -2,11 +2,12 @@
 *.cfg
 *.pyc
 **/ewta_venv
+**/venv_test
 **/venv_ewta
+**/venv
 **/Include
 **/logs
 **/Scripts
-**/venv
 **/map_tiles
 **/Lib
 **/src/__pycache__/
