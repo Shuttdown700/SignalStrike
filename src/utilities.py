@@ -41,7 +41,6 @@ import numpy as np
 import warnings
 import os
 import shutil
-import requests
 warnings.filterwarnings("ignore")
 
 def is_port_in_use(port: int) -> bool:
@@ -170,7 +169,7 @@ def write_csv(file_path: str,csv_data: list) -> None:
         writer.writeheader()
         writer.writerows(csv_data)
 
-def generate_DTG() -> str:
+def generate_DTG(timezone='LOCAL') -> str:
     """
     Generate the current date-time group (DTG) in DDTTTTMMMYYYY format
 
@@ -181,12 +180,15 @@ def generate_DTG() -> str:
 
     """
     import calendar, datetime
-    # generate today's date
-    dt = str(datetime.datetime.today())
+    # determine which timezone to use
+    if timezone == 'LOCAL':
+        # generate today's date
+        dt = str(datetime.datetime.today())
+    tz_id = timezone[0]
     # define today's datetime components
     year = dt.split()[0].split('-')[0]; month = dt.split()[0].split('-')[1]; day = dt.split()[0].split('-')[2]; hour = dt.split()[1].split(':')[0]; minute = dt.split()[1].split(':')[1]
     # log today's DTG
-    dtg = f"{day if len(str(day)) == 2 else '0'+day}{hour}{minute}{calendar.month_abbr[int(month)].upper()}{year}"
+    dtg = f"{day if len(str(day)) == 2 else '0'+day}{hour}{minute}{tz_id}{calendar.month_abbr[int(month)].upper()}{year}"
     return dtg
 
 def format_readable_DTG(dtg: str) -> str:
@@ -201,17 +203,20 @@ def format_readable_DTG(dtg: str) -> str:
     Returns
     -------
     str
-        DTG in TTTT on DD MMM YYYY format..
+        DTG in format: "TTTT on DD MMM YYYY"
 
     """
-    return f'{dtg[2:6]} on {dtg[:2]} {dtg[6:9]} {dtg[-4:]}'
+    return f'{dtg[2:7]} on {dtg[:2]} {dtg[7:10]} {dtg[-4:]}'
 
-def datetime_from_utc_to_local(utc_datetime):
+def dtg_from_utc_to_local(dtg_utc,timezone_local):
     from datetime import datetime
     import time
     now_timestamp = time.time()
     offset = datetime.fromtimestamp(now_timestamp) - datetime.utcfromtimestamp(now_timestamp)
-    return utc_datetime + offset
+    return dtg_utc + offset
+
+def dtg_from_local_to_utc(dtg_local,timezone_local):
+    pass
 
 def generate_EUD_coordinate(method='ps',acc=3):
     def generate_EUD_coordinate_winsdk():

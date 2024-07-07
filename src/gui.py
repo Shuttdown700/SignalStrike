@@ -57,12 +57,12 @@ class App(customtkinter.CTk):
         "Initial Longitude":-81.6090,
     }
     PATH_LOSS_DICT = {
-        'Free Space (Theoretical)':2,
-        'Light Foliage':3,
-        'Light-Moderate Foliage':3.5,
+        'Free Space':2,
+        'No Foliage':3,
+        'Light Foliage':3.5,
         'Moderate Foliage':4,
-        'Moderate-Dense Foliage':4.5,
-        'Dense Foliage':5        
+        'Dense Foliage':4.5,
+        'Jungle Foliage':5        
     }
 
     def __init__(self, *args, **kwargs):
@@ -203,7 +203,7 @@ class App(customtkinter.CTk):
         # define sensor 1 mgrs label
         self.label_sensor1_mgrs = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text="EWT 1 Location:", 
+            text="EWT 1 Location (MGRS):", 
             text_color='white')
         # assign sensor 1 mgrs label grid position
         self.label_sensor1_mgrs.grid(
@@ -233,7 +233,7 @@ class App(customtkinter.CTk):
         # define sensor 1 LOB label
         self.label_sensor1_lob = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text="EWT 1 LOB:", 
+            text="EWT 1 LOB (Degrees):", 
             text_color='white')
         # assign sensor 1 LOB label grid position
         self.label_sensor1_lob.grid(
@@ -263,7 +263,7 @@ class App(customtkinter.CTk):
         # define sensor 1 received power label attributes
         self.label_sensor1_Rpwr = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text="EWT 1 Power Received:", 
+            text="EWT 1 PWR Rec. (dBm):", 
             text_color='white')
         # assign sensor 1 received power label grid position
         self.label_sensor1_Rpwr.grid(
@@ -293,7 +293,7 @@ class App(customtkinter.CTk):
         # define sensor 2 mgrs label attributes
         self.label_sensor2_mgrs = customtkinter.CTkLabel(
             master = self.frame_left, 
-            text="EWT 2 Location:", 
+            text="EWT 2 Location (MGRS):", 
             text_color='white')
         # assign sensor 3 mgrs label grid position
         self.label_sensor2_mgrs.grid(
@@ -323,7 +323,7 @@ class App(customtkinter.CTk):
         # define sensor 2 LOB label attributes
         self.label_sensor2_lob = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text="EWT 2 LOB:", 
+            text="EWT 2 LOB (Degrees):", 
             text_color='white')
         # assign sensor 2 LOB label grid position
         self.label_sensor2_lob.grid(
@@ -353,7 +353,7 @@ class App(customtkinter.CTk):
         # define sensor 2 received power attributes
         self.label_sensor2_Rpwr = customtkinter.CTkLabel(
             self.frame_left, 
-            text="EWT 2 Power Received:", 
+            text="EWT 2 PWR Rec. (dBm):", 
             text_color='white')
         # assign sensor 2 received power grid position
         self.label_sensor2_Rpwr.grid(
@@ -383,7 +383,7 @@ class App(customtkinter.CTk):
         # define sensor 3 mgrs label attributes
         self.label_sensor3_mgrs = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text="EWT 3 Location:", 
+            text="EWT 3 Location (MGRS):", 
             text_color='white')
         # assign sensor 3 mgrs label grid position
         self.label_sensor3_mgrs.grid(
@@ -413,7 +413,7 @@ class App(customtkinter.CTk):
         # define sensor 3 LOB label attributes
         self.label_sensor3_lob = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text="EWT 3 LOB:", 
+            text="EWT 3 LOB (Degrees):", 
             text_color='white')
         # assign sensor 3 LOB label grid position
         self.label_sensor3_lob.grid(
@@ -443,7 +443,7 @@ class App(customtkinter.CTk):
         # define sensor 3 received power label attributes
         self.label_sensor3_Rpwr = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text="EWT 3 Power Received:", 
+            text="EWT 3 PWR Rec. (dBm):", 
             text_color='white')
         # assign sensor 3 recieved power label grid position
         self.label_sensor3_Rpwr.grid(
@@ -473,7 +473,7 @@ class App(customtkinter.CTk):
         # define target frequency label attributes
         self.label_frequency = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text="Frequency:",
+            text="Frequency (Mhz):",
             text_color='white')
         # assign target frequency label grid position
         self.label_frequency.grid(
@@ -503,7 +503,7 @@ class App(customtkinter.CTk):
         # define min ERP label attributes
         self.label_min_ERP = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text="Minimum ERP:", 
+            text="Minimum ERP (Watts):", 
             text_color='white')
         # assign min ERP label grid position
         self.label_min_ERP.grid(
@@ -533,7 +533,7 @@ class App(customtkinter.CTk):
         # define max ERP label attributes
         self.label_max_ERP = customtkinter.CTkLabel(
             master=self.frame_left, 
-            text="Maximum ERP:", 
+            text="Maximum ERP (Watts):", 
             text_color='white')
         # assign max ERP grid position
         self.label_max_ERP.grid(
@@ -577,7 +577,7 @@ class App(customtkinter.CTk):
         # define path-loss coefficient option attributes
         self.option_path_loss_coeff = customtkinter.CTkOptionMenu(
             master=self.frame_left, 
-            values=["Free Space (Theoretical)","Light Foliage","Light-Moderate Foliage","Moderate Foliage","Moderate-Dense Foliage","Dense Foliage"],
+            values=["Free Space","No Foliage","Light Foliage","Moderate Foliage","Dense Foliage","Jungle Foliage"],
             fg_color='green',
             button_color='green',
             command=self.change_path_loss)
@@ -767,6 +767,19 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(0,0), 
             pady=(0,0))
+        # define TBD button attributes
+        self.button_TBD = customtkinter.CTkButton(
+            master=self.frame_left, 
+            text="",
+            fg_color='brown')
+        # assign TBD button grid position
+        self.button_TBD.grid(
+            row=self.button_calculate.grid_info()["row"]+1,
+            rowspan=1,
+            column=0,
+            columnspan=1, 
+            padx=(0,0), 
+            pady=(0,0))
         # define log entries button 
         self.button_log_data = customtkinter.CTkButton(
             master=self.frame_left, 
@@ -776,19 +789,6 @@ class App(customtkinter.CTk):
         # assign log entries button grid position
         self.button_log_data.grid(
             row=self.button_clear_entries.grid_info()["row"]+1,
-            rowspan=1,
-            column=0,
-            columnspan=1, 
-            padx=(0,0), 
-            pady=(0,0))
-        # define TBD button attributes
-        self.button_TBD = customtkinter.CTkButton(
-            master=self.frame_left, 
-            text="",
-            fg_color='brown')
-        # assign TBD button grid position
-        self.button_TBD.grid(
-            row=self.button_calculate.grid_info()["row"]+1,
             rowspan=1,
             column=1,
             columnspan=1, 
@@ -811,9 +811,9 @@ class App(customtkinter.CTk):
         self.frame_right.grid_columnconfigure(2, weight=0)
         # configure forth column with low weight
         self.frame_right.grid_columnconfigure(3, weight=0)
-        # configure forth column with low weight
+        # configure fifth column with low weight
         self.frame_right.grid_columnconfigure(4, weight=0)
-        # configure forth column with low weight
+        # configure sixth column with low weight
         self.frame_right.grid_columnconfigure(5, weight=0)
         # define map widget attributes
         self.map_widget = TkinterMapView(
@@ -843,7 +843,7 @@ class App(customtkinter.CTk):
         self.search_mgrs.grid(
             row=0,
             column=0,
-            columnspan=2,
+            columnspan=1,
             padx=(12, 0), 
             pady=12,
             sticky="ew")
@@ -861,7 +861,7 @@ class App(customtkinter.CTk):
         self.button_search.grid(
             row=0,
             rowspan=1,
-            column=2, 
+            column=1, 
             columnspan=1, 
             padx=(12, 0), 
             pady=12,
@@ -869,13 +869,13 @@ class App(customtkinter.CTk):
         # define clear LOBs button attributes
         self.button_clear_LOBs = customtkinter.CTkButton(
             master=self.frame_right,
-            text="Clear TGT Data",
+            text="Clear TGT Graphics",
             command=self.clear_target_overlays)
         # assign clear LOBs button grid position
         self.button_clear_LOBs.grid(
             row=0, 
             rowspan=1,
-            column=3, 
+            column=2, 
             columnspan=1, 
             padx=(12, 0), 
             pady=12,
@@ -887,6 +887,20 @@ class App(customtkinter.CTk):
             command=self.clear_user_markers)
         # assign clear markers button grid position
         self.button_clear_markers.grid(
+            row=0, 
+            rowspan=1,
+            column=3, 
+            columnspan=1, 
+            padx=(12, 0), 
+            pady=12,
+            sticky="e")
+        # define plot EUD button attributes
+        self.button_plot_eud_location = customtkinter.CTkButton(
+            master=self.frame_right,
+            text="Plot Current Position",
+            command=self.plot_EUD_position)
+        # assign clear markers button grid position
+        self.button_plot_eud_location.grid(
             row=0, 
             rowspan=1,
             column=4, 
@@ -1024,6 +1038,8 @@ class App(customtkinter.CTk):
             else:
                 # if MGRS is invalid, give user the option to re-input, bypass EWT, or use default value
                 choice = self.input_error(category='Sensor 1 Grid',msg=f'Invalid Input {self.sensor1_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
+                # end function if user x's out of the pop-up window
+                if choice is None: return
                 # assess if user wishes to use the default value or end function
                 if choice == 'Default':
                     # clear the previous sensor 1 MGRS input
@@ -1067,6 +1083,8 @@ class App(customtkinter.CTk):
             except ValueError:
                 # give user option to re-input value, bypass EWT, or use the default Sensor 1 LOB value
                 choice = self.input_error(category='Sensor 1 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
+                # end function if user x's out of the pop-up window
+                if choice is None: return
                 # if user chooses to use the default Sensor 1 LOB value
                 if choice == "Default":
                     # clear Sensor 1 LOB input field
@@ -1102,6 +1120,8 @@ class App(customtkinter.CTk):
             except ValueError:
                 # give user option to re-input value, bypass EWT, or use the default Sensor 1 PWR received value
                 choice = self.input_error(category='Sensor 1 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
+                # end function if user x's out of the pop-up window
+                if choice is None: return
                 # if user chooses to use the default Sensor 1 PWR Received value
                 if choice == "Default":
                     # clear the Sensor 1 PWR Received value
@@ -1137,6 +1157,8 @@ class App(customtkinter.CTk):
                 else:
                     # if MGRS is invalid, give user the option to re-input, bypass EWT, or use default value
                     choice = self.input_error(category='Sensor 2 Grid',msg=f'Invalid Input {self.sensor2_mgrs_val}',single_lob_option=True,cut_option=False,ewt_bypass_option=False,EWT_num='2')
+                    # end function if user x's out of the pop-up window
+                    if choice is None: return
                     # if user chooses to use default Sensor 2 MGRS value
                     if choice == 'Default':
                         # clear Sensor 2 MGRS input field
@@ -1203,6 +1225,8 @@ class App(customtkinter.CTk):
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
                 choice = self.input_error(category='Sensor 2 Grid Azimuth',msg='Invalid Input',single_lob_option=True,cut_option=False,ewt_bypass_option=False,EWT_num='2')
+                # end function if user x's out of the pop-up window
+                if choice is None: return
                 # if users chooses to utilize the default Sensor 2 LOB value
                 if choice == 'Default':
                     # clear the Sensor 2 LOB input field
@@ -1258,6 +1282,8 @@ class App(customtkinter.CTk):
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
                 choice = self.input_error(category='Sensor 2 Power Received',msg='Invalid Input',single_lob_option=True,cut_option=False,ewt_bypass_option=False,EWT_num='2')
+                # end function if user x's out of the pop-up window
+                if choice is None: return
                 # if user chooses to utilize the default Sensor 2 LOB value
                 if choice == 'Default':
                     # clear the Sensor 2 Received PWR input field
@@ -1310,6 +1336,8 @@ class App(customtkinter.CTk):
                 else:
                     # if MGRS is invalid, give user the option to re-input, bypass EWT, or use default value
                     choice = self.input_error(category='Sensor 3 Grid',msg=f'Invalid Input {self.sensor3_mgrs_val}',single_lob_option=True,cut_option=True,ewt_bypass_option=False,EWT_num='3')
+                    # end function if user x's out of the pop-up window
+                    if choice is None: return
                     # if user chooses to use default Sensor 3 MGRS value
                     if choice == 'Default':
                         # clear Sensor 3 MGRS input field
@@ -1385,6 +1413,8 @@ class App(customtkinter.CTk):
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
                 choice = self.input_error(category='Sensor 3 Grid Azimuth',msg='Invalid Input',single_lob_option=True,cut_option=True,ewt_bypass_option=False,EWT_num='3')
+                # end function if user x's out of the pop-up window
+                if choice is None: return
                 # if users chooses to utilize the default Sensor 3 LOB value
                 if choice == 'Default':
                     # clear the Sensor 3 LOB input field
@@ -1442,6 +1472,8 @@ class App(customtkinter.CTk):
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
                 choice = self.input_error(category='Sensor 3 Power Received',msg='Invalid Input',single_lob_option=True,cut_option=True,ewt_bypass_option=False,EWT_num='3')
+                # end function if user x's out of the pop-up window
+                if choice is None: return
                 # if user chooses to utilize the default Sensor 3 LOB value
                 if choice == 'Default':
                     # clear the Sensor 3 Received PWR input field
@@ -1499,6 +1531,8 @@ class App(customtkinter.CTk):
         except ValueError:
             # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
             choice = self.input_error(category='Frequency',msg='Invalid Input')
+            # end function if user x's out of the pop-up window
+            if choice is None: return
             # if user chooses to use the default frequency value
             if choice == 'Default':
                 # clear frequency input field
@@ -1523,6 +1557,8 @@ class App(customtkinter.CTk):
         except ValueError:
             # if ValueError occurs, give user the option to re-input or use default value
             choice = self.input_error(category='Minimum ERP',msg='Invalid Input')
+            # end function if user x's out of the pop-up window
+            if choice is None: return
             # if user chooses to utilize the default Min ERP value
             if choice == 'Default':
                 # clear Min ERP input field
@@ -1547,6 +1583,8 @@ class App(customtkinter.CTk):
         except ValueError:
             # if ValueError occurs, give user the option to re-input or use default value
             choice = self.input_error(category='Maximum ERP',msg='Invalid Input')
+            # end function if user x's out of the pop-up window
+            if choice is None: return
             # if user chooses to use the default Max ERP value
             if choice == 'Default':
                 # clear Max ERP input field
@@ -1567,6 +1605,8 @@ class App(customtkinter.CTk):
         except ValueError:
             # if ValueError occurs, give user the option to re-input or use default value
             choice = self.input_error(category='Path-Loss Coefficient',msg='Invalid Input')
+            # end function if user x's out of the pop-up window
+            if choice is None: return
             # if user chooses to use the default path-loss coefficient
             if choice == 'Default':
                 # set local path-loss coefficient value to default value
@@ -1610,9 +1650,6 @@ class App(customtkinter.CTk):
                 self.target_coord = f'{" | ".join(target_coord_list)}'
 
     def ewt_function(self,*args):
-        """
-        Function to calculate target location given EWT input(s)
-        """
         from utilities import check_if_point_in_polygon, check_for_intersection, convert_coords_to_mgrs, convert_mgrs_to_coords, format_readable_DTG, format_readable_mgrs, generate_DTG, get_center_coord, get_coords_from_LOBs, get_distance_between_coords, get_emission_distance, get_intersection, get_line, get_polygon_area, organize_polygon_coords
         def plot_lobs(s1lnmc,s1lfmc,s2lnmc,s2lfmc,s3lnmc,s3lfmc,plot_ewt1_lob_tgt_bool=True,plot_ewt2_lob_tgt_bool=True,plot_ewt3_lob_tgt_bool=True):
             import numpy as np
@@ -2193,7 +2230,7 @@ class App(customtkinter.CTk):
         # if sensor 3 has None input values
         else:
             # set sensor 3 input values to None
-            self.sensor3_mgrs_val = None; self.sensor3_grid_azimuth_val = None; self.sensor3_power_received_dBm_val = None; self.sensor3_lob_polygon = None; self.sensor3_lob_backstop
+            self.sensor3_mgrs_val = None; self.sensor3_grid_azimuth_val = None; self.sensor3_power_received_dBm_val = None; self.sensor3_lob_polygon = None; self.sensor3_lob_backstop = None
         # assess which LOBs have intersections
         ewt1_ewt2_intersection_bool = check_for_intersection(self.sensor1_coord,sensor1_lob_far_middle_coord,self.sensor2_coord,sensor2_lob_far_middle_coord)
         ewt2_ewt3_intersection_bool = check_for_intersection(self.sensor2_coord,sensor2_lob_far_middle_coord,self.sensor3_coord,sensor3_lob_far_middle_coord)
@@ -2301,7 +2338,7 @@ class App(customtkinter.CTk):
         import datetime
         from utilities import read_csv, write_csv
         # define log columns
-        log_columns = ['DTG','FREQ','MIN_ERP_W','MAX_ERP_W','PATH_LOSS_COEFF',
+        log_columns = ['DTG_LOCAL','FREQ','MIN_ERP_W','MAX_ERP_W','PATH_LOSS_COEFF',
                        'TGT_CLASS','TGT_MGRS','TGT_LATLON','TGT_ERROR_ACRES',
                        'EWT_1_MGRS','EWT_1_LATLON','EWT_1_LOB_DEGREES','EWT_1_PWR_REC_DbM','EWT_1_LOB_TGT_MGRS','EWT_1_LOB_TGT_LATLON','EWT_1_DIST2TGT_KM','EWT_1_MIN_DIST_KM','EWT_1_MAX_DIST_KM',
                        'EWT_2_MGRS','EWT_2_LATLON','EWT_2_LOB_DEGREES','EWT_2_PWR_REC_DbM','EWT_2_LOB_TGT_MGRS','EWT_2_LOB_TGT_LATLON','EWT_2_DIST2TGT_KM','EWT_2_MIN_DIST_KM','EWT_2_MAX_DIST_KM',
@@ -2329,28 +2366,34 @@ class App(customtkinter.CTk):
         dtg = generate_DTG()
         row_data.append(dtg)
         # if there is target data
-        if self.frequency_MHz_val != None and self.min_wattage_val != None and self.max_wattage_val != None and self.path_loss_coeff_val != None and self.target_mgrs != None and self.target_coord != None and self.target_error_val != None:
-            row_data.append(f'{self.frequency_MHz_val:,.2f}')
-            row_data.append(f'{self.min_wattage_val:,.3f}')
-            row_data.append(f'{self.max_wattage_val:,.3f}')
-            row_data.append(self.path_loss_coeff_val)
-            row_data.append(self.target_class.split('(')[-1].split(')')[0])
-            if row_data[-1] == '2 LOBs' or row_data[-1] == '3 LOBs':
-                row_data.append(self.target_mgrs)
-                row_data.append(self.target_coord)
-                row_data.append(self.target_error_val)
-            else:
-                row_data.append(self.target_mgrs)
-                print(self.target_coord)
-                if isinstance(self.target_coord,list):
-                    row_data.append(', '.join([str(x) for x in self.target_coord]))
-                elif isinstance(self.target_coord,str):
+        try:
+            if self.frequency_MHz_val != None and self.min_wattage_val != None and self.max_wattage_val != None and self.path_loss_coeff_val != None and self.target_mgrs != None and self.target_coord != None and self.target_error_val != None:
+                row_data.append(f'{self.frequency_MHz_val:,.2f}')
+                row_data.append(f'{self.min_wattage_val:,.3f}')
+                row_data.append(f'{self.max_wattage_val:,.3f}')
+                row_data.append(self.path_loss_coeff_val)
+                row_data.append(self.target_class.split('(')[-1].split(')')[0])
+                if row_data[-1] == '2 LOBs' or row_data[-1] == '3 LOBs':
+                    row_data.append(self.target_mgrs)
                     row_data.append(self.target_coord)
-                row_data.append(f'{self.target_error_val:,.2f}')
-        # if there is not target data or transmission data
-        else:
+                    row_data.append(self.target_error_val)
+                else:
+                    row_data.append(self.target_mgrs)
+                    print(self.target_coord)
+                    if isinstance(self.target_coord,list):
+                        row_data.append(', '.join([str(x) for x in self.target_coord]))
+                    elif isinstance(self.target_coord,str):
+                        row_data.append(self.target_coord)
+                    row_data.append(f'{self.target_error_val:,.2f}')
+            # if there is not target data or transmission data
+            else:
+                # end function w/o logging
+                print(f"NoneType values detected in required log fields:\nFrequency: {self.frequency_MHz_val}\nMin Wattage: {self.min_wattage_val}\nMax Wattage: {self.max_wattage_val}\nPath-loss: {self.path_loss_coeff_val}\nTarget MGRS: {self.target_mgrs}\nTarget Coord: {self.target_coord}\nTarget Error: {self.target_error_val}")
+                self.show_info("No target data. No data logged.",icon='warning')
+                return
+        except AttributeError:
             # end function w/o logging
-            self.show_info("No target data. No data logged.",icon='warning')
+            self.show_info("Missing required data. No data logged.",icon='warning')
             return
         # if sensor 1 has data in the input fields
         if self.sensor1_mgrs_val != None:
@@ -2403,6 +2446,7 @@ class App(customtkinter.CTk):
             for i in range(num_ewt_datapoints): row_data.append('')
         if not ewt_bool:
             # end function w/o logging
+            print("There was no EWT data detected during log function.")
             self.show_info("No EWT data. No data logged.",icon='warning')
             return
         # append empty column for ACTUAL_TGT_MGRS to data row
@@ -2418,6 +2462,7 @@ class App(customtkinter.CTk):
         # if file permissions prevent log file saving
         except PermissionError:
             # error message if file is currently open
+            print("The desired log file is open during log function")
             self.show_info("Log file currently open. Cannot log data!")
             return
         # success pop-up
@@ -2552,6 +2597,9 @@ class App(customtkinter.CTk):
         mgrs = str(convert_coords_to_mgrs(list(coords))).strip()
         # write MGRS to clipboard
         copy2clip(mgrs)
+        # copy-to-clipboard pop-up
+        msg = f'"{mgrs}" copied to clipboard'
+        self.show_info(msg,box_title="Selection Copied",icon="info")
 
     def copy_selection(self,entry_object):
         try:
@@ -2611,10 +2659,14 @@ class App(customtkinter.CTk):
 
     def plot_EUD_position(self,coord=None):
         from PIL import Image, ImageTk
-        from utilities import convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, generate_EUD_coordinate
+        from utilities import adjust_coordinate, convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, generate_EUD_coordinate
         if coord == None:
-            data_position = generate_EUD_coordinate(method='ps',acc=3)
-            lat = data_position['lat']; lon = data_position['lon']
+            data_position = generate_EUD_coordinate(method='winsdk',acc=3)
+            if data_position is None:
+                print("The output of the 'generate_EUD_coordinate' method is a NoneType")
+                self.show_info("Error in determining your position")
+                return
+            lat = data_position['lat']; lon = data_position['lon']; acc = data_position['acc']
         else:
             lat = coord[0]; lon = coord[1]
         marker_icon = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "eud_marker.png")).resize((40, 40)))
@@ -2627,6 +2679,17 @@ class App(customtkinter.CTk):
                                                 command=self.marker_click,
                                                 data=eud_marker_data)
         self.append_object(eud_marker,"EUD")
+        if acc > 20:
+            circle_top_left = adjust_coordinate([lat,lon], 315, acc)
+            circle_bottom_right = adjust_coordinate([lat,lon], 135, acc)
+            eud_position_error = self.map_widget.canvas.create_oval(circle_top_left[0],
+                                                                    circle_top_left[1],
+                                                                    circle_bottom_right[0],
+                                                                    circle_bottom_right[1],
+                                                                    dash=True,
+                                                                    disabledfill=True,
+                                                                    outline='black')
+            self.append_object(eud_position_error,"EUD")
         self.log_eud_location([lat,lon])
 
     def log_eud_location(self,eud_coord):
@@ -2648,7 +2711,7 @@ class App(customtkinter.CTk):
         else:
             # create log file DataFrame
             log_data = []
-        log_columns = ['DTG','LOC_MGRS','LOC_LATLON']
+        log_columns = ['DTG_LOCAL','LOC_MGRS','LOC_LATLON']
         row_data = [dtg,eud_mgrs,', '.join([str(x) for x in self.sensor1_coord])]
         # convert log row into dictionary
         log_row_dict = dict(zip(log_columns, row_data))
@@ -2727,10 +2790,13 @@ class App(customtkinter.CTk):
         for path in self.path_list:
             path.delete()
         for eud_marker in self.eud_marker_list:
+            print(type(eud_marker))
             eud_marker.delete()
+            self.map_widget.canvas.delete(eud_marker)
         self.user_marker_list = []
         self.path_list = []
         self.eud_marker_list = []
+        
 
     def clear_target_overlays(self):
         for ewt_marker in self.ewt_marker_list:
@@ -2769,6 +2835,7 @@ class App(customtkinter.CTk):
         self.search_mgrs.delete(0,END)
         
     def batch_download(self):
+        self.show_info("This function has been disabled by the dev",box_title="Function Disabled Notice",icon='info'); return
         import re
         from utilities import check_coord_input, check_mgrs_input, convert_coords_to_mgrs, convert_mgrs_to_coords, get_coord_box
         def append_cmd_to_queue(cmd,file_path=os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\batch_tile_queue.csv"):
@@ -2896,7 +2963,7 @@ class App(customtkinter.CTk):
         if new_map == 'Local Map Server':
             self.map_widget.set_tile_server(map_server_url+"/{z}/{x}/{y}.png", max_zoom=App.MAX_ZOOM)
         elif new_map == "OpenStreetMap":
-            self.map_widget.set_tile_server("https://tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=8242f8cd508342868f3d7d29e472aca9")
+            self.map_widget.set_tile_server("https://a.tile.openstreetmap.org/{z}/{x}/{y}.png")
         elif new_map == "Google Street":
             self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=App.MAX_ZOOM)
         elif new_map == "Google Satellite":
