@@ -162,7 +162,7 @@ class App(customtkinter.CTk):
         self.label_header = customtkinter.CTkLabel(
             master=self.frame_left, 
             text="EW TARGETING DATA", 
-            text_color='green')
+            text_color='yellow')
         # assign frame header grid position
         self.label_header.grid(
             row=0,
@@ -893,7 +893,7 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(12, 0), 
             pady=12,
-            sticky="e")
+            sticky="ew")
         # define plot EUD button attributes
         self.button_plot_eud_location = customtkinter.CTkButton(
             master=self.frame_right,
@@ -907,7 +907,7 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(12, 0), 
             pady=12,
-            sticky="e")
+            sticky="ew")
         # define map option dropdown attributes
         self.map_option_menu = customtkinter.CTkOptionMenu(
             master=self.frame_right, 
@@ -921,7 +921,7 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(12, 0), 
             pady=12,
-            sticky="e")
+            sticky="ew")
         # define batch download center MGRS
         self.batch_download_center_mgrs = customtkinter.CTkEntry(
             master=self.frame_right,
@@ -2951,6 +2951,7 @@ class App(customtkinter.CTk):
         elif cut_option:
             msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','LOB/CUT',f'Bypass EWT {EWT_num}'.strip(),'Use Default'])
         response = msgBox.get()
+        if response is None: return None
         if response == 'Re-input':
             return 'Re-input'
         elif "Bypass" in response:
@@ -2962,7 +2963,7 @@ class App(customtkinter.CTk):
         elif response == 'LOB/CUT':
             return 'LOB/CUT'
         else:
-            print("Unknown inuput error classification")
+            return None
 
     def change_map(self, new_map: str):
         map_server_url = f'http://localhost:{App.MAP_SERVER_PORT}'
