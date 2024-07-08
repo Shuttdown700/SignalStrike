@@ -3,7 +3,6 @@
         - plot circle of inaccuracy along with EUD point
         - *****ensure app cannot get hung if this feature hangs / stalls / fails
 	- add timezone and Zulu time to DTGs
-	- procedure when "x-ing" out of info pop-up box
 
 --- Improvements:
     (High)

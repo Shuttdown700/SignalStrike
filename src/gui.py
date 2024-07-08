@@ -2561,13 +2561,13 @@ class App(customtkinter.CTk):
             distance_text = self.generate_sensor_distance_text(distance)
             # plot line between last two user markers
             dist_line = self.map_widget.set_polygon([(sequencial_coord_list[0][0],sequencial_coord_list[0][1]),
-                            (sequencial_coord_list[1][0],sequencial_coord_list[1][1])],outline_color="black")
+                            (sequencial_coord_list[1][0],sequencial_coord_list[1][1])],outline_color="white")
             # determine middle coordinate between the last two coordinates
             coord_x = np.average([sequencial_coord_list[0][0],sequencial_coord_list[1][0]])
             coord_y = np.average([sequencial_coord_list[0][1],sequencial_coord_list[1][1]])
             # plot marker distance at center coordinate
             marker_dist = self.map_widget.set_marker(coord_x,coord_y,text=f'{distance_text}',
-                                                     text_color='black',
+                                                     text_color='white',
                                                      image_zoom_visibility=(10, float('inf')),
                                                      icon=self.blank_image)
             # add distance marker and connecting line to list
