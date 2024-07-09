@@ -11,11 +11,11 @@ def download_tile(tile,
     basepath = tileurl.split("/")[-1]  # ?foo=bar&z={z}.ext
     segments = basepath.split(".")
     ext = "." + segments[-1] if len(segments) > 1 else ".png"
-    val_z = str(tile["Z"]) # index 0
-    val_x = str(tile['X']) # index 1
-    val_y = str(tile["Y"]) # index 2
-    write_dir = os.path.join(output_dir, val_z, val_x)
-    write_filepath = os.path.join(write_dir, val_y) + ext
+    val_z = str(tile["Z"])
+    val_y = str(tile["Y"])
+    val_x = str(tile['X'])
+    write_dir = os.path.join(output_dir, val_z, val_y)
+    write_filepath = os.path.join(write_dir, val_x) + ext
 
     if os.path.exists(write_filepath) and not bool_overwrite:
         # skip if already exists when not-overwrite mode
