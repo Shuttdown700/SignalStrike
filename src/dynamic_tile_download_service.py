@@ -14,8 +14,9 @@ def download_tile(tile,
     val_z = str(tile["Z"])
     val_y = str(tile["Y"])
     val_x = str(tile['X'])
-    write_dir = os.path.join(output_dir, val_z, val_y)
-    write_filepath = os.path.join(write_dir, val_x) + ext
+    # for tkintermapview, tile segment order is Z, X, Y !!! (must save in z/x/y.png format)
+    write_dir = os.path.join(output_dir, val_z, val_x)
+    write_filepath = os.path.join(write_dir, val_y) + ext
 
     if os.path.exists(write_filepath) and not bool_overwrite:
         # skip if already exists when not-overwrite mode
