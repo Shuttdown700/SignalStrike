@@ -12,8 +12,8 @@ def download_tile(tile,
     segments = basepath.split(".")
     ext = "." + segments[-1] if len(segments) > 1 else ".png"
     val_z = str(tile["Z"]) # index 0
-    val_y = str(tile["Y"]) # index 2
     val_x = str(tile['X']) # index 1
+    val_y = str(tile["Y"]) # index 2
     write_dir = os.path.join(output_dir, val_z, val_x)
     write_filepath = os.path.join(write_dir, val_y) + ext
 
