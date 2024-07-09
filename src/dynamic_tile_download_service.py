@@ -31,7 +31,7 @@ def download_tile(tile,
     data = None
     while True:
         try:
-            data = urllib.request.urlopen(url, timeout=timeout_num)
+            data = urllib.request.urlopen(url, timeout=timeout_num, verify=False)
             break
         except urllib.error.HTTPError as e:
             raise Exception(str(e) + ":" + url)

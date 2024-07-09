@@ -44,8 +44,8 @@ pip install -r requirements.txt
     git-scm.com
 </a>
 
-3. Open **Git Bash** and input the following commands:
-```bash
+3. Open a **Command (cmd) Prompt** and input the following commands:
+```sh
 # ensure Git is updated
 git update-git-for-windows
 # verify python version
@@ -58,19 +58,25 @@ cd ./ew_plt_targeting_app
 python -m venv venv
 # (OPTIONAL) activate the virtual environment
 source ./venv/scripts/activate
+# update Python's Pip module
+python -m pip install --upgrade pip
 # install required python modules
 python -m pip install -r requirements.txt
 ```
 
 #### Run EW Targeting Application
-
-Windows
-```cmd
+- From Window's command prompt:
+```sh
+# (OPTIONAL) activate python virtual environment
+./venv/Scripts/activate.bat
+# Start the EW Targeting Application
 run.bat
 ```
-Linux
+- From Linux Bash shell:
 ```bash
-source ewta_venv/Scripts/activate
+# (OPTIONAL) activate python virtual environment
+source ./venv/bin/activate
+# Start the EW Targeting Application
 run.sh
 ```
 
