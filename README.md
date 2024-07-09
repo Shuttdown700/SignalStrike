@@ -4,9 +4,12 @@ The Electromagnetic Warfare Targeting Application supports EW platoons' operatio
 
 ![](icons/ewta_snapshot_2.png)
 
+## Features
+
+
 ## Installation Instructions:
 
-#### Install on Linux using Bash:
+#### Install on Linux:
 ```bash
 # download package information from all configured sources 
 sudo apt-get update
@@ -14,22 +17,50 @@ sudo apt-get update
 sudo apt-get install python
 # verify python version
 python --version
+# install git
+sudo apt install git-all
 # clone git repository
 git clone "https://github.com/Shuttdown700/ew_plt_targeting_app"
-# create a virtual python environment titled "ewta_venv"
-python -m venv ewta_venv
+# create a virtual python environment titled "venv"
+python -m venv env
 # activate the virtual environment
-source ./bin/activate
+source ./venv/bin/activate
 # install required python modules
 pip install -r requirements.txt
 ```
 
-#### Install on Windows using Git Bash:
-```Bash
+#### Install on Windows:
+1. Download **Python**
 
+    **Method 1:** Download from the Microsoft Store
+
+    **Method 2:** Download from 
+<a href="https://www.python.org/downloads/" style="font-style: italic">
+    Python.org
+</a>
+
+2. Download **Git for Windows** from
+<a href="https://git-scm.com/download/win" style="font-style: italic">
+    git-scm.com
+</a>
+
+3. Open **Git Bash** and input the following commands:
+```bash
+# ensure Git is updated
+git update-git-for-windows
+# verify python version
+python --version
+# clone git repository
+git clone "https://github.com/Shuttdown700/ew_plt_targeting_app"
+# change directory to EW Target App directory
+cd ./ew_plt_targeting_app
+# (OPTIONAL) create a virtual python environment titled "venv"
+python -m venv venv
+# (OPTIONAL) activate the virtual environment
+source ./venv/scripts/activate
+# install required python modules
+python -m pip install -r requirements.txt
 ```
-
-Install on Windows using PowerShell:
 
 #### Run EW Targeting Application
 

@@ -8,7 +8,6 @@
 **/Include
 **/logs
 **/Scripts
-**/map_tiles
 **/Lib
 **/src/__pycache__/
 src/queue_files/*
