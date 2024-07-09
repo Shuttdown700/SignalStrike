@@ -26,8 +26,8 @@ def append_tile_to_queue(tile,file_path=os.path.dirname(os.path.abspath(__file__
         with open(file_path, mode='w', newline=''):
             print("Creating batch queue file...\n")
     tile_data = {"Z":tile[0],
-                 "Y":tile[1],
-                 "X":tile[2]}
+                 "Y":tile[2],
+                 "X":tile[1]}
     queue_data = read_csv(file_path)
     queue_data.append(tile_data)
     write_csv(file_path,queue_data)
