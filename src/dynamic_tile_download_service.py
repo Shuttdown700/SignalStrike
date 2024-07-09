@@ -3,7 +3,7 @@ from utilities import check_internet_connection, read_csv, write_csv
 
 def download_tile(tile,
              output_dir="\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+'/map_tiles/ESRI/',
-             tileurl='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png',
+             tileurl='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{x}/{y}.png',
              bool_overwrite=False,
              timeout_num=5,
              interval_num=100):
