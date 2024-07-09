@@ -1,4 +1,4 @@
-import datetime, os, time
+import datetime, os, time, ssl
 from utilities import check_internet_connection, read_csv, write_csv
 
 def download_tile(tile,
@@ -31,7 +31,11 @@ def download_tile(tile,
     data = None
     while True:
         try:
-            data = urllib.request.urlopen(url, timeout=timeout_num, verify=False)
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+            data = urllib.request.urlopen(url, timeout=timeout_num, context=ctx)
+            # data = requests.get(url, verify=False)
             break
         except urllib.error.HTTPError as e:
             raise Exception(str(e) + ":" + url)
