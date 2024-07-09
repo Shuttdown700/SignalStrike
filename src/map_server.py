@@ -28,6 +28,7 @@ def append_tile_to_queue(tile,file_path=os.path.dirname(os.path.abspath(__file__
     tile_data = {"Z":tile[0],
                  "Y":tile[2],
                  "X":tile[1]}
+    print('Tile Data: ',tile_data)
     queue_data = read_csv(file_path)
     queue_data.append(tile_data)
     write_csv(file_path,queue_data)
