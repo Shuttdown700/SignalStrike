@@ -228,9 +228,15 @@ def generate_EUD_coordinate():
         print(f'Error: COM Port "{COM_port_number}" not found...')
     while True:
         try:
-            line = ser.readline().decode('utf-8').strip()
+            line = ser.readline()
         except UnboundLocalError:
             return None, None
+        try:
+            line = line.decode('utf-8').strip() # Decode bytes to UTF-8 string
+        except UnboundLocalError:
+            return None, None
+        except UnicodeDecodeError:
+            continue  # Skip decoding errors and try to read the next line        
         if line.startswith('$GNGGA'):  # NMEA GGA sentence
             data = line.split(',')
             if len(data) > 9:
