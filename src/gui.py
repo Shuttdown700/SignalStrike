@@ -2663,8 +2663,8 @@ class App(customtkinter.CTk):
         if coord == None:
             try:
                 lat,lon = generate_EUD_coordinate()
-            except:
-                print("Unknown error in 'generate_EUD_coordinate' method")
+            except Exception as e:
+                print(f"Unknown error in 'generate_EUD_coordinate' method: {e}")
                 return
             acc = ''
             if lat is None and lon is None:
