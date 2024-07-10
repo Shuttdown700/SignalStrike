@@ -2660,19 +2660,19 @@ class App(customtkinter.CTk):
     def plot_EUD_position(self,coord=None):
         from PIL import Image, ImageTk
         from utilities import adjust_coordinate, convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, generate_EUD_coordinate
-        try:
-            if coord == None:
+        if coord == None:
+            try:
                 lat,lon = generate_EUD_coordinate()
-                acc = ''
-                if lat is None and lon is None:
-                    print("The output of the 'generate_EUD_coordinate' method is a NoneType")
-                    self.show_info("Cannot read GPS receiver")
-                    return
-            else:
-                lat = coord[0]; lon = coord[1]
-        except:
-            print("Unknown error is 'generate_EUD_coordinate' method")
-            return
+            except:
+                print("Unknown error in 'generate_EUD_coordinate' method")
+                return
+            acc = ''
+            if lat is None and lon is None:
+                print("The output of the 'generate_EUD_coordinate' method is a NoneType")
+                self.show_info("Cannot read GPS receiver")
+                return
+        else:
+            lat = coord[0]; lon = coord[1]
         marker_icon = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "eud_marker.png")).resize((40, 40)))
         eud_marker_text = f"{format_readable_mgrs(convert_coords_to_mgrs([lat,lon]))}"
         eud_marker_data = f"EUD at {format_readable_mgrs(convert_coords_to_mgrs([lat,lon]))} at {format_readable_DTG(generate_DTG())}"
