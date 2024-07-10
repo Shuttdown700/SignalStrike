@@ -34,7 +34,7 @@ def import_libraries(libraries):
 
 libraries = [['math',['sin','cos','pi']],['collections',['defaultdict']],
              ['datetime',['date']],['jinja2'],['numpy'],['winsdk'],
-             ['warnings'],['mgrs'],['haversine',['Unit']]]
+             ['warnings'],['mgrs'],['haversine',['Unit']],['pyserial']]
 
 import_libraries(libraries)
 import numpy as np
@@ -218,67 +218,27 @@ def dtg_from_utc_to_local(dtg_utc,timezone_local):
 def dtg_from_local_to_utc(dtg_local,timezone_local):
     pass
 
-def generate_EUD_coordinate(method='ps',acc=3):
-    def generate_EUD_coordinate_pywin32():
-        
-        import pywin32
-
-
-    def generate_EUD_coordinate_winsdk():
-        import asyncio
-        import winsdk.windows.devices.geolocation as wdg
-        async def getCoords():
-            locator = wdg.Geolocator()
-            pos = await locator.get_geoposition_async()
-            return [pos.coordinate.latitude, pos.coordinate.longitude]
-        def getLoc():
-            try:
-                latlon = asyncio.run(getCoords())
-                output = {'lat':latlon[0],'lon':latlon[1],'acc':100}
-                return output
-            except PermissionError:
-                print("ERROR: You need to allow applications to access you location in Windows settings")
-            except Exception as e:
-                print(e)
-    def generate_EUD_coordinate_ps(accuracy):
-        import subprocess as sp
-        import re       
-        accuracy = 3 #Starting desired accuracy is fine and builds at x1.5 per loop
-        
-        pshellcomm = ['powershell']
-        pshellcomm.append('add-type -assemblyname system.device; '\
-                          '$loc = new-object system.device.location.geocoordinatewatcher;'\
-                          '$loc.start(); '\
-                          'while(($loc.status -ne "Ready") -and ($loc.permission -ne "Denied")) '\
-                          '{start-sleep -milliseconds 100}; '\
-                          '$acc = %d; '\
-                          '$loc.position.location.latitude; '\
-                          '$loc.position.location.longitude; '\
-                          '$loc.position.location.horizontalaccuracy; '\
-                          '$loc.stop()' %(accuracy))
-        
-        #Remove >>> $acc = [math]::Round($acc*1.5) <<< to remove accuracy builder
-        #Once removed, try setting accuracy = 10, 20, 50, 100, 1000 to see if that affects the results
-        #Note: This code will hang if your desired accuracy is too fine for your device
-        #Note: This code will hang if you interact with the Command Prompt AT ALL 
-        #Try pressing ESC or CTRL-C once if you interacted with the CMD,
-        #this might allow the process to continue
-        
-        p = sp.Popen(pshellcomm, stdin = sp.PIPE, stdout = sp.PIPE, stderr = sp.STDOUT, text=True)
-        (out, err) = p.communicate()
-        out = re.split('\n', out)
-        lat = float(out[0])
-        lon = float(out[1])
+def generate_EUD_coordinate():
+    import serial
+    from serial import SerialException
+    COM_port_number = 'COM4'
+    try:
+        ser = serial.Serial(COM_port_number, 9600, timeout=1)  # Timeout set to 1 second
+    except (SerialException,FileNotFoundError):
+        print(f'Error: COM Port "{COM_port_number}" not found...')
+    while True:
         try:
-            acc = int(out[2])
-        except ValueError:
-            acc = 100
-        out = {"lat":lat,"lon":lon,"acc":acc}
-        return out
-    if method == 'ps':
-        return generate_EUD_coordinate_ps(acc)
-    elif method == 'winsdk':
-        return generate_EUD_coordinate_winsdk()
+            line = ser.readline().decode('utf-8').strip()
+        except UnboundLocalError:
+            return None, None
+        if line.startswith('$GNGGA'):  # NMEA GGA sentence
+            data = line.split(',')
+            if len(data) > 9:
+                # Latitude and Longitude are typically found in GGA sentences
+                print(data)
+                lat = data[2]
+                lon = data[4]
+                return lat, lon
 
 def get_EUD_coord_on_internval(interval_sec,method='ps'):
     import time

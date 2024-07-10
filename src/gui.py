@@ -2662,12 +2662,12 @@ class App(customtkinter.CTk):
         from utilities import adjust_coordinate, convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, generate_EUD_coordinate
         try:
             if coord == None:
-                data_position = generate_EUD_coordinate(method='ps',acc=3)
-                if data_position is None:
+                lat,lon = generate_EUD_coordinate()
+                acc = ''
+                if lat is None and lon is None:
                     print("The output of the 'generate_EUD_coordinate' method is a NoneType")
-                    self.show_info("Error in determining your position")
+                    self.show_info("Cannot read GPS receiver")
                     return
-                lat = data_position['lat']; lon = data_position['lon']; acc = data_position['acc']
             else:
                 lat = coord[0]; lon = coord[1]
         except:
