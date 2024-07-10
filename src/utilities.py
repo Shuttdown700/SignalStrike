@@ -220,6 +220,12 @@ def dtg_from_local_to_utc(dtg_local,timezone_local):
 
 def generate_EUD_coordinate():
     import serial
+    def list_serial_ports():
+        import serial.tools.list_ports
+        ports = serial.tools.list_ports.comports()
+        for port, desc, hwid in sorted(ports):
+            print(f"Port: {port}, Description: {desc}, Hardware ID: {hwid}")
+    list_serial_ports()
     COM_port_number = 'COM4'
     try:
         ser = serial.Serial(COM_port_number, 9600, timeout=1)  # Timeout set to 1 second
