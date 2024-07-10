@@ -227,11 +227,15 @@ def generate_EUD_coordinate():
     # Open serial port
     with serial.Serial(port, baudrate, timeout=1) as ser:
         while True:
-            line = ser.readline().decode('utf-8').strip()
+            try:
+                line = ser.readline()
+                line = line.decode('utf-8').strip()  # Decode bytes to UTF-8 string
+            except UnicodeDecodeError:
+                continue  # Skip decoding errors and try to read the next line
+            
             if line.startswith('$GNGGA'):  # Example: NMEA GGA sentence
                 data = line.split(',')
                 if len(data) > 9:
-                    # Extract latitude and longitude
                     lat = data[2]  # Latitude
                     lon = data[4]  # Longitude
                     return lat, lon
