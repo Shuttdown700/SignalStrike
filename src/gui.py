@@ -1156,7 +1156,7 @@ class App(customtkinter.CTk):
                     pass
                 else:
                     # if MGRS is invalid, give user the option to re-input, bypass EWT, or use default value
-                    choice = self.input_error(category='Sensor 2 Grid',msg=f'Invalid Input {self.sensor2_mgrs_val}',single_lob_option=True,cut_option=False,ewt_bypass_option=False,EWT_num='2')
+                    choice = self.input_error(category='Sensor 2 Grid',msg=f'Invalid Input {self.sensor2_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='2')
                     # end function if user x's out of the pop-up window
                     if choice is None: return
                     # if user chooses to use default Sensor 2 MGRS value
@@ -1224,7 +1224,7 @@ class App(customtkinter.CTk):
             # exception for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
-                choice = self.input_error(category='Sensor 2 Grid Azimuth',msg='Invalid Input',single_lob_option=True,cut_option=False,ewt_bypass_option=False,EWT_num='2')
+                choice = self.input_error(category='Sensor 2 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='2')
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if users chooses to utilize the default Sensor 2 LOB value
@@ -1281,7 +1281,7 @@ class App(customtkinter.CTk):
             # exception handling for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
-                choice = self.input_error(category='Sensor 2 Power Received',msg='Invalid Input',single_lob_option=True,cut_option=False,ewt_bypass_option=False,EWT_num='2')
+                choice = self.input_error(category='Sensor 2 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='2')
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if user chooses to utilize the default Sensor 2 LOB value
@@ -1335,7 +1335,7 @@ class App(customtkinter.CTk):
                     pass
                 else:
                     # if MGRS is invalid, give user the option to re-input, bypass EWT, or use default value
-                    choice = self.input_error(category='Sensor 3 Grid',msg=f'Invalid Input {self.sensor3_mgrs_val}',single_lob_option=True,cut_option=True,ewt_bypass_option=False,EWT_num='3')
+                    choice = self.input_error(category='Sensor 3 Grid',msg=f'Invalid Input {self.sensor3_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='3')
                     # end function if user x's out of the pop-up window
                     if choice is None: return
                     # if user chooses to use default Sensor 3 MGRS value
@@ -1412,7 +1412,7 @@ class App(customtkinter.CTk):
             # exception for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
-                choice = self.input_error(category='Sensor 3 Grid Azimuth',msg='Invalid Input',single_lob_option=True,cut_option=True,ewt_bypass_option=False,EWT_num='3')
+                choice = self.input_error(category='Sensor 3 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='3')
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if users chooses to utilize the default Sensor 3 LOB value
@@ -1471,7 +1471,7 @@ class App(customtkinter.CTk):
             # exception handling for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
-                choice = self.input_error(category='Sensor 3 Power Received',msg='Invalid Input',single_lob_option=True,cut_option=True,ewt_bypass_option=False,EWT_num='3')
+                choice = self.input_error(category='Sensor 3 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='3')
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if user chooses to utilize the default Sensor 3 LOB value
@@ -2835,10 +2835,10 @@ class App(customtkinter.CTk):
         self.frequency.delete(0,END)
         self.min_ERP.delete(0,END)
         self.max_ERP.delete(0,END)
-        self.batch_download_center_mgrs.delete(0,END)
-        self.batch_download_zoom_range.delete(0,END)
-        self.batch_download_radius.delete(0,END)
-        self.search_mgrs.delete(0,END)
+        # self.batch_download_center_mgrs.delete(0,END)
+        # self.batch_download_zoom_range.delete(0,END)
+        # self.batch_download_radius.delete(0,END)
+        # self.search_mgrs.delete(0,END)
         
     def batch_download(self):
         self.show_info("This function has been disabled by the dev",box_title="Function Disabled Notice",icon='info'); return
