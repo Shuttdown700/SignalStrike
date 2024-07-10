@@ -770,8 +770,9 @@ class App(customtkinter.CTk):
         # define TBD button attributes
         self.button_TBD = customtkinter.CTkButton(
             master=self.frame_left, 
-            text="",
-            fg_color='brown')
+            text="LAST LOG",
+            fg_color='brown',
+            command=reload_last_log)
         # assign TBD button grid position
         self.button_TBD.grid(
             row=self.button_calculate.grid_info()["row"]+1,
@@ -785,7 +786,7 @@ class App(customtkinter.CTk):
             master=self.frame_left, 
             text="LOG DATA",
             fg_color='green',
-            command = self.log_button_command)
+            command = self.log_target_data)
         # assign log entries button grid position
         self.button_log_data.grid(
             row=self.button_clear_entries.grid_info()["row"]+1,
