@@ -34,7 +34,7 @@ def import_libraries(libraries):
 
 libraries = [['math',['sin','cos','pi']],['collections',['defaultdict']],
              ['datetime',['date']],['jinja2'],['numpy'],['winsdk'],
-             ['warnings'],['mgrs'],['haversine',['Unit']],['pyserial']]
+             ['warnings'],['mgrs'],['haversine',['Unit']],['serial']]
 
 import_libraries(libraries)
 import numpy as np
@@ -220,31 +220,24 @@ def dtg_from_local_to_utc(dtg_local,timezone_local):
 
 def generate_EUD_coordinate():
     import serial
-    from serial import SerialException
     COM_port_number = 'COM4'
     try:
         ser = serial.Serial(COM_port_number, 9600, timeout=1)  # Timeout set to 1 second
-    except (SerialException,FileNotFoundError):
+    except (serial.serialException):
         print(f'Error: COM Port "{COM_port_number}" not found...')
-    while True:
-        try:
-            line = ser.readline()
-        except UnboundLocalError:
-            return None, None
-        try:
-            line = line.decode('utf-8').strip() # Decode bytes to UTF-8 string
-        except UnboundLocalError:
-            return None, None
-        except UnicodeDecodeError:
-            continue  # Skip decoding errors and try to read the next line        
-        if line.startswith('$GNGGA'):  # NMEA GGA sentence
-            data = line.split(',')
-            if len(data) > 9:
-                # Latitude and Longitude are typically found in GGA sentences
-                print(data)
-                lat = data[2]
-                lon = data[4]
-                return lat, lon
+    num_loops = 0
+    while num_loops < 50:
+        ser_bytes = ser.readline()
+        decoded_data = ser_bytes.decode("utf-8")
+        data = decoded_data.split(",")
+        print(data)    
+        if len(data) > 9:
+            # Latitude and Longitude are typically found in GGA sentences
+            print(data)
+            lat = data[2]
+            lon = data[4]
+            return lat, lon
+        num_loops += 1
 
 def get_EUD_coord_on_internval(interval_sec,method='ps'):
     import time
