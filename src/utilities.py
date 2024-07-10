@@ -34,7 +34,7 @@ def import_libraries(libraries):
 
 libraries = [['math',['sin','cos','pi']],['collections',['defaultdict']],
              ['datetime',['date']],['jinja2'],['numpy'],['winsdk'],
-             ['warnings'],['mgrs'],['haversine',['Unit']],['serial']]
+             ['warnings'],['mgrs'],['haversine',['Unit']],['pyserial']]
 
 import_libraries(libraries)
 import numpy as np
@@ -220,30 +220,21 @@ def dtg_from_local_to_utc(dtg_local,timezone_local):
 
 def generate_EUD_coordinate():
     import serial
-    def list_serial_ports():
-        import serial.tools.list_ports
-        ports = serial.tools.list_ports.comports()
-        for port, desc, hwid in sorted(ports):
-            print(f"Port: {port}, Description: {desc}, Hardware ID: {hwid}")
-    list_serial_ports()
-    COM_port_number = 'COM4'
-    try:
-        ser = serial.Serial(COM_port_number, 9600, timeout=1)  # Timeout set to 1 second
-    except (serial.serialException):
-        print(f'Error: COM Port "{COM_port_number}" not found...')
-    num_loops = 0
-    while num_loops < 50:
-        ser_bytes = ser.readline()
-        decoded_data = ser_bytes.decode("utf-8")
-        data = decoded_data.split(",")
-        print(data)    
-        if len(data) > 9:
-            # Latitude and Longitude are typically found in GGA sentences
-            print(data)
-            lat = data[2]
-            lon = data[4]
-            return lat, lon
-        num_loops += 1
+    # Define the COM port and baud rate
+    port = 'COM4'  # Replace with your COM port
+    baudrate = 9600  # Replace with your baud rate (typically 9600 for GPS modules)
+
+    # Open serial port
+    with serial.Serial(port, baudrate, timeout=1) as ser:
+        while True:
+            line = ser.readline().decode('utf-8').strip()
+            if line.startswith('$GNGGA'):  # Example: NMEA GGA sentence
+                data = line.split(',')
+                if len(data) > 9:
+                    # Extract latitude and longitude
+                    lat = data[2]  # Latitude
+                    lon = data[4]  # Longitude
+                    return lat, lon
 
 def get_EUD_coord_on_internval(interval_sec,method='ps'):
     import time
