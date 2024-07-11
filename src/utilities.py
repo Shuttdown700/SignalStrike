@@ -226,19 +226,25 @@ def generate_EUD_coordinate():
 
     # Open serial port
     with serial.Serial(port, baudrate, timeout=1) as ser:
-        while True:
-            try:
+        try:
+            while True:
                 line = ser.readline()
-                line = line.decode('utf-8').strip()  # Decode bytes to UTF-8 string
-            except UnicodeDecodeError:
-                continue  # Skip decoding errors and try to read the next line
-            
-            if line.startswith('$GNGGA'):  # Example: NMEA GGA sentence
-                data = line.split(',')
-                if len(data) > 9:
-                    lat = data[2]  # Latitude
-                    lon = data[4]  # Longitude
-                    return lat, lon
+                if line:
+                    try:
+                        line = line.decode('utf-8').strip()  # Decode bytes to UTF-8 string
+                    except UnicodeDecodeError:
+                        continue  # Skip decoding errors and try to read the next line
+                    print(line)
+                    if line.startswith('$GNGGA'):  # Example: NMEA GGA sentence
+                        data = line.split(',')
+                        if len(data) > 9:
+                            lat = data[2]  # Latitude
+                            lon = data[4]  # Longitude
+                            return lat, lon
+        except serial.SerialException as e:
+            print(f"Serial Exception: {e}")
+        except Exception as e:
+            print(f"Error: {e}")
 
 def get_EUD_coord_on_internval(interval_sec,method='ps'):
     import time

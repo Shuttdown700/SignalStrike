@@ -47,9 +47,9 @@ def delete_small_files_and_empty_dirs(directory, size_limit_kb, dry_run=False):
                     print(f"Deleted empty directory '{dir_path}'")
             
 if __name__ == "__main__":
-    map_tile_directory = "\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+"\\map_tiles\\ESRI"
-    min_map_tile_size_kb = 3
-    delete_small_files_and_empty_dirs(map_tile_directory, min_map_tile_size_kb)  # Change this to your directory path
+    # map_tile_directory = "\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+"\\map_tiles\\ESRI"
+    # min_map_tile_size_kb = 3
+    # delete_small_files_and_empty_dirs(map_tile_directory, min_map_tile_size_kb)  # Change this to your directory path
     print('Starting Batch Tile Download Service:\n')
     queue_file_name = os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\batch_tile_queue.csv"
     if not os.path.isfile(queue_file_name): 
