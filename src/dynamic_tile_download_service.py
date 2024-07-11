@@ -55,48 +55,55 @@ def download_tile(tile,
             f.write(data.read())
         time.sleep(interval_num / 1000)
 
-if __name__ == "__main__":
-    print('Starting Dynamic Tile Download Service:\n')
+def main():
     queue_file_name = os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\dynamic_tile_queue.csv"
     if not os.path.isfile(queue_file_name): 
         with open(queue_file_name, mode='w', newline='') as file:
             print("Creating batch queue file...\n") 
     wait_interval_sec = 10
     time.sleep(2)
-    while True:
-        downloaded_tile_list = []
-        t1 = datetime.datetime.today()
-        try:
-            tile_queue = read_csv(queue_file_name)
-        except Exception as e:
-            print(f'Error reading batch queue file: {e}',end='\n')
-            time.sleep(5)
-            continue
-        if not check_internet_connection():
-            time.sleep(5)
-            if not check_internet_connection(): print('No public internet connection... terminating service'); break
-        if len(tile_queue) > 0:
-            print(tile_queue)
-            for tile in tile_queue:
-                download_tile(tile)
-                print(f"Tile {tile} downloaded")
-                downloaded_tile_list.append(tile)
-            tile_queue = read_csv(queue_file_name)
-            tile_queue_updated = []
-            for tile in tile_queue:
-                if tile in downloaded_tile_list:
-                    continue
-                else:
-                    tile_queue_updated.append(tile)
-            write_csv(queue_file_name,tile_queue_updated)
-        else:
-            print('Dynamic download queue is empty.\n')
-        t2 = datetime.datetime.today()
-        t_delta = t1 - t2
-        if t_delta.total_seconds() < wait_interval_sec:
-            print(f'Waiting: {wait_interval_sec - t_delta.total_seconds():,.2f} seconds...',end='\n')
-            time.sleep(min(wait_interval_sec - t_delta.total_seconds(),10))
-        else:
-            time.sleep(1)              
-time.sleep(5)   
+    try:
+        while True:
+            downloaded_tile_list = []
+            t1 = datetime.datetime.today()
+            try:
+                tile_queue = read_csv(queue_file_name)
+            except Exception as e:
+                print(f'Error reading batch queue file: {e}',end='\n')
+                time.sleep(5)
+                continue
+            if not check_internet_connection():
+                time.sleep(5)
+                if not check_internet_connection(): print('No public internet connection... terminating service'); break
+            if len(tile_queue) > 0:
+                print(tile_queue)
+                for tile in tile_queue:
+                    download_tile(tile)
+                    print(f"Tile {tile} downloaded")
+                    downloaded_tile_list.append(tile)
+                tile_queue = read_csv(queue_file_name)
+                tile_queue_updated = []
+                for tile in tile_queue:
+                    if tile in downloaded_tile_list:
+                        continue
+                    else:
+                        tile_queue_updated.append(tile)
+                write_csv(queue_file_name,tile_queue_updated)
+            else:
+                print('Dynamic download queue is empty.\n')
+            t2 = datetime.datetime.today()
+            t_delta = t1 - t2
+            if t_delta.total_seconds() < wait_interval_sec:
+                print(f'Waiting: {wait_interval_sec - t_delta.total_seconds():,.2f} seconds...',end='\n')
+                time.sleep(min(wait_interval_sec - t_delta.total_seconds(),10))
+            else:
+                time.sleep(1)
+    except:
+        main()
+
+if __name__ == "__main__":
+    print('Starting Dynamic Tile Download Service:\n')
+    main()
+
+time.sleep(5)
 

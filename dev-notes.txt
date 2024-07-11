@@ -1,7 +1,6 @@
 --- MVP Reqs:
 - add feature to determine user's EUD location
         - plot circle of inaccuracy along with EUD point
-        - *****ensure app cannot get hung if this feature hangs / stalls / fails
 - add Zulu time to DTGs
 
 --- Improvements:
@@ -13,6 +12,7 @@
 - give estimate warning prior to executing batch download
 - pass paramters to batch download... not command
 - method to detect and remove "blank" map tiles
+- when reloading a past log, don't ask about bypassing EWTs
  
 (Low)
 - add config file for hard-coded data

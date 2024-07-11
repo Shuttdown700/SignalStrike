@@ -20,10 +20,11 @@ packaging==24.1
 pillow==10.4.0
 pycparser==2.22
 pyperclip==1.9.0
+pyserial==3.5
 pywin32==306
 ratelim==0.1.6
 requests==2.32.3
-setuptools==70.2.0
+setuptools==70.3.0
 shapely==2.0.4
 six==1.16.0
 timezonefinder==6.5.2

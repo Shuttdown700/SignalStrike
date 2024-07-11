@@ -770,7 +770,7 @@ class App(customtkinter.CTk):
         # define TBD button attributes
         self.button_TBD = customtkinter.CTkButton(
             master=self.frame_left, 
-            text="LAST LOG",
+            text="RELOAD LAST LOG",
             fg_color='brown',
             command=self.reload_last_log)
         # assign TBD button grid position
@@ -2485,8 +2485,16 @@ class App(customtkinter.CTk):
                 return None
         # read last log
         recent_file = get_most_recently_modified_file(self.log_directory)
+        if recent_file is None:
+            self.show_info("No log files detected.")
+            return            
         log_data = read_csv(os.path.join(self.log_directory, recent_file))
         last_log_entry = log_data[-1]
+        try:
+            last_log_entry['EWT_1_MGRS']
+        except KeyError:
+            self.show_info("No data is most recent log file.")
+            return
         # clear current entries
         self.clear_entries()
         # configure EWT entries

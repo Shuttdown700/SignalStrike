@@ -11,6 +11,10 @@ def import_libraries(libraries):
     None.
 
     """
+    def install_missing_module(missing_module):
+        print(f'Installing... {missing_module.split(".")[0]}')
+        cmd = f'python -m pip install {missing_module.split(".")[0]}'
+        subprocess.call(cmd, shell=True, stdout=subprocess.PIPE)
     import subprocess, warnings
     warnings.filterwarnings("ignore")
     exec('warnings.filterwarnings("ignore")')
@@ -20,9 +24,14 @@ def import_libraries(libraries):
         try:
             exec(f"import {s[0]} as {aliases[s[0]]}") if s[0] in list(aliases.keys()) else exec(f"import {s[0]}")
         except ImportError:
-            print(f'Installing... {s[0].split(".")[0]}')
-            cmd = f'python -m pip install {s[0].split(".")[0]}'
-            subprocess.call(cmd, shell=True, stdout=subprocess.PIPE)
+            if s[0] == 'pyserial':
+                try:
+                    exec("import serial")
+                    continue
+                except ImportError:
+                    install_missing_module(s[0])
+            else:
+                install_missing_module(s[0])
         except ModuleNotFoundError as mnfe:
             print(f"Module error: {mnfe}"); continue
         if len(s) == 1: continue
@@ -33,14 +42,11 @@ def import_libraries(libraries):
                 pass
 
 libraries = [['math',['sin','cos','pi']],['collections',['defaultdict']],
-             ['datetime',['date']],['jinja2'],['numpy'],['winsdk'],
+             ['datetime',['date']],['jinja2'],['numpy'],['winsdk'],['statistics',['mean']],
              ['warnings'],['mgrs'],['haversine',['Unit']],['pyserial']]
 
 import_libraries(libraries)
-import numpy as np
 import warnings
-import os
-import shutil
 warnings.filterwarnings("ignore")
 
 def is_port_in_use(port: int) -> bool:
@@ -103,7 +109,7 @@ def remove_empty_csv_rows(csv_file: str) -> None:
     Experiencing access errors... two simualtanious tempfile instances
     '''
     
-    import csv
+    import csv, os, shutil
     # create temp file
     temp_file = open(csv_file[:-4]+"_temp.csv",mode='w', newline='', encoding='utf-8')
     # open csv and temp file
@@ -218,7 +224,7 @@ def dtg_from_utc_to_local(dtg_utc,timezone_local):
 def dtg_from_local_to_utc(dtg_local,timezone_local):
     pass
 
-def generate_EUD_coordinate():
+def generate_EUD_coordinate() -> (dict,None):
     def coordinate_format_conversion(lat,lat_dir,lon,lon_dir):
         lat = str(lat); lon = str(lon)
         lat_var1 = lat[:2]
@@ -263,6 +269,7 @@ def generate_EUD_coordinate():
                                 # hdop = str(data[8]) # less than 5 ideal, more than 20 unacceptable
                                 alt = str(data[9]) # altitude above/below sea level
                                 # alt_units = str(data[10]) # M = meters
+                                if lat == '' or lon == '': continue
                                 lat, lon = coordinate_format_conversion(lat,lat_direction,lon,lon_direction)
                                 
                                 gps_data = {
@@ -283,6 +290,7 @@ def generate_EUD_coordinate():
             print(f"Serial Exception: {e}")
         except Exception as e:
             print(f"Error: {e}")
+        return None
 
 def get_EUD_coord_on_internval(interval_sec,method='ps'):
     import time
@@ -533,6 +541,7 @@ def format_readable_mgrs(mgrs):
     return mgrs
 
 def covert_degrees_to_radians(degrees):
+    import numpy as np
     """
     Converts angle from degrees to radians.
 
@@ -656,8 +665,9 @@ def get_center_coord(coord_list):
         Center coordiante.
 
     """
+    from statistics import mean
     assert isinstance(coord_list,list) and len(coord_list) >= 1, "Coordinates must be in a list comprehension of length 1 or greater"
-    return [float(np.average([c[0] for c in coord_list])),float(np.average([c[1] for c in coord_list]))]
+    return [float(mean([c[0] for c in coord_list])),float(mean([c[1] for c in coord_list]))]
 
 def convert_watts_to_dBm(p_watts: (float,int)) -> float:
     """
@@ -674,10 +684,11 @@ def convert_watts_to_dBm(p_watts: (float,int)) -> float:
         Power in dBm.
 
     """
+    import math
     # input assertation
     assert isinstance(p_watts,(float,int)) and p_watts >= 0, 'Wattage needs to be a float greater than zero.'
     # return power in dBm
-    return 10*np.log10(1000*p_watts)
+    return 10*math.log10(1000*p_watts)
 
 def emission_distance(P_t_watts,f_MHz,G_t,G_r,R_s,path_loss_coeff=3):
     """
@@ -705,7 +716,8 @@ def emission_distance(P_t_watts,f_MHz,G_t,G_r,R_s,path_loss_coeff=3):
         Theoretical maximum distance in km.
 
     """
-    return 10**((convert_watts_to_dBm(P_t_watts)+(G_t-2.15)-32.4-(10*path_loss_coeff*np.log10(f_MHz))+(G_r-2.15)-R_s)/(10*path_loss_coeff))
+    import math
+    return 10**((convert_watts_to_dBm(P_t_watts)+(G_t-2.15)-32.4-(10*path_loss_coeff*math.log10(f_MHz))+(G_r-2.15)-R_s)/(10*path_loss_coeff))
 
 def emission_optical_maximum_distance(t_h,r_h):
     """
@@ -724,7 +736,8 @@ def emission_optical_maximum_distance(t_h,r_h):
         Maximum line-of-sight due to Earth curvature in km.
 
     """
-    return (np.sqrt(2*6371000*r_h+r_h**2)/1000)+(np.sqrt(2*6371000*t_h+t_h**2)/1000)
+    import math
+    return (math.sqrt(2*6371000*r_h+r_h**2)/1000)+(math.sqrt(2*6371000*t_h+t_h**2)/1000)
 
 def emission_optical_maximum_distance_with_ducting(t_h,r_h,f_MHz,temp_f,weather_coeff=4/3):
     """
@@ -749,7 +762,8 @@ def emission_optical_maximum_distance_with_ducting(t_h,r_h,f_MHz,temp_f,weather_
         Maximum line-of-sight due to Earth curvature and ducting in km.
 
     """
-    return (np.sqrt(2*weather_coeff*6371000*r_h+temp_f**2)/1000)+(np.sqrt(2*weather_coeff*6371000*t_h+f_MHz**2)/1000)
+    import math
+    return (math.sqrt(2*weather_coeff*6371000*r_h+temp_f**2)/1000)+(math.sqrt(2*weather_coeff*6371000*t_h+f_MHz**2)/1000)
 
 def get_emission_distance(P_t_watts,f_MHz,G_t,G_r,R_s,t_h,r_h,temp_f,path_loss_coeff=3,weather_coeff=4/3,pure_pathLoss=False):
     """
@@ -864,6 +878,7 @@ def check_if_point_in_polygon(point,polygon):
     return area.contains(coord_candidate)
 
 def get_polygon_area(shape_coords): # returns area in acres
+    import numpy as np
     x = [convert_coordinates_to_meters(sc[0]) for sc in shape_coords]
     y = [convert_coordinates_to_meters(sc[1]) for sc in shape_coords]    
     return (0.5*np.abs(np.dot(x,np.roll(y,1))-np.dot(y,np.roll(x,1))))/4046.856422
