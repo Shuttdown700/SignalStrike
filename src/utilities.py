@@ -273,7 +273,7 @@ def generate_EUD_coordinate():
                                     'num_sats':num_sats,
                                     'alt_m':alt}
                                 print(gps_data)
-                                return lat, lon, alt
+                                return gps_data
                     except Exception as e:
                         print(f'Error: {e}')
         except serial.SerialException as e:
