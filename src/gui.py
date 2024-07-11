@@ -2698,6 +2698,7 @@ class App(customtkinter.CTk):
                                                 data=eud_marker_data)
         self.append_object(eud_marker,"EUD")
         self.show_info("Current position successfully plotted.",icon='info')
+        self.map_widget.set_position(lat, lon)
         # if acc > 20:
         #     circle_top_left = adjust_coordinate([lat,lon], 315, acc)
         #     circle_bottom_right = adjust_coordinate([lat,lon], 135, acc)

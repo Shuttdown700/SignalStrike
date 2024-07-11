@@ -1,6 +1,7 @@
 *.bak
 *.cfg
 *.pyc
+*.log
 **/map_tiles
 **/ewta_venv
 **/venv_test
