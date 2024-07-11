@@ -2664,7 +2664,7 @@ class App(customtkinter.CTk):
         if coord == None:
             try:
                 gps_data = generate_EUD_coordinate()
-                lat = gps_data['lat']; lon = gps_data['lon']
+                lat = float(gps_data['lat']); lon = float(gps_data['lon'])
                 print(f'Latitude: {lat}, Longitude: {lon}')
             except Exception as e:
                 print(f"Unknown error in 'generate_EUD_coordinate' method: {e}")
