@@ -2664,6 +2664,7 @@ class App(customtkinter.CTk):
         if coord == None:
             try:
                 lat,lon = generate_EUD_coordinate()
+                print(f'Latitude: {lat}, Longitude: {lon}')
             except Exception as e:
                 print(f"Unknown error in 'generate_EUD_coordinate' method: {e}")
                 return
