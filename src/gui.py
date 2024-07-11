@@ -2273,7 +2273,7 @@ class App(customtkinter.CTk):
             plot_fix(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound)
         # Unexpected situation
         else:
-            print("Unknown case")
+            print("Unknown case in EW function")
         self.set_target_field()
         # self.plot_EUD_position()
     
@@ -2339,7 +2339,7 @@ class App(customtkinter.CTk):
         import datetime
         from utilities import read_csv, write_csv
         # define log columns
-        log_columns = ['DTG_LOCAL','FREQ','MIN_ERP_W','MAX_ERP_W','PATH_LOSS_COEFF',
+        log_columns = ['DTG_LOCAL','FREQ_MHz','MIN_ERP_W','MAX_ERP_W','PATH_LOSS_COEFF',
                        'TGT_CLASS','TGT_MGRS','TGT_LATLON','TGT_ERROR_ACRES',
                        'EWT_1_MGRS','EWT_1_LATLON','EWT_1_LOB_DEGREES','EWT_1_PWR_REC_DbM','EWT_1_LOB_TGT_MGRS','EWT_1_LOB_TGT_LATLON','EWT_1_DIST2TGT_KM','EWT_1_MIN_DIST_KM','EWT_1_MAX_DIST_KM',
                        'EWT_2_MGRS','EWT_2_LATLON','EWT_2_LOB_DEGREES','EWT_2_PWR_REC_DbM','EWT_2_LOB_TGT_MGRS','EWT_2_LOB_TGT_LATLON','EWT_2_DIST2TGT_KM','EWT_2_MIN_DIST_KM','EWT_2_MAX_DIST_KM',
@@ -2380,7 +2380,7 @@ class App(customtkinter.CTk):
                     row_data.append(self.target_error_val)
                 else:
                     row_data.append(self.target_mgrs)
-                    print(self.target_coord)
+                    # print(self.target_coord)
                     if isinstance(self.target_coord,list):
                         row_data.append(', '.join([str(x) for x in self.target_coord]))
                     elif isinstance(self.target_coord,str):
@@ -2403,7 +2403,7 @@ class App(customtkinter.CTk):
             row_data.append(self.sensor1_grid_azimuth_val)
             row_data.append(self.sensor1_power_received_dBm_val)
             row_data.append(convert_coords_to_mgrs(self.sensor1_target_coord))
-            row_data.append(self.sensor1_target_coord)
+            row_data.append(', '.join([str(x) for x in self.sensor1_target_coord]))
             row_data.append(f'{self.sensor1_distance_val/1000:,.2f}')
             row_data.append(f'{self.sensor1_min_distance_km:,.2f}')
             row_data.append(f'{self.sensor1_max_distance_km:,.2f}')
@@ -2419,7 +2419,7 @@ class App(customtkinter.CTk):
             row_data.append(', '.join([str(x) for x in self.sensor2_coord]))
             row_data.append(self.sensor2_grid_azimuth_val)
             row_data.append(self.sensor2_power_received_dBm_val)
-            row_data.append(convert_coords_to_mgrs(self.sensor2_target_coord))
+            row_data.append(', '.join([str(x) for x in self.sensor2_target_coord]))
             row_data.append(self.sensor2_target_coord)
             row_data.append(f'{self.sensor2_distance_val/1000:,.2f}')
             row_data.append(f'{self.sensor2_min_distance_km:,.2f}')
@@ -2435,7 +2435,7 @@ class App(customtkinter.CTk):
             row_data.append(', '.join([str(x) for x in self.sensor3_coord]))
             row_data.append(self.sensor3_grid_azimuth_val)
             row_data.append(self.sensor3_power_received_dBm_val)
-            row_data.append(convert_coords_to_mgrs(self.sensor3_target_coord))
+            row_data.append(', '.join([str(x) for x in self.sensor3_target_coord]))
             row_data.append(self.sensor3_target_coord)
             row_data.append(f'{self.sensor3_distance_val/1000:,.2f}')
             row_data.append(f'{self.sensor3_min_distance_km:,.2f}')
@@ -2467,7 +2467,7 @@ class App(customtkinter.CTk):
             self.show_info("Log file currently open. Cannot log data!")
             return
         # success pop-up
-        self.show_info("Data successfully logged!!!",icon='info') 
+        self.show_info("Data successfully logged!!!",box_title='Successful Log',icon='info') 
     
     def reload_last_log(self):
         from utilities import read_csv
@@ -2507,7 +2507,7 @@ class App(customtkinter.CTk):
         self.sensor3_mgrs.insert(0,last_log_entry['EWT_3_MGRS'])
         self.sensor3_lob.insert(0,last_log_entry['EWT_3_LOB_DEGREES'])
         self.sensor3_Rpwr.insert(0,last_log_entry['EWT_3_PWR_REC_DbM'])
-        self.frequency.insert(0,last_log_entry['FREQ'])
+        self.frequency.insert(0,last_log_entry['FREQ_MHz'])
         self.min_ERP.insert(0,last_log_entry['MIN_ERP_W'])
         self.max_ERP.insert(0,last_log_entry['MAX_ERP_W'])
         self.path_loss_coeff = last_log_entry['PATH_LOSS_COEFF']
@@ -2676,7 +2676,7 @@ class App(customtkinter.CTk):
                     self.show_info('No GPS available at this time.')
                     return
                 lat = float(gps_data['lat']); lon = float(gps_data['lon']); 
-                print(f'Latitude: {lat}, Longitude: {lon}')
+                # print(f'Latitude: {lat}, Longitude: {lon}')
             except Exception as e:
                 print(f"Unknown error in 'generate_EUD_coordinate' method: {e}")
                 return
@@ -2697,7 +2697,7 @@ class App(customtkinter.CTk):
                                                 command=self.marker_click,
                                                 data=eud_marker_data)
         self.append_object(eud_marker,"EUD")
-        self.show_info("Current position successfully plotted.",icon='info')
+        self.show_info("Current position successfully plotted.",box_title="EUD Position Plotted",icon='info')
         self.map_widget.set_position(lat, lon)
         # if acc > 20:
         #     circle_top_left = adjust_coordinate([lat,lon], 315, acc)

@@ -29,7 +29,7 @@ def append_tile_to_queue(tile,file_path=os.path.dirname(os.path.abspath(__file__
                  "Y":tile[2],
                  "X":tile[1]}
     # for tkintermapview, tile segment order is Z, X, Y !!!
-    print('Tile Data: ',tile_data)
+    # print('Tile Data: ',tile_data)
     queue_data = read_csv(file_path)
     queue_data.append(tile_data)
     write_csv(file_path,queue_data)

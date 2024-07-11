@@ -281,32 +281,16 @@ def generate_EUD_coordinate() -> (dict,None):
                                 print('GPS data: ',gps_data)
                                 return gps_data
                     except Exception as e:
-                        print(f'Error: {e}')
+                        print(f'GPS Error: {e}')
                 elapsed_time = time.time() - start_time
                 if elapsed_time >= max_time:
-                    print(f'{max_time} seconds elapsed without results')
+                    print(f'{max_time} seconds elapsed without results in GPS function')
                     break
         except serial.SerialException as e:
-            print(f"Serial Exception: {e}")
+            print(f"GPS Serial Exception: {e}")
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"GPS Error: {e}")
         return None
-
-def get_EUD_coord_on_internval(interval_sec,method='ps'):
-    import time
-    acc = 3
-    while True:
-        time.sleep(interval_sec)
-        try:
-            output = generate_EUD_coordinate(method,int(acc))
-            lat = output['lat']
-            lon = output['lon']
-            acc = output['acc']
-            print(output, lat, lon, acc)
-            acc = int(acc * 0.95)
-        except Exception as e:
-            print(e)
-            break
 
 def convert_coordinates_to_meters(coord_element: float) -> float:
     """
@@ -489,11 +473,9 @@ def check_coord_input(coord_input):
         return False
     # check if string input
     if isinstance(coord_input,str):
-        print('string ',coord_input)
         if len(coord_input.split(',')) == 2:
             return coord_list_range_check([float(c) for c in coord_input.split(',')])
         elif len(coord_input.split()) == 2:
-            print('here')
             return coord_list_range_check([float(c) for c in coord_input.split()])
         return False
     # checkc if list input

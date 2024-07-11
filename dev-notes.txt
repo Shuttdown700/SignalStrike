@@ -13,6 +13,8 @@
 - pass paramters to batch download... not command
 - method to detect and remove "blank" map tiles
 - when reloading a past log, don't ask about bypassing EWTs
+- add a DTG datapoint to bottom left TGT data block
+- in TGT log, record pathloss description (maybe also value)
  
 (Low)
 - add config file for hard-coded data
