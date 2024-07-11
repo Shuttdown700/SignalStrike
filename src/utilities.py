@@ -219,11 +219,27 @@ def dtg_from_local_to_utc(dtg_local,timezone_local):
     pass
 
 def generate_EUD_coordinate():
+    def coordinate_format_conversion(lat,lat_dir,lon,lon_dir):
+        lat = '3153.71431'; lat_dir = 'N'
+        lon = '08136.68873'; lon_dir = 'W'
+        lat = str(lat); lon = str(lon)
+        lat_var1 = lat[:2]
+        lat_var2 = lat[2:]
+        lat_var3 = float(lat_var2)/60
+        lat_new = lat_var1+'.'+str(lat_var3).split('.')[-1]
+        if lat_dir == 'S': lat_new = '-'+str(float(lat_new))
+        lon_var1 = lon[:3]
+        lon_var2 = lon[3:]
+        lon_var3 = float(lon_var2)/60
+        lon_new = lon_var1+'.'+str(lon_var3).split('.')[-1]
+        if lon_dir == 'W': lon_new = '-'+str(float(lon_new))
+        return lat_new, lon_new
+        print(lat_new,',',lon_new)
+        
     import serial
     # Define the COM port and baud rate
     port = 'COM4'  # Replace with your COM port
     baudrate = 9600  # Replace with your baud rate (typically 9600 for GPS modules)
-
     # Open serial port
     with serial.Serial(port, baudrate, timeout=1) as ser:
         try:
@@ -235,12 +251,22 @@ def generate_EUD_coordinate():
                     except UnicodeDecodeError:
                         continue  # Skip decoding errors and try to read the next line
                     print(line)
-                    if line.startswith('$GPGGA') or line.startswith('$GNGGA'):  # Example: NMEA GGA sentence
+                    if line.startswith('$GPGGA'):  # Example: NMEA GGA sentence
                         data = line.split(',')
-                        if len(data) > 9:
-                            lat = data[2]  # Latitude
-                            lon = data[4]  # Longitude
-                            return lat, lon
+                        if len(data) >= 11:
+                            log_header = str(data[0])
+                            utc_hhmmss_ss = str(data[1]) # UTC in hhmmss.ss format
+                            lat = str(data[2])  # Latitude in DDmm.mm format
+                            lat_direction = str(data[3]) # either N or S (south is negative)
+                            lon = str(data[4])  # Longitude in DDDmm.mm format
+                            lon_direction = str(data[5]) # either E or W (west is negative)
+                            quality = str(data[6])
+                            num_sats = str(data[7]) # number of satellites in use
+                            hdop = str(data[8]) # less than 5 ideal, more than 20 unacceptable
+                            alt = str(data[9]) # altitude above/below sea level
+                            alt_units = str(data[10]) # M = meters
+                            lat, lon = coordinate_format_conversion(lat,lat_direction,lon,lon_direction)
+                            return lat, lon, alt
         except serial.SerialException as e:
             print(f"Serial Exception: {e}")
         except Exception as e:
