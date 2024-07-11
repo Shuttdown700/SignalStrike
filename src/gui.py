@@ -2856,6 +2856,8 @@ class App(customtkinter.CTk):
         # self.search_mgrs.delete(0,END)
         
     def batch_download(self):
+        from utilities import check_internet_connection
+        if not check_internet_connection(): self.show_info("Function unavailable. No public internet connection.",box_title="Feature Unavailable",icon='info'); return
         self.show_info("This function has been disabled by the dev",box_title="Function Disabled Notice",icon='info'); return
         import re
         from utilities import check_coord_input, check_mgrs_input, convert_coords_to_mgrs, convert_mgrs_to_coords, get_coord_box
