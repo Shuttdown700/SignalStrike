@@ -235,7 +235,7 @@ def generate_EUD_coordinate():
                     except UnicodeDecodeError:
                         continue  # Skip decoding errors and try to read the next line
                     print(line)
-                    if line.startswith('$GNGGA'):  # Example: NMEA GGA sentence
+                    if line.startswith('$GPGGA') or line.startswith('$GNGGA'):  # Example: NMEA GGA sentence
                         data = line.split(',')
                         if len(data) > 9:
                             lat = data[2]  # Latitude
