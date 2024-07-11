@@ -250,7 +250,6 @@ def generate_EUD_coordinate():
                         line = line.decode('utf-8').strip()  # Decode bytes to UTF-8 string
                     except UnicodeDecodeError:
                         continue  # Skip decoding errors and try to read the next line
-                    print(line)
                     try:
                         if line.startswith('$GPGGA'):  # Example: NMEA GGA sentence
                             data = line.split(',')
@@ -267,6 +266,13 @@ def generate_EUD_coordinate():
                                 alt = str(data[9]) # altitude above/below sea level
                                 alt_units = str(data[10]) # M = meters
                                 lat, lon = coordinate_format_conversion(lat,lat_direction,lon,lon_direction)
+                                gps_data = {
+                                    'utc':utc_hhmmss_ss,
+                                    'lat':lat,
+                                    'lon':lon,
+                                    'num_sats':num_sats,
+                                    'alt_m':alt}
+                                print(gps_data)
                                 return lat, lon, alt
                     except Exception as e:
                         print(f'Error: {e}')
