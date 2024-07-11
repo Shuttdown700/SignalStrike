@@ -2660,11 +2660,11 @@ class App(customtkinter.CTk):
 
     def plot_EUD_position(self,coord=None):
         from PIL import Image, ImageTk
-        from utilities import adjust_coordinate, convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, generate_EUD_coordinate
+        from utilities import convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, generate_EUD_coordinate
         if coord == None:
             try:
                 gps_data = generate_EUD_coordinate()
-                lat = float(gps_data['lat']); lon = float(gps_data['lon'])
+                lat = float(gps_data['lat']); lon = float(gps_data['lon']); 
                 print(f'Latitude: {lat}, Longitude: {lon}')
             except Exception as e:
                 print(f"Unknown error in 'generate_EUD_coordinate' method: {e}")
