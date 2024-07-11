@@ -251,22 +251,25 @@ def generate_EUD_coordinate():
                     except UnicodeDecodeError:
                         continue  # Skip decoding errors and try to read the next line
                     print(line)
-                    if line.startswith('$GPGGA'):  # Example: NMEA GGA sentence
-                        data = line.split(',')
-                        if len(data) >= 11:
-                            log_header = str(data[0])
-                            utc_hhmmss_ss = str(data[1]) # UTC in hhmmss.ss format
-                            lat = str(data[2])  # Latitude in DDmm.mm format
-                            lat_direction = str(data[3]) # either N or S (south is negative)
-                            lon = str(data[4])  # Longitude in DDDmm.mm format
-                            lon_direction = str(data[5]) # either E or W (west is negative)
-                            quality = str(data[6])
-                            num_sats = str(data[7]) # number of satellites in use
-                            hdop = str(data[8]) # less than 5 ideal, more than 20 unacceptable
-                            alt = str(data[9]) # altitude above/below sea level
-                            alt_units = str(data[10]) # M = meters
-                            lat, lon = coordinate_format_conversion(lat,lat_direction,lon,lon_direction)
-                            return lat, lon, alt
+                    try:
+                        if line.startswith('$GPGGA'):  # Example: NMEA GGA sentence
+                            data = line.split(',')
+                            if len(data) >= 11:
+                                log_header = str(data[0])
+                                utc_hhmmss_ss = str(data[1]) # UTC in hhmmss.ss format
+                                lat = str(data[2])  # Latitude in DDmm.mm format
+                                lat_direction = str(data[3]) # either N or S (south is negative)
+                                lon = str(data[4])  # Longitude in DDDmm.mm format
+                                lon_direction = str(data[5]) # either E or W (west is negative)
+                                quality = str(data[6])
+                                num_sats = str(data[7]) # number of satellites in use
+                                hdop = str(data[8]) # less than 5 ideal, more than 20 unacceptable
+                                alt = str(data[9]) # altitude above/below sea level
+                                alt_units = str(data[10]) # M = meters
+                                lat, lon = coordinate_format_conversion(lat,lat_direction,lon,lon_direction)
+                                return lat, lon, alt
+                    except Exception as e:
+                        print(f'Error: {e}')
         except serial.SerialException as e:
             print(f"Serial Exception: {e}")
         except Exception as e:
