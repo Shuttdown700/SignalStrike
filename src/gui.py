@@ -2673,7 +2673,7 @@ class App(customtkinter.CTk):
             try:
                 gps_data = generate_EUD_coordinate()
                 if gps_data is None:
-                    self.show_info('No GPS available at this time.')
+                    self.show_info('No GPS data available at this time.')
                     return
                 lat = float(gps_data['lat']); lon = float(gps_data['lon']); 
                 # print(f'Latitude: {lat}, Longitude: {lon}')

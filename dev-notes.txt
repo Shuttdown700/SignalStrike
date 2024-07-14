@@ -1,7 +1,4 @@
 --- MVP Reqs:
-- add feature to determine user's EUD location
-        - plot circle of inaccuracy along with EUD point
-- add Zulu time to DTGs
 
 --- Improvements:
     (High)
@@ -15,6 +12,8 @@
 - when reloading a past log, don't ask about bypassing EWTs
 - add a DTG datapoint to bottom left TGT data block
 - in TGT log, record pathloss description (maybe also value)
+- add Zulu time to DTGs
+- add system for testing to verify functionality when next features are added
  
 (Low)
 - add config file for hard-coded data
