@@ -1,30 +1,40 @@
---- MVP Reqs:
 
---- Improvements:
-    (High)
-- clean way to close all associated services upon closing
+--- EXISTING FEATURES ---
+
+[LOGGING FUNCTION]
+- Scroll to chose which logged target data to re-plot / reload
+- add Zulu DTG logs files
+- add path-loss description in log
+- when reloading a past log, don't ask about bypassing EWTs
+[EW FUNCTION]
 - improve bounds for cut polygon (some extreme cuts extend beyond LOB)
-    (Medium)
-- BEAST+ df sensor gain RFI...
 - give estimate warning prior to executing batch download
 - pass paramters to batch download... not command
-- method to detect and remove "blank" map tiles
-- when reloading a past log, don't ask about bypassing EWTs
-- add a DTG datapoint to bottom left TGT data block
-- in TGT log, record pathloss description (maybe also value)
-- add Zulu time to DTGs
+- verified emitter at 10km, pushing 20W, reads 7.23km est with no foliage
+[USER INTERFACE]
+- add a DTG datapoint to bottom left TGT data block in GUI
+- provide option to input coordinates instead of MGRS
+[TESTING]
 - add system for testing to verify functionality when next features are added
- 
-(Low)
+[CODE STRUCTURE]
 - add config file for hard-coded data
+- set a standard padx, pady in defaults dict
 - move log function to utilities
 - move batch download function into utilities file
-- split utilities file into utilities by type (RF, map, log, files, etc.)
-- provide option to input coordinates instead of MGRS
+- split utilities file into multiple files, by category (RF, map, log, files, etc.)
+
+--- NEW FEATURES ---
+
+[ANALYSIS]
 - log analysis tools
-- incorporation of elevation plotting / 3D modeling
-	- set a standard padx, pady in defaults dict
-   - right-click option to plot objectives w/ radius, would require forked marker removal method
+[ELEVATION DATA]
+- utilize elevation and GPS data to give terrian context to EW function
+[PLOT OBJs W/ OPACITY]
+- right-click option to plot objectives w/ radius
+[FORK GENERIC ICON REMOVAL]
+- dropdown menu to choose different types of graphics to remove from overlay
+[GENERIC MARKER LOG]
+- create a function to log all generic marker data
 
 '''
 IDEA!!!!!

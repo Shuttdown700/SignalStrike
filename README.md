@@ -1,13 +1,10 @@
-# Overview:
+# Overview
 
-The Electromagnetic Warfare Targeting Application supports EW platoons' operations by streamlining their targeting process. Users input a LOB 3-Line (Sensor MGRS, LOB orientation, PWR Received) and the application reverse-engineers the detected radio signals and swiftly identifies potential targets in real-time. The application allows the aggregation of EW targeting data from three EW teams (EWTs). The application integrates target data onto an offline digital map to enhance situational awareness and better enable precise targeting. This innovative tool empowers EW units to aggregate target data across their EWTs, significantly reducing the time required to detect, identify, and deliver effects on targets with decisive levels efficiency and accuracy.
+The Electromagnetic Warfare Targeting Application supports EW platoons' operations by streamlining their targeting process. Users input a LOB 3-Line (Sensor MGRS, LOB orientation, PWR Received), and the application reverse-engineers the input sensor data, identifying potential targets in real-time. The application allows the aggregation of EW targeting data from three EW teams (EWTs). The application integrates target data onto an offline digital map to enhance situational awareness and enable precise targeting. This innovative tool empowers EW units to aggregate target data across their EWTs, significantly reducing the time required to detect, identify, and deliver effects on targets with decisive levels of efficiency and accuracy.
 
-![](icons/ewta_snapshot_2.png)
+![](icons/markdown/ewta_snapshot.png)
 
-## Features
-
-
-## Installation Instructions:
+# Installation
 
 #### Install on Linux:
 ```bash
@@ -21,6 +18,8 @@ python --version
 sudo apt install git-all
 # clone git repository
 git clone "https://github.com/Shuttdown700/ew_plt_targeting_app"
+# change directory to EW Target App directory
+cd ./ew_plt_targeting_app
 # create a virtual python environment titled "venv"
 python -m venv env
 # activate the virtual environment
@@ -54,9 +53,9 @@ python --version
 git clone "https://github.com/Shuttdown700/ew_plt_targeting_app"
 # change directory to EW Target App directory
 cd ./ew_plt_targeting_app
-# (OPTIONAL) create a virtual python environment titled "venv"
+# create a virtual python environment titled "venv"
 python -m venv venv
-# (OPTIONAL) activate the virtual environment
+# activate the virtual environment
 source ./venv/scripts/activate
 # update Python's Pip module
 python -m pip install --upgrade pip
@@ -64,22 +63,53 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-#### Run EW Targeting Application
+# Run Application
 - From Window's command prompt:
 ```sh
-# (OPTIONAL) activate python virtual environment
-./venv/Scripts/activate.bat
 # Start the EW Targeting Application
 run.bat
 ```
 - From Linux Bash shell:
 ```bash
-# (OPTIONAL) activate python virtual environment
-source ./venv/bin/activate
 # Start the EW Targeting Application
 run.sh
 ```
 
-## How to Use:
+# User-Interface Layout
+![](icons/markdown/GUI_layout.png)
 
-Instructions with screen shots
+# Functions [WORK IN PROGRESS]
+#### **Single LOB Targeting Function:**
+Mention all the user input fields for targeting and target output fields
+#### **Multi-LOB Targeting Function (CUT/FIX):**
+Mention cuts and fixes, as well as non-intersecting LOBs
+#### **Locally-Host Map Server:**
+...
+#### **Logging Function:**
+...
+#### **Plotting Current Location Function**
+...
+#### **Dynamic Marker Plotting**
+...
+#### **Dynamic Distance Measuring**
+...
+#### **Grid Copying Feature**
+Mention that holding click = right-click
+#### **Dynamic Map Download Service**
+Mention requirement for internet connection
+#### **Bulk Map Download Service**
+...
+
+# Future Functions [WORK IN PROGRESS]
+#### **Terrain Context in Targeting Function**
+...
+#### **Service for receiving remote sensor data**
+...
+#### **Integrated EW Planning Function**
+...
+#### **Advanced Logging Features**
+...
+#### **Post-Mission Analysis Function**
+...
+#### **Unit Testing (for Development)**
+...
