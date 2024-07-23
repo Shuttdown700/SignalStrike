@@ -2,7 +2,7 @@
 
 The Electromagnetic Warfare Targeting Application supports EW platoons' operations by streamlining their targeting process. Users input a LOB 3-Line (Sensor MGRS, LOB orientation, PWR Received), and the application reverse-engineers the input sensor data, identifying potential targets in real-time. The application allows the aggregation of EW targeting data from three EW teams (EWTs). The application integrates target data onto an offline digital map to enhance situational awareness and enable precise targeting. This innovative tool empowers EW units to aggregate target data across their EWTs, significantly reducing the time required to detect, identify, and deliver effects on targets with decisive levels of efficiency and accuracy.
 
-![](icons/markdown/ewta_snapshot.png)
+![](./icons/markdown/ewta_snapshot.PNG)
 
 # Installation
 
@@ -76,7 +76,7 @@ run.sh
 ```
 
 # User-Interface Layout
-![](icons/markdown/GUI_layout.png)
+![](./icons/markdown/GUI_layout.png)
 
 # Functions [WORK IN PROGRESS]
 #### **Single LOB Targeting Function:**
