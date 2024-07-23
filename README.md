@@ -76,13 +76,15 @@ run.sh
 ```
 
 # User-Interface Layout
-![](./icons/markdown/GUI_layout.png)
+![](./icons/markdown/GUI_layout.PNG)
 
 # Functions [WORK IN PROGRESS]
 #### **Single LOB Targeting Function:**
 Mention all the user input fields for targeting and target output fields
 #### **Multi-LOB Targeting Function (CUT/FIX):**
 Mention cuts and fixes, as well as non-intersecting LOBs
+#### **Target Overlay Interactability**
+...
 #### **Locally-Host Map Server:**
 ...
 #### **Logging Function:**
