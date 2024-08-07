@@ -100,7 +100,7 @@ Mention that holding click = right-click
 #### **Dynamic Map Download Service**
 Mention requirement for internet connection
 #### **Bulk Map Download Service**
-...
+Add CTC and post download parameters
 
 # Future Functions [WORK IN PROGRESS]
 #### **Terrain Context in Targeting Function**
