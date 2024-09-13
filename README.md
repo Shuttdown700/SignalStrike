@@ -1,6 +1,6 @@
 # Overview
 
-The Electromagnetic Warfare Targeting Application supports EW platoons' operations by streamlining their targeting process. Users input a LOB 3-Line (Sensor MGRS, LOB orientation, PWR Received), and the application reverse-engineers the input sensor data, identifying potential targets in real-time. The application allows the aggregation of EW targeting data from three EW teams (EWTs). The application integrates target data onto an offline digital map to enhance situational awareness and enable precise targeting. This innovative tool empowers EW units to aggregate target data across their EWTs, significantly reducing the time required to detect, identify, and deliver effects on targets with decisive levels of efficiency and accuracy.
+The Electromagnetic Warfare Targeting Application, named SignalStrike, supports EW platoons' operations by streamlining their targeting process. Users input a LOB 3-Line (Sensor MGRS, LOB orientation, PWR Received), and the application reverse-engineers the target signal, identifying the location of potential targets in real-time. The application allows the aggregation of EW targeting data from up to three EW teams (EWTs). The application integrates target data onto an offline digital map to enhance situational awareness and enable precise targeting. This innovative tool empowers EW units to aggregate target data across their EWTs, significantly reducing the time required to detect, identify, and deliver effects on targets with decisive levels of efficiency and accuracy.
 
 ![](./icons/markdown/ewta_snapshot.PNG)
 
@@ -80,24 +80,42 @@ run.sh
 
 # Functions [WORK IN PROGRESS]
 #### **Single LOB Targeting Function:**
+![](./icons/markdown/single_LOB.PNG)
 Mention all the user input fields for targeting and target output fields
 #### **Multi-LOB Targeting Function (CUT/FIX):**
+![](./icons/markdown/CUT.PNG)
+Describe CUT
+![](./icons/markdown/FIX.PNG)
+Describe FIX
 Mention cuts and fixes, as well as non-intersecting LOBs
 #### **Target Overlay Interactability**
-...
+Selecting an EWT
+![](./icons/markdown/TGT_Interaction_EWT.PNG)
+Selecting a LOB
+![](./icons/markdown/TGT_Interaction_LOB.PNG)
+Selecting a CUT
+![](./icons/markdown/TGT_Interaction_CUT.PNG)
+Selecting a FIX
+![](./icons/markdown/TGT_Interaction_FIX.PNG)
 #### **Locally-Host Map Server:**
-...
+![](./icons/markdown/map_tile_server.PNG)
 #### **Logging Function:**
-...
+No picture needed
 #### **Plotting Current Location Function**
-...
+
 #### **Dynamic Marker Plotting**
-...
+![](./icons/markdown/generic_marker_option.PNG)
+
+![](./icons/markdown/generic_marker_plotted.PNG)
 #### **Dynamic Distance Measuring**
-...
+![](./icons/markdown/generic_marker_distance_measuring.PNG)
 #### **Grid Copying Feature**
+![](./icons/markdown/copy_mgrs_option.PNG)
+![](./icons/markdown/copy_mgrs_notification.PNG)
+
 Mention that holding click = right-click
 #### **Dynamic Map Download Service**
+![](./icons/markdown/dynamic_tile_downloader.PNG)
 Mention requirement for internet connection
 #### **Bulk Map Download Service**
 Add CTC and post download parameters

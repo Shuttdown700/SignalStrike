@@ -14,6 +14,7 @@
 [USER INTERFACE]
 - add a DTG datapoint to bottom left TGT data block in GUI
 - provide option to input coordinates instead of MGRS
+- add MGRS coord to Target FIX polygon pop-up
 [TESTING]
 - add system for testing to verify functionality when next features are added
 [CODE STRUCTURE]
@@ -37,5 +38,3 @@
 - create a function to log all generic marker data
 
 '''
-IDEA!!!!!
- - GPS JAMMER DETECTION TOOL
