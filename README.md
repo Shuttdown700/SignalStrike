@@ -25,7 +25,7 @@ python -m venv env
 # activate the virtual environment
 source ./venv/bin/activate
 # install required python modules
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 #### Install on Windows:
@@ -72,64 +72,57 @@ run.bat
 - From Linux Bash shell:
 ```bash
 # Start the EW Targeting Application
-run.sh
+source run.sh
 ```
 
 # User-Interface Layout
 ![](./icons/markdown/GUI_layout.PNG)
 
-# Functions [WORK IN PROGRESS]
-#### **Single LOB Targeting Function:**
-![](./icons/markdown/single_LOB.PNG)
-Mention all the user input fields for targeting and target output fields
-#### **Multi-LOB Targeting Function (CUT/FIX):**
-![](./icons/markdown/CUT.PNG)
-Describe CUT
-![](./icons/markdown/FIX.PNG)
-Describe FIX
-Mention cuts and fixes, as well as non-intersecting LOBs
-#### **Target Overlay Interactability**
-Selecting an EWT
-![](./icons/markdown/TGT_Interaction_EWT.PNG)
-Selecting a LOB
-![](./icons/markdown/TGT_Interaction_LOB.PNG)
-Selecting a CUT
-![](./icons/markdown/TGT_Interaction_CUT.PNG)
-Selecting a FIX
-![](./icons/markdown/TGT_Interaction_FIX.PNG)
-#### **Locally-Host Map Server:**
-![](./icons/markdown/map_tile_server.PNG)
-#### **Logging Function:**
-No picture needed
-#### **Plotting Current Location Function**
+# Functions
+### **Single LOB Targeting Function:**
+This essential function allows an estimated target location to be derived from a single sensor's LOB. The user must assume the target transmitter's minimum and maximum effective radiated power (ERP). The application will reverse-engineer the received signal to generate an estimated transmission origin and highlight the area of error where the transmitter may be located based on sensor and environmental parameters.
 
+![](./icons/markdown/single_LOB.PNG)
+
+### **Multi-LOB Targeting Function (CUT/FIX):**
+Sensor data from multiple EWTs can be simultaneously input to derive CUTs and FIXs: CUTs are in BLUE, and FIXs are in YELLOW. Notice that the target error (measured in acres) significantly reduces from LOB to CUT (18x smaller in this example) while the target error only slightly reduces from CUT to FIX (x3 smaller in this example). The application treats non-intersecting LOBs as two separate LOBs, and the target data from both LOBs will be displayed, allowing for EWTs to target separate transmitters simultaneously.
+
+![](./icons/markdown/CUT.PNG)
+
+![](./icons/markdown/FIX.PNG)
+
+![](./icons/markdown/TWO_LOB.PNG)
+### **Locally-Host Map Server:**
+The map tiles for the interactive map are downloaded into a local database and served via a locally-hosted map server. This function provides the user with a map service in an offline, austere environment. The map server is an HTTP server that launches when the app starts.
+
+![](./icons/markdown/map_tile_server.PNG)
+#### **Dynamic Map Download Service**
+When a public internet connection is detected, the dynamic map tile download service will detect missing map tiles that the user is requesting to the map server and download them at an interval of 10-15 seconds. This function allows the user to easily download map tiles when they have an internet connection for later use or to view new areas of the map with ease, knowing that any missing map data will be quickly downloaded based on the user's activity. If there is no detected public internet connection, the dynamic map download service will terminate following the application's start.
+
+![](./icons/markdown/dynamic_tile_downloader.PNG)
 #### **Dynamic Marker Plotting**
+Various general-use tools are built into the application, including dynamic marker plotting. Marker plotting is done by right-clicking (or, on a tablet, long-pressing) the map and selecting "Add Generic Marker." This will plot a marker on the map with a number, which increments based on the number of genetic markers currently plotted on the map.
+
 ![](./icons/markdown/generic_marker_option.PNG)
 
 ![](./icons/markdown/generic_marker_plotted.PNG)
 #### **Dynamic Distance Measuring**
+The user can measure distances on the map by plotting two generic markers. The application calculates the distance between the two markers and displays the distance between the two markers.
+
 ![](./icons/markdown/generic_marker_distance_measuring.PNG)
+
 #### **Grid Copying Feature**
+User feedback from the first round of field experimentation generated a requirement for a quick way for the user to plot EWT locations when knowing where on the map the EWT is operating. The user can right-click (or, on a tablet, long-pressing) the map and select "Copy MGRS Grid." The MGRS grid from the chosen location will be displayed and copied to the clipboard. The user can then paste the MGRS grid into a user input field by pasting or (on a tablet) long-holding on the input field.
+
 ![](./icons/markdown/copy_mgrs_option.PNG)
+
 ![](./icons/markdown/copy_mgrs_notification.PNG)
 
-Mention that holding click = right-click
-#### **Dynamic Map Download Service**
-![](./icons/markdown/dynamic_tile_downloader.PNG)
-Mention requirement for internet connection
-#### **Bulk Map Download Service**
-Add CTC and post download parameters
 
-# Future Functions [WORK IN PROGRESS]
+# Planned Future Functions
 #### **Terrain Context in Targeting Function**
-...
 #### **Service for receiving remote sensor data**
-...
 #### **Integrated EW Planning Function**
-...
 #### **Advanced Logging Features**
-...
 #### **Post-Mission Analysis Function**
-...
-#### **Unit Testing (for Development)**
-...
+#### **Unit Testing (for more rapid application development)**
