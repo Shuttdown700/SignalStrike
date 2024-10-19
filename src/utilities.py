@@ -127,7 +127,7 @@ def remove_empty_csv_rows(csv_file: str) -> None:
     temp_file.close()
     os.remove(temp_file)
 
-def read_csv(file_path: str) -> None:
+def read_csv(file_path: str) -> list[dict]:
     """
     Reads a csv file
 
