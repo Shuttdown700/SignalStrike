@@ -2,7 +2,7 @@
 
 import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-from utilities import import_libraries
+from utilities import import_libraries, read_json
 libraries = [['customtkinter'],['CTkMessagebox',['CTkMessagebox']],
              ['numpy'],['os'],['PIL',['Image','ImageTK']],
              ['sys'],['threading'],['tkinter',['END']],['tkintermapview',['TkinterMapView']],
@@ -25,36 +25,38 @@ class App(customtkinter.CTk):
     WIDTH = 1200
     # preset height of GUI display (dependent on WIDTH and ASPECT_RATIO)
     HEIGHT = int(WIDTH/ASPECT_RATIO)
-    # preset local port that is hosting the map server
-    MAP_SERVER_PORT = 1234
+    # read the app config file
+    conf = read_json(os.path.join(os.path.dirname(os.path.abspath(__file__)),"config_files","conf.json"))
     # present IP address for the map server
-    MAP_SERVER_IP = 'localhost'
+    MAP_SERVER_IP = conf["MAP_SERVER_IP"]
+    # preset local port that is hosting the map server
+    MAP_SERVER_PORT = conf["MAP_SERVER_PORT"]
     # preset maximum map zoom level
-    MAX_ZOOM = 19
+    MAX_ZOOM = conf["MAX_ZOOM"]
     # preset default values
     DEFAULT_VALUES = {
-        "Sensor 1 MGRS": "11SNV4178910362",
-        "Sensor 1 PWR Received": -75,
-        "Sensor 1 LOB": 105,
-        "Sensor 2 MGRS": "11SNV4314711067",
-        "Sensor 2 PWR Received": -78,
-        "Sensor 2 LOB": 165,
-        "Sensor 3 MGRS": "11SNV4632811020",
-        "Sensor 3 PWR Received": -79,
-        "Sensor 3 LOB": 247,
-        "Frequency":32,
-        "Min ERP":0.005,
-        "Max ERP":50,
-        "Path-Loss Coefficient":4,
-        "Path-Loss Coefficient Description":"Moderate Foliage",
-        "Border Width":4,
-        "LOB Fill Color":"gray95",
-        "LOB Center Line Color":"Red",
-        "LOB Area Outline Color":"Green",
-        "CUT Area Outline Color":"Blue",
-        "FIX Area Outline Color":"Yellow",
-        "Initial Latitude":31.8691,
-        "Initial Longitude":-81.6090,
+        "Sensor 1 MGRS": conf["DEFAULT_SENSOR_1_MGRS"],
+        "Sensor 1 PWR Received": conf["DEFAULT_SENSOR_1_PWR_RECEIVED"],
+        "Sensor 1 LOB": conf["DEFAULT_SENSOR_1_LOB"],
+        "Sensor 2 MGRS": conf["DEFAULT_SENSOR_2_MGRS"],
+        "Sensor 2 PWR Received": conf["DEFAULT_SENSOR_2_PWR_RECEIVED"],
+        "Sensor 2 LOB": conf["DEFAULT_SENSOR_2_LOB"],
+        "Sensor 3 MGRS": conf["DEFAULT_SENSOR_3_MGRS"],
+        "Sensor 3 PWR Received": conf["DEFAULT_SENSOR_3_PWR_RECEIVED"],
+        "Sensor 3 LOB": conf["DEFAULT_SENSOR_3_LOB"],
+        "Frequency":conf["DEFAULT_FREQUENCY_MHZ"],
+        "Min ERP":conf["DEFAULT_MIN_ERP_W"],
+        "Max ERP":conf["DEFAULT_MAX_ERP_W"],
+        "Path-Loss Coefficient":conf["DEFAULT_PATH-LOSS_COEFFICIENT"],
+        "Path-Loss Coefficient Description":conf["DEFAULT_PATH-LOSS_COEFFICIENT_DESCRIPTION"],
+        "Border Width":conf["DEFAULT_BORDER_WIDTH"],
+        "LOB Fill Color":conf["DEFAULT_LOB_FILL_COLOR"],
+        "LOB Center Line Color":conf["DEFAULT_LOB_CENTER_LINE_COLOR"],
+        "LOB Area Outline Color":conf["DEFAULT_LOB_AREA_OUTLINE_COLOR"],
+        "CUT Area Outline Color":conf["DEFAULT_CUT_AREA_OUTLINE_COLOR"],
+        "FIX Area Outline Color":conf["DEFAULT_FIX_AREA_OUTLINE_COLOR"],
+        "Initial Latitude":conf["DEFAULT_INITIAL_LATITUDE"],
+        "Initial Longitude":conf["DEFAULT_INITIAL_LONGITUDE"],
     }
     PATH_LOSS_DICT = {
         'Free Space':2,
@@ -87,11 +89,11 @@ class App(customtkinter.CTk):
         # define source file directory
         self.src_directory = os.path.dirname(os.path.abspath(__file__))
         # define icon file directory
-        self.icon_directory = "\\".join(self.src_directory.split('\\')[:-1])+"\\icons"
+        self.icon_directory = os.path.join("\\".join(self.src_directory.split('\\')[:-1]),App.conf["DIR_RELATIVE_ICONS"])
         # define map tile directory
-        self.tile_directory = "\\".join(self.src_directory.split('\\')[:-1])+"\\map_tiles\\ESRI"
+        self.tile_directory = os.path.join("\\".join(self.src_directory.split('\\')[:-1]),App.conf["DIR_RELATIVE_MAP_TILES"])
         # define icon file directory
-        self.log_directory = "\\".join(self.src_directory.split('\\')[:-1])+"\\logs"
+        self.log_directory = os.path.join("\\".join(self.src_directory.split('\\')[:-1]),App.conf["DIR_RELATIVE_LOGS"])
         # define target image icon
         self.target_image_LOB = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "target_LOB.png")).resize((40, 40)))
         # define target image icon
@@ -2681,7 +2683,7 @@ class App(customtkinter.CTk):
                 print(f"Unknown error in 'generate_EUD_coordinate' method: {e}")
                 return
             acc = ''
-            if lat is None and lon is None:
+            if lat is None or lon is None:
                 print("The output of the 'generate_EUD_coordinate' method is a NoneType")
                 self.show_info("Cannot read GPS receiver")
                 return
@@ -2859,88 +2861,6 @@ class App(customtkinter.CTk):
         from utilities import check_internet_connection
         if not check_internet_connection(): self.show_info("Function unavailable. No public internet connection.",box_title="Feature Unavailable",icon='info'); return
         self.show_info("This function has been disabled by the dev",box_title="Function Disabled Notice",icon='info'); return
-        import re
-        from utilities import check_coord_input, check_mgrs_input, convert_coords_to_mgrs, convert_mgrs_to_coords, get_coord_box
-        def append_cmd_to_queue(cmd,file_path=os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\batch_tile_queue.csv"):
-            import csv
-            if cmd == "" or cmd == []: return
-            row_to_append = [cmd]
-            with open(file_path, mode='a', newline='') as file:
-                csv_writer = csv.writer(file)
-                csv_writer.writerow(row_to_append)
-        # read center mgrs input
-        center_mgrs = self.batch_download_center_mgrs.get().replace(" ","")
-        # check if NOT a valid mgrs
-        if not check_mgrs_input(center_mgrs):
-            # check if a valid coordinate
-            center_coord = self.correct_coord_input(center_mgrs)
-            if not check_coord_input(center_coord):
-                # display input error warning
-                self.show_info("MGRS / coordiante input is invalid",box_title="Input Error",icon='warning')
-                # end function
-                return
-            # convert coordinate to mgrs string
-            center_mgrs = convert_coords_to_mgrs(center_coord)
-        # if a valid mgrs
-        else:
-            # convert mgrs string to coordinate list
-            center_coord = convert_mgrs_to_coords(center_mgrs)
-        # read zoom string input
-        zoom_string = self.batch_download_zoom_range.get()
-        # check if zoom string is valid
-        if zoom_string == '' or len(zoom_string) > 5 or re.search(r'[a-zA-Z]+', zoom_string):
-            # display error upon invalid zoom string
-            self.show_info("Zoom range is invalid",box_title="Input Error",icon='warning')
-            # end function
-            return
-        # define zoom range
-        min_zoom = min([int(x.strip()) for x in zoom_string.split('-')])
-        max_zoom = max([int(x.strip()) for x in zoom_string.split('-')])
-        if min_zoom < 0: min_zoom = 0
-        if max_zoom > App.MAX_ZOOM: max_zoom = App.MAX_ZOOM
-        # read radius input and determine if valid
-        try:
-            radius_m = int(self.batch_download_radius.get())
-            x_dist_m = y_dist_m = radius_m
-        # if not valid
-        except ValueError:
-            # display error upon invalid radius input
-            self.show_info("Radius input is invalid",box_title="Input Error",icon='warning')
-            # end function
-            return
-        # identify tile download filepath
-        get_tiles_file = os.path.join(self.src_directory, "get_tiles.py")
-        # identify remote tile API
-        tile_url = '"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png"'
-        # identify number of threads dedicated to download
-        parallel_threads = 4
-        # generate coordinate bbox from input
-        coord_bbox = get_coord_box(center_coord,x_dist_m,y_dist_m)
-        # string operation on coordinate bbox
-        coord_bbox = coord_bbox.replace(","," ").split()
-        # generate CLI command
-        cmd = f'python "{get_tiles_file}" "{tile_url}" "{self.tile_directory}" --extent {coord_bbox[0]} {coord_bbox[1]} {coord_bbox[2]} {coord_bbox[3]} --minzoom {min_zoom} --maxzoom {max_zoom} --parallel {parallel_threads}'
-        '''
-        
-        Alter queue append to send args, not entire command
-        Add a main function to estimate run time and a main fuction to give status on current batch download queue
-        gui function to do a popup on the batch download details and a verify 
-        
-        '''
-        append_cmd_to_queue(cmd)
-        # # generate command list
-        # cmd_list = ['python',f'"{get_tiles_file}"',f'"{tile_url}"',f'"{self.tile_directory}"','--extent','{coord_bbox[0]}',
-        #             '{coord_bbox[1]}','{coord_bbox[2]}','{coord_bbox[3]}','--minzoom','{min_zoom}','--maxzoom','{max_zoom}',
-        #             '--parallel','{parallel_threads}']
-        # def download_func(cmd_list):
-        #     # subprocess.Popen(cmd_list,start_new_session=True)
-        #     subprocess.run(cmd, shell=True, start_new_session=True)
-        # # run tile download command
-        # # subprocess.run(cmd, shell=True, start_new_session=True)
-        # from multiprocessing import Process
-        # proc_batch_download = Process(target=download_func,args=(cmd_list))
-        # # procs.append(proc_batch_download)
-        # proc_batch_download.start()
         
     def marker_click(self,marker):
         if "TGT" in marker.data:

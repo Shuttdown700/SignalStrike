@@ -3,12 +3,12 @@ from utilities import check_internet_connection, read_csv, write_csv
 
 def download_tile(tile,
              output_dir="\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+'/map_tiles/ESRI/',
-             tileurl='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png',
+             tileurl="https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=8242f8cd508342868f3d7d29e472aca9",
              bool_overwrite=False,
              timeout_num=5,
              interval_num=100):
     import os, time, urllib, urllib.request
-    basepath = tileurl.split("/")[-1]  # ?foo=bar&z={z}.ext
+    basepath = tileurl.split('?')[0].split("/")[-1]  # ?foo=bar&z={z}.ext
     segments = basepath.split(".")
     ext = "." + segments[-1] if len(segments) > 1 else ".png"
     val_z = str(tile["Z"])
@@ -56,10 +56,13 @@ def download_tile(tile,
         time.sleep(interval_num / 1000)
 
 def main():
-    queue_file_name = os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\dynamic_tile_queue.csv"
+    from utilities import read_json
+    conf = read_json(os.path.join(os.path.dirname(os.path.abspath(__file__)),"config_files","conf.json"))
+    queue_file_name = os.path.join("\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1]),conf["DIR_RELATIVE_QUEUE"],"dynamic_tile_queue.csv")
+    output_dir= os.path.join("\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1]),conf["DIR_RELATIVE_MAP_TILES"])
     if not os.path.isfile(queue_file_name): 
         with open(queue_file_name, mode='w', newline='') as file:
-            print("Creating batch queue file...\n") 
+            print("Creating batch queue file...\n")
     wait_interval_sec = 10
     time.sleep(2)
     try:
@@ -78,7 +81,7 @@ def main():
             if len(tile_queue) > 0:
                 print(tile_queue)
                 for tile in tile_queue:
-                    download_tile(tile)
+                    download_tile(tile,output_dir)
                     print(f"Tile {tile} downloaded")
                     downloaded_tile_list.append(tile)
                 tile_queue = read_csv(queue_file_name)

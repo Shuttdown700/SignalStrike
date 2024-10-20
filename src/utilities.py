@@ -175,6 +175,12 @@ def write_csv(file_path: str,csv_data: list) -> None:
         writer.writeheader()
         writer.writerows(csv_data)
 
+def read_json(filepath: str) -> dict:
+    import json
+    with open(filepath, 'r', encoding='utf-8') as json_file:
+        json_data = json.load(json_file)
+    return json_data
+
 def generate_DTG(timezone='LOCAL') -> str:
     """
     Generate the current date-time group (DTG) in DDTTTTMMMYYYY format
@@ -224,7 +230,7 @@ def dtg_from_utc_to_local(dtg_utc,timezone_local):
 def dtg_from_local_to_utc(dtg_local,timezone_local):
     pass
 
-def generate_EUD_coordinate() -> (dict,None):
+def generate_EUD_coordinate() -> dict:
     def coordinate_format_conversion(lat,lat_dir,lon,lon_dir):
         lat = str(lat); lon = str(lon)
         lat_var1 = lat[:2]
@@ -310,7 +316,7 @@ def convert_coordinates_to_meters(coord_element: float) -> float:
     assert isinstance(coord_element,(float,int)), 'Input needs to be a float.'
     return coord_element * 111139
 
-def adjust_coordinate(starting_coord: list,azimuth_degrees: (float,int),shift_m: (float,int)) -> list:
+def adjust_coordinate(starting_coord: list,azimuth_degrees: float,shift_m: float) -> list:
     """
     Adjusts input lat-lon coordinate a specified distance in a specified direction
 
@@ -340,7 +346,7 @@ def adjust_coordinate(starting_coord: list,azimuth_degrees: (float,int),shift_m:
         print(f"Assertation Error in Adjust Coordinate method: {ae}")
         return None
     # function to generate lat,lon adjustments
-    def func(degrees: (float,int), magnitude: (float,int)) -> tuple: # returns in lat,lon format
+    def func(degrees: float, magnitude: float) -> tuple: # returns in lat,lon format
         return magnitude * math.cos(math.radians(degrees)), magnitude * math.sin(math.radians(degrees))
     # earth radius in meters
     earth_radius_meters = 6371000.0
@@ -355,7 +361,7 @@ def adjust_coordinate(starting_coord: list,azimuth_degrees: (float,int),shift_m:
     # return adjusted coordinate
     return [new_lat,new_lon]
 
-def convert_coords_to_mgrs(coords: list,precision:int = 5) -> (str,None):
+def convert_coords_to_mgrs(coords: list,precision:int = 5) -> str:
     """
     Convert location from coordinates to MGRS.
 
@@ -380,7 +386,7 @@ def convert_coords_to_mgrs(coords: list,precision:int = 5) -> (str,None):
     except AssertionError:
         return None
 
-def convert_mgrs_to_coords(milGrid: str) -> (list,None):
+def convert_mgrs_to_coords(milGrid: str) -> list:
     """
     Convert location from MGRS to coordinates.
 
@@ -516,10 +522,27 @@ def correct_coord_input(coord):
         return [float(c) for c in list(coord)]
     return coord
 
-def format_readable_mgrs(mgrs):
+def format_readable_mgrs(mgrs:str) -> str:
+    """
+    Formats a standard MGRS to a more readable MGRS for the purpose of UI
+
+    Parameters
+    ----------
+    mgrs : str
+        The MGRS grid.
+
+    Returns
+    -------
+    str
+        The re-formated, more-readable MGRS grid.
+
+    """
+    # determine the MGRS precision level
     prefix_len = 5; mgrs_len = len(mgrs); precision = int((mgrs_len - prefix_len) / 2)
+    # if the MGRS is valid, return a more readable MGRS string object
     if check_mgrs_input(mgrs): 
         return f'{str(mgrs[:prefix_len]).upper()} {mgrs[prefix_len:prefix_len+precision]} {mgrs[prefix_len+precision:]}'
+    # return the input MGRS if invalid
     return mgrs
 
 def covert_degrees_to_radians(degrees):
@@ -560,7 +583,6 @@ def get_coord_box(center_coord,x_dist_m,y_dist_m):
         Coodinate string in "min_lon, min_lat, max_lon, max_lat" format.
 
     """
-    from main import adjust_coordinate
     import numpy as np
     diag_dist = np.sqrt(x_dist_m**2 + y_dist_m**2)
     tl_coord = adjust_coordinate(center_coord,315,diag_dist)
@@ -651,7 +673,7 @@ def get_center_coord(coord_list):
     assert isinstance(coord_list,list) and len(coord_list) >= 1, "Coordinates must be in a list comprehension of length 1 or greater"
     return [float(mean([c[0] for c in coord_list])),float(mean([c[1] for c in coord_list]))]
 
-def convert_watts_to_dBm(p_watts: (float,int)) -> float:
+def convert_watts_to_dBm(p_watts: float) -> float:
     """
     Converts watts to dBm.
 
