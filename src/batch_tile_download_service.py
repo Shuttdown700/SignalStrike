@@ -121,17 +121,17 @@ def batch_map_tile_download_service():
         else:
             time.sleep(1)    
 
-if __name__ != "__main__":
+if __name__ == "__main__":
     # JMRC
-    # lat_lon_top_left = [49.346879624602245, 11.659812747253916]
-    # lat_lon_bottom_right = [49.18337189700959, 11.938263364917287]
+    # lat_lon_top_left_jmrc = [49.346879624602245, 11.659812747253916]
+    # lat_lon_bottom_right_jmrc = [49.18337189700959, 11.938263364917287]
     # Zagan
-    # lat_lon_top_left = [51.67628616890177, 15.211444049242113]
-    # lat_lon_bottom_right = [51.36010942835179, 15.607117958891969]
+    lat_lon_top_left_zagan = [51.67628616890177, 15.211444049242113]
+    lat_lon_bottom_right_zagan = [51.36010942835179, 15.607117958891969]
     map_tile_directory = "\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+"\\map_tiles\\ESRI"
     min_map_tile_size_kb = 3
     delete_small_files_and_empty_dirs(map_tile_directory, min_map_tile_size_kb)  # Change this to your directory path
-    download_tile_batch([49.346879624602245, 11.659812747253916],[49.18337189700959, 11.938263364917287])
+    download_tile_batch(lat_lon_top_left_zagan,lat_lon_bottom_right_zagan)
 
 
 time.sleep(5)
