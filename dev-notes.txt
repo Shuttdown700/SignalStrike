@@ -1,5 +1,5 @@
 
---- EXISTING FEATURES ---
+--- ENHANCING EXISTING FEATURES ---
 
 [LOGGING FUNCTION]
 - Scroll to chose which logged target data to re-plot / reload
@@ -15,16 +15,18 @@
 - add a DTG datapoint to bottom left TGT data block in GUI
 - provide option to input coordinates instead of MGRS
 - add MGRS coord to Target FIX polygon pop-up
+- remove the batch download function from the UI, replace with planning tool functionality
 [TESTING]
 - add system for testing to verify functionality when next features are added
 [CODE STRUCTURE]
-- add config file for hard-coded data
+- remove hard-coded api key references
 - set a standard padx, pady in defaults dict
 - move log function to utilities
 - move batch download function into utilities file
 - split utilities file into multiple files, by category (RF, map, log, files, etc.)
+- decorator to determine the time functions/processes take
 
---- NEW FEATURES ---
+--- ADDING NEW FEATURES ---
 
 [ANALYSIS]
 - log analysis tools
@@ -36,5 +38,6 @@
 - dropdown menu to choose different types of graphics to remove from overlay
 [GENERIC MARKER LOG]
 - create a function to log all generic marker data
-
+[BLUETOOTH / WIFI CONNECTIVITY FOR TRANSFERING DATA]
+- create a listener and transmission method for communicating data across a network
 '''

@@ -33,15 +33,9 @@ python -m pip install -r requirements.txt
 
     **Method 1:** Download from the Microsoft Store
 
-    **Method 2:** Download from 
-<a href="https://www.python.org/downloads/" style="font-style: italic">
-    Python.org
-</a>
+    **Method 2:** Download from [Python.org](https://www.python.org/downloads/)
 
-2. Download **Git for Windows** from
-<a href="https://git-scm.com/download/win" style="font-style: italic">
-    git-scm.com
-</a>
+2. Download **Git for Windows** from [git-scm.com](https://git-scm.com/download/win)
 
 3. Open a **Command (cmd) Prompt** and input the following commands:
 ```sh

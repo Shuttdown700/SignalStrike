@@ -103,7 +103,7 @@ def main():
 
     def download(tile):
         import time
-        basepath = args["tileurl"].split("/")[-1]  # ?foo=bar&z={z}.ext
+        basepath = args["tileurl"].split('?')[0].split("/")[-1]  # ?foo=bar&z={z}.ext
         segments = basepath.split(".")
         ext = "." + segments[-1] if len(segments) > 1 else ".png"
 
@@ -112,9 +112,7 @@ def main():
 
         if os.path.exists(write_filepath) and not args["overwrite"]:
             # skip if already exists when not-overwrite mode
-            '''
-            print something saying that the tile is already downloaded?
-            '''
+            print(f'Bypassing: {tile[2]}/{tile[0]}/{tile[1]}.png already exisits')
             return
 
         url = (
