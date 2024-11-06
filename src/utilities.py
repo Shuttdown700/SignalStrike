@@ -721,7 +721,7 @@ def emission_distance(P_t_watts,f_MHz,G_t,G_r,R_s,path_loss_coeff=3):
 
     """
     import math
-    return 10**((convert_watts_to_dBm(P_t_watts)+(G_t)-32.4-(10*path_loss_coeff*math.log10(f_MHz))+(G_r)-R_s)/(10*path_loss_coeff))
+    return 10**((convert_watts_to_dBm(P_t_watts)+(G_t)-32.4-(20*math.log10(f_MHz))+(G_r)-R_s)/(20))
 
 def emission_optical_maximum_distance(t_h,r_h):
     """
