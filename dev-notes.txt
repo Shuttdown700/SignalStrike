@@ -16,6 +16,7 @@
 - provide option to input coordinates instead of MGRS
 - add MGRS coord to Target FIX polygon pop-up
 - remove the batch download function from the UI, replace with planning tool functionality
+- ***if using the Terrain map, the icon text MUST be in black
 [TESTING]
 - add system for testing to verify functionality when next features are added
 [CODE STRUCTURE]

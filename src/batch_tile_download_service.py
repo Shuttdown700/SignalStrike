@@ -122,16 +122,18 @@ def batch_map_tile_download_service():
             time.sleep(1)    
 
 if __name__ == "__main__":
-    # JMRC
     # lat_lon_top_left_jmrc = [49.346879624602245, 11.659812747253916]
     # lat_lon_bottom_right_jmrc = [49.18337189700959, 11.938263364917287]
-    # Zagan
-    lat_lon_top_left_zagan = [51.67628616890177, 15.211444049242113]
-    lat_lon_bottom_right_zagan = [51.36010942835179, 15.607117958891969]
-    map_tile_directory = "\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+"\\map_tiles\\ESRI"
+    # lat_lon_top_left_zagan = [51.67628616890177, 15.211444049242113]
+    # lat_lon_bottom_right_zagan = [51.36010942835179, 15.607117958891969]
+    # lat_lon_top_left_fsga = [32.17298556737781, -81.92483248818199]
+    # lat_lon_bottom_right_fsga = [31.844968894681053, -81.34921614575053]
+    lat_lon_top_left_ntc = [35.51647615855687, -116.85645436651438]
+    lat_lon_bottom_right_ntc = [35.18817526937803, -116.3086324976313]
+    map_tile_directory = "\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+"\\map_tiles\\Terrain"
     min_map_tile_size_kb = 3
-    delete_small_files_and_empty_dirs(map_tile_directory, min_map_tile_size_kb)  # Change this to your directory path
-    download_tile_batch(lat_lon_top_left_zagan,lat_lon_bottom_right_zagan)
+    # delete_small_files_and_empty_dirs(map_tile_directory, min_map_tile_size_kb,dry_run=True)  # Change this to your directory path
+    download_tile_batch(lat_lon_top_left_ntc,lat_lon_bottom_right_ntc)
 
 
 time.sleep(5)
@@ -143,5 +145,14 @@ CLI-based
 
 arguement optional, with hard-coded defaults
 
+Create a config with the various regions
+
+Create an estimate on completion (# complete / # remaining)
+
+add color
+
+create another file or function to facilitate the copying of map data to storage devices
 
 """
+
+# xcopy "C:\Users\brend\Documents\Coding Projects\ew_plt_targeting_app\map_tiles" "S:\Coding Projects" /s /e /d
