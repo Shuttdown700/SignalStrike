@@ -3,12 +3,14 @@
     "MAP_SERVER_PORT": 1234,
     "MAP_DATABASE_NAME": "Terrain",
     "MAX_ZOOM": 18,
-    "DIR_RELATIVE_MAP_TILES": "map_tiles/Terrain",
+    "DIR_RELATIVE_MAP_TILES": "map_tiles",
     "DIR_RELATIVE_LOGS": "logs",
     "DIR_RELATIVE_TESTS": "tests",
     "DIR_RELATIVE_ICONS": "icons",
     "DIR_RELATIVE_QUEUE": "src/queue_files",
     "DEFAULT_BASE_TILE_URL":"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/",
+    "SATELLITE_TILE_URL":"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    "TERRAIN_TILE_URL":"https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=8242f8cd508342868f3d7d29e472aca9",
     "DEFAULT_SENSOR_1_MGRS": "11SNV4178910362",
     "DEFAULT_SENSOR_1_PWR_RECEIVED": -75,
     "DEFAULT_SENSOR_1_LOB": 105,
@@ -30,5 +32,6 @@
     "DEFAULT_CUT_AREA_OUTLINE_COLOR":"Blue",
     "DEFAULT_FIX_AREA_OUTLINE_COLOR":"Yellow",
     "DEFAULT_INITIAL_LATITUDE":31.8691,
-    "DEFAULT_INITIAL_LONGITUDE":-81.6090
+    "DEFAULT_INITIAL_LONGITUDE":-81.6090,
+    "DEFAULT_MAP_SERVER_PATH":"/Terrain/{z}/{x}/{y}.png"
 }

@@ -72,55 +72,6 @@ def download_tile_batch(
     print(f'Executing the following command:\n\n{cmd}\n')
     subprocess.run(cmd, shell=True, start_new_session=True)
 
-def batch_map_tile_download_service():
-    map_tile_directory = "\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+"\\map_tiles\\ESRI"
-    min_map_tile_size_kb = 3
-    delete_small_files_and_empty_dirs(map_tile_directory, min_map_tile_size_kb)  # Change this to your directory path
-    print('Starting Batch Tile Download Service:\n')
-    queue_file_name = os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\batch_tile_queue.csv"
-    if not os.path.isfile(queue_file_name): 
-        with open(queue_file_name, mode='w', newline='') as file:
-            print("Creating batch queue file...\n")    
-    wait_interval_sec = 10
-    offline_indicator = 0
-    time.sleep(2)
-    while True:
-        cmd_complete_list = []
-        t1 = datetime.datetime.today()
-        try:
-            cmd_queue = read_csv(queue_file_name)
-        except Exception as e:
-            print(f'Error reading batch queue file: {e}',end='\n')
-            time.sleep(5)
-            continue
-        if not check_internet_connection():
-            time.sleep(5)
-            if not check_internet_connection(): print('No public internet connection... terminating service'); break
-        if len(cmd_queue) > 0:
-            for cmd in cmd_queue:
-                command = cmd[0]
-                print(f'Executing the following command:\n\n{command}')
-                subprocess.run(command, shell=True, start_new_session=True)
-                cmd_complete_list.append(cmd)
-            cmd_queue = read_csv(queue_file_name)
-            cmd_queue_updated = []
-            for cmd in cmd_queue:
-                if cmd in cmd_complete_list:
-                    continue
-                else:
-                    cmd_queue_updated.append({'Command':cmd})
-            write_csv(queue_file_name,cmd_queue_updated)
-        else:
-            print('Batch download queue is empty.\n')
-        t2 = datetime.datetime.today()
-        t_delta = t1 - t2
-        if t_delta.total_seconds() < wait_interval_sec:
-            print(f'Waiting: {wait_interval_sec - t_delta.total_seconds():,.2f} seconds...',end='\n')
-            time.sleep(min(wait_interval_sec - t_delta.total_seconds(),wait_interval_sec))
-            wait_interval_sec = 100
-        else:
-            time.sleep(1)    
-
 if __name__ == "__main__":
     # lat_lon_top_left_jmrc = [49.346879624602245, 11.659812747253916]
     # lat_lon_bottom_right_jmrc = [49.18337189700959, 11.938263364917287]
@@ -130,10 +81,21 @@ if __name__ == "__main__":
     # lat_lon_bottom_right_fsga = [31.844968894681053, -81.34921614575053]
     lat_lon_top_left_ntc = [35.51647615855687, -116.85645436651438]
     lat_lon_bottom_right_ntc = [35.18817526937803, -116.3086324976313]
-    map_tile_directory = "\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+"\\map_tiles\\Terrain"
+
+    # https://tile.tracestrack.com/topo_en/{z}/{x}/{y}.png?key=ed9a1d727da81b743cec066617572751&style=contrast-
+    # https://opentopomap.org/#map=13/35.32661/-116.54657
+    # https://tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=8242f8cd508342868f3d7d29e472aca9
+
+    from utilities import read_json
+    conf = read_json(os.path.join(os.path.dirname(os.path.abspath(__file__)),"config_files","conf.json"))
+    queue_file_name = os.path.join("\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1]),conf["DIR_RELATIVE_QUEUE"],"dynamic_tile_queue.csv")
+    output_dir= os.path.join("\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1]),conf["DIR_RELATIVE_MAP_TILES"])
+
+
+    map_tile_directory = os.path.join(output_dir,"Terrain")
     min_map_tile_size_kb = 3
     # delete_small_files_and_empty_dirs(map_tile_directory, min_map_tile_size_kb,dry_run=True)  # Change this to your directory path
-    download_tile_batch(lat_lon_top_left_ntc,lat_lon_bottom_right_ntc)
+    download_tile_batch(lat_lon_top_left_ntc,lat_lon_bottom_right_ntc,map_tile_directory)
 
 
 time.sleep(5)
@@ -144,6 +106,8 @@ Re-design:
 CLI-based
 
 arguement optional, with hard-coded defaults
+
+default options presented
 
 Create a config with the various regions
 

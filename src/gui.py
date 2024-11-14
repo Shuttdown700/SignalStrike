@@ -57,6 +57,7 @@ class App(customtkinter.CTk):
         "FIX Area Outline Color":conf["DEFAULT_FIX_AREA_OUTLINE_COLOR"],
         "Initial Latitude":conf["DEFAULT_INITIAL_LATITUDE"],
         "Initial Longitude":conf["DEFAULT_INITIAL_LONGITUDE"],
+        "Map Server File Path":conf["DEFAULT_MAP_SERVER_PATH"]
     }
     PATH_LOSS_DICT = {
         'Free Space':2,
@@ -834,7 +835,7 @@ class App(customtkinter.CTk):
         # set map widget default tile server
         map_server_url = f'http://{App.MAP_SERVER_IP}:{App.MAP_SERVER_PORT}'
         self.map_widget.set_tile_server(
-            tile_server=map_server_url+"/{z}/{x}/{y}.png",
+            tile_server=map_server_url+App.DEFAULT_VALUES["Map Server File Path"],
             max_zoom=App.MAX_ZOOM)
         # set initial zoom level for map tile server
         self.map_widget.set_zoom(14)
@@ -914,7 +915,7 @@ class App(customtkinter.CTk):
         # define map option dropdown attributes
         self.map_option_menu = customtkinter.CTkOptionMenu(
             master=self.frame_right, 
-            values=["Local Map Server", "OpenStreetMap", "Google Street", "Google Satellite"],
+            values=["Local Terrain Map", "Local Satellite Map", "OpenStreetMap", "Google Street", "Google Satellite"],
             command=self.change_map)
         # assign map option dropdown grid position
         self.map_option_menu.grid(
@@ -995,7 +996,7 @@ class App(customtkinter.CTk):
         # set initial location
         self.map_widget.set_position(App.DEFAULT_VALUES["Initial Latitude"],App.DEFAULT_VALUES["Initial Longitude"])
         # set map widget default server
-        self.map_option_menu.set("Local Map Server")
+        self.map_option_menu.set("Local Terrain Map")
         # set default path-loss coefficient
         self.option_path_loss_coeff.set('Moderate Foliage')
         # set default sensor
@@ -2904,17 +2905,16 @@ class App(customtkinter.CTk):
 
     def change_map(self, new_map: str):
         map_server_url = f'http://localhost:{App.MAP_SERVER_PORT}'
-        if new_map == 'Local Map Server':
-            self.map_widget.set_tile_server(map_server_url+"/{z}/{x}/{y}.png", max_zoom=App.MAX_ZOOM)
+        if new_map == 'Local Terrain Map':
+            self.map_widget.set_tile_server(map_server_url+"/Terrain/{z}/{x}/{y}.png", max_zoom=App.MAX_ZOOM)
+        elif new_map == 'Local Satellite Map':
+            self.map_widget.set_tile_server(map_server_url+"/ESRI/{z}/{x}/{y}.png", max_zoom=App.MAX_ZOOM)
         elif new_map == "OpenStreetMap":
             self.map_widget.set_tile_server("https://a.tile.openstreetmap.org/{z}/{x}/{y}.png")
         elif new_map == "Google Street":
             self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=App.MAX_ZOOM)
         elif new_map == "Google Satellite":
             self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=App.MAX_ZOOM)
-        # https://tile.tracestrack.com/topo_en/{z}/{x}/{y}.png?key=ed9a1d727da81b743cec066617572751&style=contrast-
-        # https://opentopomap.org/#map=13/35.32661/-116.54657
-        # https://tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=8242f8cd508342868f3d7d29e472aca9
 
     def change_path_loss(self, path_loss_description: str):
         self.path_loss_coeff = App.PATH_LOSS_DICT.get(path_loss_description,4)

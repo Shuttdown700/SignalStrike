@@ -1,3 +1,14 @@
+--- STABLE RELEASE UPDATES ---
+
+- a pop-up when plotting current location to let the user know why its frozen
+- option to reload from last log: EW teams, generic markers
+- ability to remove a single marker at a time, without having to delete all the markers at a single time
+    - tap on icon, option to delete
+    - be able to remove the distance line between generic markers
+- the icon text to constrast the map (terrain map must use black, satellite map must use white)
+- ability to add some graphics (NAIs, friendly battle positions,etc)
+- don't center on clicked lobs or icons, messes when dragging around the map
+- ability to plot an EW team without plotting their LOB details and getting the distance from targets
 
 --- ENHANCING EXISTING FEATURES ---
 
@@ -11,12 +22,14 @@
 - give estimate warning prior to executing batch download
 - pass paramters to batch download... not command
 - verified emitter at 10km, pushing 20W, reads 7.23km est with no foliage
+- improve propogation model with new model
+
 [USER INTERFACE]
 - add a DTG datapoint to bottom left TGT data block in GUI
 - provide option to input coordinates instead of MGRS
 - add MGRS coord to Target FIX polygon pop-up
 - remove the batch download function from the UI, replace with planning tool functionality
-- ***if using the Terrain map, the icon text MUST be in black
+- add MGRS gridlines (perhaps a button to do this?)
 [TESTING]
 - add system for testing to verify functionality when next features are added
 [CODE STRUCTURE]

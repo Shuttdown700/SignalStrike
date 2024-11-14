@@ -230,6 +230,17 @@ def dtg_from_utc_to_local(dtg_utc,timezone_local):
 def dtg_from_local_to_utc(dtg_local,timezone_local):
     pass
 
+def determine_tile_url(map_name : str,conf : dict) -> str:
+    # determine tile URL from map_name input
+    if map_name== 'Terrain':
+        tile_url = conf["TERRAIN_TILE_URL"]
+    elif map_name== 'ESRI':
+        tile_url = conf["SATELLITE_TILE_URL"]
+    else:
+        print(f"Error: {map_name} is not a valid local map")
+        tile_url = ""
+    return tile_url
+
 def generate_EUD_coordinate() -> dict:
     def coordinate_format_conversion(lat,lat_dir,lon,lon_dir):
         lat = str(lat); lon = str(lon)
@@ -721,7 +732,8 @@ def emission_distance(P_t_watts,f_MHz,G_t,G_r,R_s,path_loss_coeff=3):
 
     """
     import math
-    return 10**((convert_watts_to_dBm(P_t_watts)+(G_t)-32.4-(20*math.log10(f_MHz))+(G_r)-R_s)/(20))
+    # return 10**((convert_watts_to_dBm(P_t_watts)+(G_t)-32.4-(20*math.log10(f_MHz))+(G_r)-R_s)/(20))
+    return 10**((convert_watts_to_dBm(P_t_watts)+(G_t)-32.4-(10*path_loss_coeff*math.log10(f_MHz))+(G_r)-R_s)/(10*path_loss_coeff))
 
 def emission_optical_maximum_distance(t_h,r_h):
     """

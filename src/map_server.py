@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 from utilities import read_csv, write_csv
 import os, sys
 
-def append_tile_to_queue(tile,file_path=os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\dynamic_tile_queue.csv"):
+def append_tile_to_queue(map_name,tile,file_path=os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\dynamic_tile_queue.csv"):
     """
     Appends tile row to queue csv file
 
@@ -25,9 +25,12 @@ def append_tile_to_queue(tile,file_path=os.path.dirname(os.path.abspath(__file__
     if not os.path.isfile(file_path): 
         with open(file_path, mode='w', newline=''):
             print("Creating batch queue file...\n")
-    tile_data = {"Z":tile[0],
+    tile_data = {
+                "Map":map_name,
+                "Z":tile[0],
                  "Y":tile[2],
-                 "X":tile[1]}
+                 "X":tile[1]
+                 }
     # for tkintermapview, tile segment order is Z, X, Y !!!
     # print('Tile Data: ',tile_data)
     queue_data = read_csv(file_path)
@@ -43,6 +46,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             path = path[1:]
         # check if the file exists within the specified directory
         file_path = os.path.join(SimpleHTTPRequestHandler.directory, path)
+        print(file_path)
         # check if requested filepath exists
         if os.path.exists(file_path) and os.path.isfile(file_path):
             # open and read the requested file
@@ -64,13 +68,16 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             # identify missing tile from request
             missing_tile = file_path.split('\\')[-1].split('.')[0].split('/')
             # loop through missing tile to verify components
+            if len(missing_tile) > 3:
+                map_name = missing_tile[0]
+                missing_tile = missing_tile[-3:]
             for mt in missing_tile:
                 # check if tile component is less than zero / invalid
                 if int(mt) < 0:
                     # end function
                     return
             # append missing tile to missing tile queue
-            append_tile_to_queue(missing_tile)
+            append_tile_to_queue(map_name,missing_tile)
 
 def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler, host="localhost", port=1234, directory="."):
     """

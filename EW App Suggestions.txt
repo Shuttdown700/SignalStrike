@@ -1,0 +1,13 @@
+Your feedback is required to improve this app!
+
+- some type of loading screen so user knows when the app is working to plot current loc
+- enabling reset of start map (maybe last plotted loc) so you don't have to re-plot every time
+- ability to remove a single marker or targeting graphic at a time
+- grid lines on the map; it will make it easier to compare to our graphics
+- ability to add some graphics (NAIs, friendly battle positions,etc)
+- way to turn brightness down more iso night ops
+- right now if I have lobs plotted and try to drag the map it centers on the lob as if I clicked it
+- ability to keep ew team location while deleting other values; bypass a team's empty inputs but still plot their location (and distance from lob value)
+- plot distance btwn feneric markers but also be able to remove those lines while keeping markers 
+
+
