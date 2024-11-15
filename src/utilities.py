@@ -90,6 +90,80 @@ def check_internet_connection() -> bool:
     except:
         return False
 
+import platform
+import os
+
+# Import Windows-specific library
+try:
+    import screen_brightness_control as sbc  # Only available on Windows
+except ImportError:
+    sbc = None
+
+def adjust_brightness(action):
+    """
+    Adjusts brightness by increasing or decreasing it by 10%
+    
+    Only acceptable actions are 'increase' and 'decrease'
+    """
+    # Get the current OS
+    current_os = platform.system()
+    
+    increment_value = 10  # Brightness increment in percentage
+    
+    if current_os == "Windows":
+        # For Windows, using the screen_brightness_control library
+        if sbc:
+            current_brightness = sbc.get_brightness(display=0)[0]  # Get the brightness for the first display
+            print(f"Current brightness: {current_brightness}%")
+            
+            if action == "increase":
+                new_brightness = min(current_brightness + increment_value, 100)  # Ensure brightness does not exceed 100%
+            elif action == "decrease":
+                new_brightness = max(current_brightness - increment_value, 0)   # Ensure brightness is not less than 0%
+            else:
+                print("Invalid action. Use 'increase' or 'decrease'.")
+                return
+            
+            sbc.set_brightness(new_brightness, display=0)
+            print(f"Brightness set to {new_brightness}%")
+    
+    elif current_os == "Linux":
+        # For Linux, using xrandr (brightness value between 0 and 1)
+        get_brightness_cmd = os.popen("xrandr --verbose | grep -i brightness").read()
+        current_brightness = float(get_brightness_cmd.split()[1])  # Extract the current brightness
+        print(f"Current brightness: {current_brightness * 100}%")
+        
+        if action == "increase":
+            new_brightness = min(current_brightness + increment_value / 100, 1.0)
+        elif action == "decrease":
+            new_brightness = max(current_brightness - increment_value / 100, 0.0)
+        else:
+            print("Invalid action. Use 'increase' or 'decrease'.")
+            return
+        
+        os.system(f"xrandr --output eDP-1 --brightness {new_brightness}")
+        print(f"Brightness set to {new_brightness * 100}%")
+    
+    elif current_os == "Darwin":  # macOS
+        # For macOS, using the brightness command-line tool
+        get_brightness_cmd = os.popen("brightness -l | grep brightness").read()
+        current_brightness = float(get_brightness_cmd.split()[1])  # Extract the current brightness
+        print(f"Current brightness: {current_brightness * 100}%")
+        
+        if action == "increase":
+            new_brightness = min(current_brightness + increment_value / 100, 1.0)
+        elif action == "decrease":
+            new_brightness = max(current_brightness - increment_value / 100, 0.0)
+        else:
+            print("Invalid action. Use 'increase' or 'decrease'.")
+            return
+        
+        os.system(f"brightness {new_brightness}")
+        print(f"Brightness set to {new_brightness * 100}%")
+    
+    else:
+        print(f"Unsupported operating system: {current_os}")
+
 def remove_empty_csv_rows(csv_file: str) -> None:
     """
     Removes empty rows from csv file

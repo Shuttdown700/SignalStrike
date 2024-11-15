@@ -185,7 +185,7 @@ class App(customtkinter.CTk):
             rowspan=1,
             column=0,
             columnspan=1, 
-            padx=(0,5), 
+            padx=(0,5),
             pady=(0,0),
             sticky='w')
         # define sensor option dropdown attributes
@@ -1521,7 +1521,7 @@ class App(customtkinter.CTk):
             self.sensor3_lob.delete(0,END)
             self.sensor3_Rpwr.delete(0,END)
         if bypass_ewt1_bool and bypass_ewt2_bool and bypass_ewt3_bool:
-            self.show_info("No EWT data entered.")
+            self.show_info("No EWT data entered.",icon='warning')
             return
         # try to read the input frequency
         try:
@@ -1675,7 +1675,6 @@ class App(customtkinter.CTk):
                 # define sensor 1 LOB description
                 sensor1_lob_description = f"EWT 1 at {format_readable_mgrs(self.sensor1_mgrs_val)} with a LOB at bearing {int(self.sensor1_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor1_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor1_max_distance_m)} with {self.sensor1_lob_error_acres:,.0f} acres of error"
                 # define and set sensor 1 marker on the map
-                
                 ew_team1_marker = self.map_widget.set_marker(
                     self.sensor1_coord[0], 
                     self.sensor1_coord[1],
@@ -2467,7 +2466,7 @@ class App(customtkinter.CTk):
         except PermissionError:
             # error message if file is currently open
             print("The desired log file is open during log function")
-            self.show_info("Log file currently open. Cannot log data!")
+            self.show_info("Log file currently open. Cannot log data!",icon='warning')
             return
         # success pop-up
         self.show_info("Data successfully logged!!!",box_title='Successful Log',icon='info') 
@@ -2489,14 +2488,14 @@ class App(customtkinter.CTk):
         # read last log
         recent_file = get_most_recently_modified_file(self.log_directory)
         if recent_file is None:
-            self.show_info("No log files detected.")
+            self.show_info("No log files detected.",icon='warning')
             return            
         log_data = read_csv(os.path.join(self.log_directory, recent_file))
         last_log_entry = log_data[-1]
         try:
             last_log_entry['EWT_1_MGRS']
         except KeyError:
-            self.show_info("No data is most recent log file.")
+            self.show_info("No data is most recent log file.",icon='warning')
             return
         # clear current entries
         self.clear_entries()
@@ -2551,7 +2550,6 @@ class App(customtkinter.CTk):
         # plot marker
         new_marker = self.map_widget.set_marker(coord[0], coord[1], 
                                                 text=marker_mgrs,
-                                                text_color='white', # #9E3939
                                                 icon=marker_icon,
                                                 image_zoom_visibility=(10, float("inf")),
                                                 command=self.marker_click,
@@ -2579,7 +2577,6 @@ class App(customtkinter.CTk):
             coord_y = np.average([sequencial_coord_list[0][1],sequencial_coord_list[1][1]])
             # plot marker distance at center coordinate
             marker_dist = self.map_widget.set_marker(coord_x,coord_y,text=f'{distance_text}',
-                                                     text_color='white',
                                                      image_zoom_visibility=(10, float('inf')),
                                                      icon=self.blank_image)
             # add distance marker and connecting line to list
@@ -2652,7 +2649,7 @@ class App(customtkinter.CTk):
         try:
             search_mgrs = self.search_mgrs.get()
         except ValueError:
-            self.show_info("Error loading Search MGRS")
+            self.show_info("Error loading Search MGRS",icon='warning')
             return
         if check_mgrs_input(search_mgrs):
             search_mgrs = correct_mgrs_input(search_mgrs)
@@ -2666,7 +2663,7 @@ class App(customtkinter.CTk):
             self.map_widget.set_position(search_coord[0],search_coord[1])
             self.add_marker_event(search_coord)
         else:
-            self.show_info("Invalid MGRS input!")
+            self.show_info("Invalid MGRS input!",icon='warning')
             return
 
     def plot_EUD_position(self,coord=None):
@@ -2676,7 +2673,7 @@ class App(customtkinter.CTk):
             try:
                 gps_data = generate_EUD_coordinate()
                 if gps_data is None:
-                    self.show_info('No GPS data available at this time.')
+                    self.show_info('No GPS data available at this time.',icon='warning')
                     return
                 lat = float(gps_data['lat']); lon = float(gps_data['lon']); 
                 # print(f'Latitude: {lat}, Longitude: {lon}')
@@ -2686,7 +2683,7 @@ class App(customtkinter.CTk):
             acc = ''
             if lat is None or lon is None:
                 print("The output of the 'generate_EUD_coordinate' method is a NoneType")
-                self.show_info("Cannot read GPS receiver")
+                self.show_info("Cannot read GPS receiver",icon='warning')
                 return
         else:
             lat = coord[0]; lon = coord[1]
@@ -2748,7 +2745,7 @@ class App(customtkinter.CTk):
         # if file permissions prevent log file saving
         except PermissionError:
             # error message if file is currently open
-            self.show_info("EUD Log file currently open. Cannot log data!")
+            self.show_info("EUD Log file currently open. Cannot log data!",icon='warning')
             return
         # success pop-up
         # self.show_info("EUD location data successfully logged!!!",icon='info')
@@ -2821,7 +2818,6 @@ class App(customtkinter.CTk):
         self.path_list = []
         self.eud_marker_list = []
         
-
     def clear_target_overlays(self):
         for ewt_marker in self.ewt_marker_list:
             ewt_marker.delete()
@@ -2863,22 +2859,69 @@ class App(customtkinter.CTk):
         if not check_internet_connection(): self.show_info("Function unavailable. No public internet connection.",box_title="Feature Unavailable",icon='info'); return
         self.show_info("This function has been disabled by the dev",box_title="Function Disabled Notice",icon='info'); return
         
-    def marker_click(self,marker):
+    def marker_click(self,marker) -> None:
+        from CTkMessagebox import CTkMessagebox
+        # generate message box based on marker category
         if "TGT" in marker.data:
-            self.show_info(msg=marker.data,box_title='TGT Data',icon='info')
+            msgBox_title = "TGT Data"
+            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])
         elif "EWT" in marker.data:
-            self.show_info(msg=marker.data,box_title='EWT Data',icon='info')
+            msgBox_title = "EWT Data"
+            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])
+        elif "User" in marker.data:
+            msgBox_title = "Generic Marker"
+            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])
         else:
-            self.show_info(msg=marker.data,box_title='EWT Data',icon='info')
+            msgBox_title = "Unknown Marker"
+            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])
+        # get user response
+        response = msgBox.get()
+        if response == 'Remove':
+            # remove marker from marker list
+            if msgBox_title == "TGT Data":
+                self.target_marker_list.remove(marker)
+            elif msgBox_title == "EWT Data":
+                self.ewt_marker_list.remove(marker)
+            elif msgBox_title == "Generic Marker":
+                self.user_marker_list.remove(marker)
+            # delete marker from map
+            lat, lon = marker.position[0], marker.position[1]
+            marker.delete()
+            self.map_widget.set_position(lat,lon)   
         
-    def polygon_click(self,polygon):
-        self.show_info(msg=polygon.data,box_title='Target Data',icon='info')
+    def polygon_click(self,polygon) -> None:
+        from CTkMessagebox import CTkMessagebox
+        # generate message box based on polygon category
+        if "LOB" in polygon.data:
+            msgBox_title = "LOB"
+            msgBox = CTkMessagebox(title=msgBox_title, message=polygon.data, icon='info',options=['Acknowledge','Remove'])
+        elif "CUT" in polygon.data:
+            msgBox_title = "CUT"
+            msgBox = CTkMessagebox(title=msgBox_title, message=polygon.data, icon='info',options=['Acknowledge','Remove'])
+        elif "FIX" in polygon.data:
+            msgBox_title = "FIX"
+            msgBox = CTkMessagebox(title=msgBox_title, message=polygon.data, icon='info',options=['Acknowledge','Remove'])
+        else:
+            msgBox_title = "Unknown Polygon"
+            msgBox = CTkMessagebox(title=msgBox_title, message=polygon.data, icon='info',options=['Acknowledge','Remove'])
+        # get user response
+        response = msgBox.get()
+        if response == 'Remove':
+            # remove polygon from polygon list
+            if msgBox_title == "LOB":
+                self.lob_list.remove(polygon)
+            elif msgBox_title == "CUT":
+                self.cut_list.remove(polygon)
+            elif msgBox_title == "FIX":
+                self.fix_list.remove(polygon)
+            # delete polygon from map
+            polygon.delete()
 
     def show_info(self,msg,box_title='Warning Message',icon='warning'):
         from CTkMessagebox import CTkMessagebox
         CTkMessagebox(title=box_title, message=msg, icon=icon,option_1='Ackowledged')
 
-    def input_error(self,category,msg,single_lob_option=False,cut_option=False,ewt_bypass_option=False,EWT_num=''):
+    def input_error(self,category,msg,single_lob_option=False,cut_option=False,ewt_bypass_option=False,EWT_num='') -> str:
         from CTkMessagebox import CTkMessagebox
         if not single_lob_option and not cut_option and not ewt_bypass_option:
             msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','Use Default'])
@@ -2903,7 +2946,7 @@ class App(customtkinter.CTk):
         else:
             return None
 
-    def change_map(self, new_map: str):
+    def change_map(self, new_map: str) -> None:
         map_server_url = f'http://localhost:{App.MAP_SERVER_PORT}'
         if new_map == 'Local Terrain Map':
             self.map_widget.set_tile_server(map_server_url+"/Terrain/{z}/{x}/{y}.png", max_zoom=App.MAX_ZOOM)

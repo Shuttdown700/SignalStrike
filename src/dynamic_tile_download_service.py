@@ -45,7 +45,10 @@ def download_tile(tile,
             # data = requests.get(url, verify=False)
             break
         except urllib.error.HTTPError as e:
-            raise Exception(str(e) + ":" + url)
+            print(f'HTTP Exception: {url}')
+            data = None
+            break
+            # raise Exception(str(e) + ":" + url)
         except Exception as e:
             if (
                 str(e.args)
@@ -53,9 +56,11 @@ def download_tile(tile,
             ):
                 print("timeout, retrying... :" + url)
             else:
-                raise Exception(str(e) + ":" + url)
+                print(f'Exception: {e}')
+                data = None
+                break
+                # raise Exception(str(e) + ":" + url)
     if data is not None:
-        # print(f'Downloading {tile[2]}/{tile[0]}/{tile[1]}.png')
         os.makedirs(write_dir, exist_ok=True)
         with open(write_filepath, mode="wb") as f:
             f.write(data.read())
@@ -109,7 +114,8 @@ def main():
                 time.sleep(min(wait_interval_sec - t_delta.total_seconds(),10))
             else:
                 time.sleep(1)
-    except:
+    except Exception as e:
+        print('Exception detected: {e}\nRestarting Service')
         main()
 
 if __name__ == "__main__":

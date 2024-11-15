@@ -1,14 +1,25 @@
 --- STABLE RELEASE UPDATES ---
 
 - a pop-up when plotting current location to let the user know why its frozen
+    - determine if GPS receiver is detected
+
 - option to reload from last log: EW teams, generic markers
+    - upon start, check for last log, ask if wanting to reload
+    - implemented in the __init__
 - ability to remove a single marker at a time, without having to delete all the markers at a single time
     - tap on icon, option to delete
-    - be able to remove the distance line between generic markers
-- the icon text to constrast the map (terrain map must use black, satellite map must use white)
+    - Ask if you want to measure the distance between markers
+- way to turn brightness down more iso night ops 
+    - buttons on bottom increasing/decreasing brightness
 - ability to add some graphics (NAIs, friendly battle positions,etc)
+    - buttons on the bottom or additional option from right click
 - don't center on clicked lobs or icons, messes when dragging around the map
+    - don't let areas be clickable, only the lines (if anything)
 - ability to plot an EW team without plotting their LOB details and getting the distance from targets
+    - when bypassing an EWT, allow the MGRS grid to remain if input
+    - the distance from TGT to EWT should look from EWTs without LOB data
+- as the user if they want to plot a distance instead of automatically doing it
+    - ability to delete distance measurements dynamically
 
 --- ENHANCING EXISTING FEATURES ---
 
