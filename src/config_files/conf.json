@@ -33,5 +33,6 @@
     "DEFAULT_FIX_AREA_OUTLINE_COLOR":"Yellow",
     "DEFAULT_INITIAL_LATITUDE":31.8691,
     "DEFAULT_INITIAL_LONGITUDE":-81.6090,
-    "DEFAULT_MAP_SERVER_PATH":"/Terrain/{z}/{x}/{y}.png"
+    "DEFAULT_MAP_SERVER_PATH":"/Terrain/{z}/{x}/{y}.png",
+    "FILENAME_USER_MARKERS":"current_user_markers.csv"
 }

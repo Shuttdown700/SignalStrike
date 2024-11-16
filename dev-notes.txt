@@ -1,25 +1,17 @@
+NEW / UPDATED FEATURES
+- added a terrain map with contour lines and trails, in addition to the satellite map
+- automatically reloads user-plotted markers after restart
+- ability to delete any map object (except distances) individually
+- asks if you want to measure between points, before plotting
+- batch map downloads is now CLI-based, not part of the GUI
+
 --- STABLE RELEASE UPDATES ---
 
-- a pop-up when plotting current location to let the user know why its frozen
-    - determine if GPS receiver is detected
-
-- option to reload from last log: EW teams, generic markers
-    - upon start, check for last log, ask if wanting to reload
-    - implemented in the __init__
-- ability to remove a single marker at a time, without having to delete all the markers at a single time
-    - tap on icon, option to delete
-    - Ask if you want to measure the distance between markers
-- way to turn brightness down more iso night ops 
-    - buttons on bottom increasing/decreasing brightness
 - ability to add some graphics (NAIs, friendly battle positions,etc)
     - buttons on the bottom or additional option from right click
-- don't center on clicked lobs or icons, messes when dragging around the map
-    - don't let areas be clickable, only the lines (if anything)
 - ability to plot an EW team without plotting their LOB details and getting the distance from targets
     - when bypassing an EWT, allow the MGRS grid to remain if input
     - the distance from TGT to EWT should look from EWTs without LOB data
-- as the user if they want to plot a distance instead of automatically doing it
-    - ability to delete distance measurements dynamically
 
 --- ENHANCING EXISTING FEATURES ---
 
@@ -41,6 +33,7 @@
 - add MGRS coord to Target FIX polygon pop-up
 - remove the batch download function from the UI, replace with planning tool functionality
 - add MGRS gridlines (perhaps a button to do this?)
+- Various colors to right frame buttons
 [TESTING]
 - add system for testing to verify functionality when next features are added
 [CODE STRUCTURE]

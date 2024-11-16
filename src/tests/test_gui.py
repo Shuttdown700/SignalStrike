@@ -28,7 +28,7 @@ class TestApp(unittest.TestCase):
         if print_bool: print(f"{YELLOW}User marker added. Current count: {len(self.app.user_marker_list)}{RESET}")
         self.assertEqual(len(self.app.user_marker_list), 1, "User markers should contain 1 object after adding a user marker.")
         if print_bool: print(f"{GREEN}User marker count: {len(self.app.user_marker_list)}{RESET}")
-        self.app.add_marker_event(coord=[31.890242984927013, -81.59223710246293])
+        self.app.add_marker_event(coord=[31.890242984927013, -81.59223710246293],bool_bypass_measurement=True,bool_bypass_log=True)
         if print_bool: print(f"{YELLOW}User marker added. Current count: {len(self.app.user_marker_list)}{RESET}")
         self.assertEqual(len(self.app.user_marker_list), 2, "User markers should contain 2 objects after adding a second user marker.")
         if print_bool: print(f"{GREEN}User marker count: {len(self.app.user_marker_list)}{RESET}")

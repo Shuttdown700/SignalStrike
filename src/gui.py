@@ -57,7 +57,8 @@ class App(customtkinter.CTk):
         "FIX Area Outline Color":conf["DEFAULT_FIX_AREA_OUTLINE_COLOR"],
         "Initial Latitude":conf["DEFAULT_INITIAL_LATITUDE"],
         "Initial Longitude":conf["DEFAULT_INITIAL_LONGITUDE"],
-        "Map Server File Path":conf["DEFAULT_MAP_SERVER_PATH"]
+        "Map Server File Path":conf["DEFAULT_MAP_SERVER_PATH"],
+        "User Marker Filename":conf["FILENAME_USER_MARKERS"]
     }
     PATH_LOSS_DICT = {
         'Free Space':2,
@@ -898,20 +899,20 @@ class App(customtkinter.CTk):
             padx=(12, 0), 
             pady=12,
             sticky="ew")
-        # define plot EUD button attributes
-        self.button_plot_eud_location = customtkinter.CTkButton(
+        # define clear measurements button attributes
+        self.button_clear_measurements = customtkinter.CTkButton(
             master=self.frame_right,
-            text="Plot Current Position",
-            command=self.plot_EUD_position)
-        # assign clear markers button grid position
-        self.button_plot_eud_location.grid(
+            text="Clear Measurements",
+            command=self.clear_measurements)
+        # assign batch download button grid position
+        self.button_clear_measurements.grid(
             row=0, 
             rowspan=1,
             column=4, 
             columnspan=1, 
             padx=(12, 0), 
             pady=12,
-            sticky="ew")
+            sticky="ew")     
         # define map option dropdown attributes
         self.map_option_menu = customtkinter.CTkOptionMenu(
             master=self.frame_right, 
@@ -926,66 +927,75 @@ class App(customtkinter.CTk):
             padx=(12, 0), 
             pady=12,
             sticky="ew")
-        # define batch download center MGRS
-        self.batch_download_center_mgrs = customtkinter.CTkEntry(
+        # define text label attributes
+        self.label_status = customtkinter.CTkLabel(
             master=self.frame_right,
-            placeholder_text="Insert Center MGRS Grid")
-        # assign batch download's center MGRS
-        self.batch_download_center_mgrs.grid(
+            text="test")
+        # assign text label grid position
+        self.label_status.grid(
             row=2, 
             column=0,
-            columnspan=2,
+            columnspan=1,
             padx=(12, 0), 
             pady=12,
             sticky="we")
-        # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.batch_download_center_mgrs.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.batch_download_center_mgrs))
-        # define batch download radius (in m)
-        self.batch_download_radius = customtkinter.CTkEntry(
+        # define Brightness up button attributes
+        self.button_brightness_up = customtkinter.CTkButton(
             master=self.frame_right,
-            placeholder_text="Radius (in meters)")
+            text="Brightness Down",
+            command=self.increment_brightness_up)
+        # assign batch download's center MGRS
+        self.button_brightness_up.grid(
+            row=2, 
+            column=1,
+            columnspan=1,
+            padx=(12, 0), 
+            pady=12,
+            sticky="we")
+        # define Brightness down button attributes
+        self.button_brightness_down = customtkinter.CTkButton(
+            master=self.frame_right,
+            text="Brightness Down",
+            command=self.increment_brightness_down)
         # assign batch download radius 
-        self.batch_download_radius.grid(
+        self.button_brightness_down.grid(
             row=2, 
             column=2, 
             padx=(12, 0), 
             pady=12,
             sticky="we")
-        # bind radius entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.batch_download_radius.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.batch_download_radius))
-        # define batch download zoom range 
-        self.batch_download_zoom_range = customtkinter.CTkEntry(
+        # define OBJ plot button attributes
+        self.button_plot_OBJ = customtkinter.CTkButton(
             master=self.frame_right,
-            placeholder_text="Zoom (Ex: 9-12)")
-        # assign batch download radius 
-        self.batch_download_zoom_range.grid(
+            text="Plot OBJ",
+            command=self.plot_OBJ)
+        # assign OBJ plot button grid position
+        self.button_plot_OBJ.grid(
             row=2, 
             column=3, 
             padx=(12, 0), 
             pady=12,
             sticky="we")
-        # bind zoom range entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.batch_download_zoom_range.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.batch_download_zoom_range))
-        # define target error attributes
-        self.label_batch_download_time_estimate = customtkinter.CTkLabel(
-            master=self.frame_right, 
-            text="Est. Download Time: N/A",
-            text_color='white')
-        # assign target error attributes grid position
-        self.label_batch_download_time_estimate.grid(
+        # define OBJ plot button attributes
+        self.button_plot_NAI = customtkinter.CTkButton(
+            master=self.frame_right,
+            text="Plot NAI",
+            command=self.plot_OBJ)
+        # assign NAI button grid position
+        self.button_plot_NAI.grid(
             row=2,
             rowspan=1,
             column=4, 
             columnspan=1,
-            padx=(12,0), 
+            padx=(12,0),
             pady=(0,0))
-        # define batch download button attributes
-        self.button_batch_download = customtkinter.CTkButton(
+        # define plot EUD button attributes
+        self.button_plot_eud_location = customtkinter.CTkButton(
             master=self.frame_right,
-            text="Download Map Data",
-            command=self.batch_download)
-        # assign batch download button grid position
-        self.button_batch_download.grid(
+            text="Plot Current Position",
+            command=self.plot_EUD_position)
+        # assign clear markers button grid position
+        self.button_plot_eud_location.grid(
             row=2, 
             rowspan=1,
             column=5, 
@@ -1010,6 +1020,21 @@ class App(customtkinter.CTk):
             label="Copy MGRS Gid",
             command=self.copy_mgrs_grid,
             pass_coords=True)
+        self.plot_current_user_markers()
+
+    def plot_current_user_markers(self):
+        from utilities import read_csv
+        filepath = os.path.join(self.log_directory, App.DEFAULT_VALUES["User Marker Filename"])
+        try:
+            marker_data_list = read_csv(filepath)
+        except FileNotFoundError:
+            return
+        marker_data_list = sorted(marker_data_list,key=lambda x: int(x["MARKER_NUM"]))
+        for marker_data in marker_data_list:
+            marker_coord = marker_data['LOC_LATLON']
+            marker_coord = [float(x) for x in marker_coord.split(', ')]
+            print(marker_coord)
+            self.add_marker_event(marker_coord,True,True)
 
     def read_ewt_input_fields(self):
         """
@@ -2306,23 +2331,6 @@ class App(customtkinter.CTk):
         # return distance string
         return f'{distance:,.2f}{distance_unit}'
     
-    def log_button_command(self) -> None:
-        """
-        Provides user the option to log data or reload the last logged data
-
-        Returns
-        -------
-        None.
-
-        """
-        from CTkMessagebox import CTkMessagebox 
-        msgBox = CTkMessagebox(title="User Option", message="Choose Log Function:", icon='info',options=['Log Data','Reload Last Log'])
-        response = msgBox.get()
-        if response == "Log Data":
-            self.log_target_data()
-        elif response == "Reload Last Log":
-            self.reload_last_log()
-    
     def log_target_data(self):
         from utilities import convert_coords_to_mgrs, generate_DTG
         """
@@ -2517,7 +2525,7 @@ class App(customtkinter.CTk):
         # run EWT function
         self.ewt_function()
     
-    def add_marker_event(self, coord: list) -> None:
+    def add_marker_event(self, coord: list, bool_bypass_measurement = False, bool_bypass_log = False) -> None:
         """
         Plot a "user marker" on the map at user discretion
 
@@ -2556,8 +2564,14 @@ class App(customtkinter.CTk):
                                                 data=maker_data)
         # append marker object to marker list
         self.append_object(new_marker,"USER")
+        # log the marker 
+        if not bool_bypass_log: self.log_user_marker(new_marker)
         # if other markers current exist
-        if len(self.user_marker_list) > 1:
+        if len(self.user_marker_list) > 1 and not bool_bypass_measurement:
+            from CTkMessagebox import CTkMessagebox
+            msgBox = CTkMessagebox(title="Measurement Option", message=f"Measure distance from point {len(self.user_marker_list)-1}?", icon='info',options=['Yes','No'])
+            response = msgBox.get()
+            if response == "No": return
             # reverse user marker list (last marker first)
             sequencial_marker_list = self.user_marker_list[::-1]
             # initialize coordinate list
@@ -2571,7 +2585,7 @@ class App(customtkinter.CTk):
             distance_text = self.generate_sensor_distance_text(distance)
             # plot line between last two user markers
             dist_line = self.map_widget.set_polygon([(sequencial_coord_list[0][0],sequencial_coord_list[0][1]),
-                            (sequencial_coord_list[1][0],sequencial_coord_list[1][1])],outline_color="white")
+                            (sequencial_coord_list[1][0],sequencial_coord_list[1][1])],outline_color="black")
             # determine middle coordinate between the last two coordinates
             coord_x = np.average([sequencial_coord_list[0][0],sequencial_coord_list[1][0]])
             coord_y = np.average([sequencial_coord_list[0][1],sequencial_coord_list[1][1]])
@@ -2671,7 +2685,9 @@ class App(customtkinter.CTk):
         from utilities import convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, generate_EUD_coordinate
         if coord == None:
             try:
-                gps_data = generate_EUD_coordinate()
+                max_time_seconds = 15
+                self.show_info(f'Generating location from GPS... wait {max_time_seconds} seconds',icon='info')
+                gps_data = generate_EUD_coordinate(max_time_seconds)
                 if gps_data is None:
                     self.show_info('No GPS data available at this time.',icon='warning')
                     return
@@ -2713,6 +2729,20 @@ class App(customtkinter.CTk):
         #     self.append_object(eud_position_error,"EUD")
         self.log_eud_location([lat,lon,acc])
 
+    def plot_OBJ(self):
+        pass
+
+    def plot_NAI(self):
+        pass
+
+    def increment_brightness_up(self):
+        from utilities import adjust_brightness
+        adjust_brightness('increase')
+
+    def increment_brightness_down(self):
+        from utilities import adjust_brightness
+        adjust_brightness('decrease')
+
     def log_eud_location(self,eud_location_data):
         import datetime
         from utilities import convert_coords_to_mgrs, generate_DTG, read_csv, write_csv
@@ -2750,6 +2780,40 @@ class App(customtkinter.CTk):
         # success pop-up
         # self.show_info("EUD location data successfully logged!!!",icon='info')
 
+    def log_user_marker(self,marker):
+        import datetime
+        from utilities import convert_coords_to_mgrs, generate_DTG, read_csv, write_csv
+        marker_coord = [marker.position[0],marker.position[1]]
+        marker_mgrs = convert_coords_to_mgrs(marker_coord)
+        dtg = generate_DTG()
+        # assess if directory exists
+        if not os.path.exists(self.log_directory):
+            # create log directory
+            os.makedirs(self.log_directory)
+        # define marker file name
+        filename = App.DEFAULT_VALUES["User Marker Filename"]
+        # if marker file already exists
+        if os.path.isfile(os.path.join(self.log_directory, filename)):
+            # read current log file
+            marker_data = read_csv(os.path.join(self.log_directory, filename))
+        # if marker file does not yet exist
+        else:
+            # create marker file DataFrame
+            marker_data = []
+        marker_columns = ['MARKER_NUM','LOC_MGRS','LOC_LATLON']
+        new_marker_data = [len(marker_data)+1,marker_mgrs,', '.join([str(x) for x in marker_coord])]
+        # convert marker row into dictionary
+        log_row_dict = dict(zip(marker_columns, new_marker_data))
+        # append data row (dict) to marker data
+        marker_data.append(log_row_dict)
+        # try to save the updated log file
+        try:
+            write_csv(os.path.join(self.log_directory, filename),marker_data)
+        # if file permissions prevent log file saving
+        except PermissionError:
+            # error message if file is currently open
+            self.show_info("User Marker file currently open. Cannot log data!",icon='warning')
+            return
 
     def check_if_object_in_object_list(self,map_object,map_object_list):
         map_object_data = map_object.data
@@ -2806,18 +2870,32 @@ class App(customtkinter.CTk):
                 # append the FIX to the FIX list
                 self.fix_list.append(map_object)     
 
-    def clear_user_markers(self):
-        for user_marker in self.user_marker_list:
-            user_marker.delete()
+    def clear_measurements(self) -> None:
         for path in self.path_list:
             path.delete()
+        self.path_list = []
+
+    def clear_user_markers(self):
+        self.clear_measurements()
+        for user_marker in self.user_marker_list:
+            user_marker.delete()
         for eud_marker in self.eud_marker_list:
             eud_marker.delete()
             self.map_widget.canvas.delete(eud_marker)
-        self.user_marker_list = []
-        self.path_list = []
-        self.eud_marker_list = []
-        
+        # assess if log directory exists
+        if not os.path.exists(self.log_directory):
+            # create log directory
+            os.makedirs(self.log_directory)
+        # define marker file name
+        filename = App.DEFAULT_VALUES["User Marker Filename"]
+        try:
+            os.remove(os.path.join(self.log_directory, filename))
+        # if file permissions prevent marker file deleting
+        except PermissionError:
+            # error message if file is currently open
+            self.show_info("User Marker file currently open. Cannot log data!",icon='warning')
+        self.user_marker_list = []; self.eud_marker_list = []
+    
     def clear_target_overlays(self):
         for ewt_marker in self.ewt_marker_list:
             ewt_marker.delete()
@@ -2887,7 +2965,7 @@ class App(customtkinter.CTk):
             # delete marker from map
             lat, lon = marker.position[0], marker.position[1]
             marker.delete()
-            self.map_widget.set_position(lat,lon)   
+            # self.map_widget.set_position(lat,lon)   
         
     def polygon_click(self,polygon) -> None:
         from CTkMessagebox import CTkMessagebox

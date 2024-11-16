@@ -43,7 +43,7 @@ def import_libraries(libraries):
 
 libraries = [['math',['sin','cos','pi']],['collections',['defaultdict']],
              ['datetime',['date']],['jinja2'],['numpy'],['winsdk'],['statistics',['mean']],
-             ['warnings'],['mgrs'],['haversine',['Unit']],['pyserial']]
+             ['warnings'],['mgrs'],['haversine',['Unit']],['pyserial'],['screen_brightness_control']]
 
 import_libraries(libraries)
 import warnings
@@ -90,21 +90,20 @@ def check_internet_connection() -> bool:
     except:
         return False
 
-import platform
-import os
-
-# Import Windows-specific library
-try:
-    import screen_brightness_control as sbc  # Only available on Windows
-except ImportError:
-    sbc = None
-
 def adjust_brightness(action):
     """
     Adjusts brightness by increasing or decreasing it by 10%
     
     Only acceptable actions are 'increase' and 'decrease'
     """
+    import platform
+    import os
+
+    # Import Windows-specific library
+    try:
+        import screen_brightness_control as sbc  # Only available on Windows
+    except ImportError:
+        sbc = None
     # Get the current OS
     current_os = platform.system()
     
@@ -315,7 +314,7 @@ def determine_tile_url(map_name : str,conf : dict) -> str:
         tile_url = ""
     return tile_url
 
-def generate_EUD_coordinate() -> dict:
+def generate_EUD_coordinate(max_time_seconds = 15) -> dict:
     def coordinate_format_conversion(lat,lat_dir,lon,lon_dir):
         lat = str(lat); lon = str(lon)
         lat_var1 = lat[:2]
@@ -332,11 +331,11 @@ def generate_EUD_coordinate() -> dict:
         
     import serial, time
     # Define the COM port and baud rate
-    port = 'COM4'  # Replace with your COM port
+    port = 'COM4'  # GPS Receiver COM port
     baudrate = 9600  # Replace with your baud rate (typically 9600 for GPS modules)
     # Open serial port
     with serial.Serial(port, baudrate, timeout=1) as ser:
-        start_time = time.time(); max_time = 15
+        start_time = time.time()
         try:
             while True:
                 line = ser.readline()
@@ -362,7 +361,7 @@ def generate_EUD_coordinate() -> dict:
                                 # alt_units = str(data[10]) # M = meters
                                 if lat == '' or lon == '': continue
                                 lat, lon = coordinate_format_conversion(lat,lat_direction,lon,lon_direction)
-                                
+                                # format gps data
                                 gps_data = {
                                     'utc':utc_hhmmss_ss,
                                     'lat':lat,
@@ -374,11 +373,13 @@ def generate_EUD_coordinate() -> dict:
                     except Exception as e:
                         print(f'GPS Error: {e}')
                 elapsed_time = time.time() - start_time
-                if elapsed_time >= max_time:
-                    print(f'{max_time} seconds elapsed without results in GPS function')
+                if elapsed_time >= max_time_seconds:
+                    print(f'{max_time_seconds} seconds elapsed without results in GPS function')
                     break
         except serial.SerialException as e:
             print(f"GPS Serial Exception: {e}")
+        except FileNotFoundError as e:
+            print(f"No GPS Receiver in {port} :{e}")
         except Exception as e:
             print(f"GPS Error: {e}")
         return None
