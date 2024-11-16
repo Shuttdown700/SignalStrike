@@ -38,17 +38,23 @@ class App(customtkinter.CTk):
         "Sensor 1 MGRS": conf["DEFAULT_SENSOR_1_MGRS"],
         "Sensor 1 PWR Received": conf["DEFAULT_SENSOR_1_PWR_RECEIVED"],
         "Sensor 1 LOB": conf["DEFAULT_SENSOR_1_LOB"],
+        "Sensor 1 Height (M)": conf["DEFAULT_SENSOR_1_HEIGHT_M"],
         "Sensor 2 MGRS": conf["DEFAULT_SENSOR_2_MGRS"],
         "Sensor 2 PWR Received": conf["DEFAULT_SENSOR_2_PWR_RECEIVED"],
         "Sensor 2 LOB": conf["DEFAULT_SENSOR_2_LOB"],
+        "Sensor 2 Height (M)": conf["DEFAULT_SENSOR_2_HEIGHT_M"],
         "Sensor 3 MGRS": conf["DEFAULT_SENSOR_3_MGRS"],
         "Sensor 3 PWR Received": conf["DEFAULT_SENSOR_3_PWR_RECEIVED"],
         "Sensor 3 LOB": conf["DEFAULT_SENSOR_3_LOB"],
+        "Sensor 3 Height (M)": conf["DEFAULT_SENSOR_3_HEIGHT_M"],
         "Frequency":conf["DEFAULT_FREQUENCY_MHZ"],
+        "Transmitter Gain (dBi)":conf["DEFAULT_TX_GAIN_dBi"],
+        "Transmitter Height (M)":conf["DEFAULT_TX_HEIGHT_M"],
         "Min ERP":conf["DEFAULT_MIN_ERP_W"],
         "Max ERP":conf["DEFAULT_MAX_ERP_W"],
         "Path-Loss Coefficient":conf["DEFAULT_PATH-LOSS_COEFFICIENT"],
         "Path-Loss Coefficient Description":conf["DEFAULT_PATH-LOSS_COEFFICIENT_DESCRIPTION"],
+        "Temperature (F)":conf["DEFAULT_TEMP_F"],
         "Border Width":conf["DEFAULT_BORDER_WIDTH"],
         "LOB Fill Color":conf["DEFAULT_LOB_FILL_COLOR"],
         "LOB Center Line Color":conf["DEFAULT_LOB_CENTER_LINE_COLOR"],
@@ -1022,7 +1028,7 @@ class App(customtkinter.CTk):
             pass_coords=True)
         self.plot_current_user_markers()
 
-    def plot_current_user_markers(self):
+    def plot_current_user_markers(self) -> None:
         from utilities import read_csv
         filepath = os.path.join(self.log_directory, App.DEFAULT_VALUES["User Marker Filename"])
         try:
@@ -1050,12 +1056,12 @@ class App(customtkinter.CTk):
         self.sensor1_max_distance_m = None; self.sensor2_max_distance_m = None ; self.sensor3_max_distance_m = None
         self.frequency_MHz_val = None; self.min_wattage_val = None; self.max_wattage_val = None
         # set values without option for user input 
-        self.sensor1_receiver_height_m_val = 2
-        self.sensor2_receiver_height_m_val = 2
-        self.sensor3_receiver_height_m_val = 2
-        self.transmitter_gain_dBi_val = 0
-        self.transmitter_height_m_val = 2
-        self.temp_f_val = 70
+        self.sensor1_receiver_height_m_val = App.DEFAULT_VALUES["Sensor 1 Height (M)"]
+        self.sensor2_receiver_height_m_val = App.DEFAULT_VALUES["Sensor 2 Height (M)"]
+        self.sensor3_receiver_height_m_val = App.DEFAULT_VALUES["Sensor 3 Height (M)"]
+        self.transmitter_gain_dBi_val = App.DEFAULT_VALUES["Transmitter Gain (dBi)"]
+        self.transmitter_height_m_val = App.DEFAULT_VALUES["Transmitter Height (M)"]
+        self.temp_f_val = App.DEFAULT_VALUES["Temperature (F)"]
         # try to read sensor 1 mgrs value
         try:
             # get input from sensor1_mgrs input field
@@ -1084,9 +1090,9 @@ class App(customtkinter.CTk):
                     self.sensor1_grid_azimuth_val = None
                     self.sensor1_power_received_dBm_val = None
                     # clear all Sensor 1 input fields
-                    self.sensor1_mgrs.delete(0,END) 
+                    self.sensor1_mgrs.delete(0,END)
                     self.sensor1_lob.delete(0,END)
-                    self.sensor1_Rpwr.delete(0,END)                    
+                    self.sensor1_Rpwr.delete(0,END)                
                 # if user chooses to re-input the sensor 1 MGRS value
                 elif choice == 'Re-input':
                     # end function
@@ -1099,7 +1105,9 @@ class App(customtkinter.CTk):
         # exception handling for ValueError
         except ValueError:
             # if value error occurs, set Sensor 1 MGRS value to None
-            self.sensor1_mgrs_val = None
+            if self.sensor1_mgrs_val in [None,""] or not check_mgrs_input(self.sensor1_mgrs_val):
+                self.sensor1_mgrs_val = None
+                self.sensor1_mgrs.delete(0,END)
         if not bypass_ewt1_bool:
             # try to read sensor 1 LOB value
             try:
@@ -1125,11 +1133,12 @@ class App(customtkinter.CTk):
                 elif choice == 'Bypass':
                     bypass_ewt1_bool = True
                     # set all local Sensor 1 values to None
-                    self.sensor1_mgrs_val = None
+                    if self.sensor1_mgrs_val in [None,""] or not check_mgrs_input(self.sensor1_mgrs_val):
+                        self.sensor1_mgrs_val = None
+                        self.sensor1_mgrs.delete(0,END)
                     self.sensor1_grid_azimuth_val = None
                     self.sensor1_power_received_dBm_val = None
                     # clear all Sensor 1 input fields
-                    self.sensor1_mgrs.delete(0,END) 
                     self.sensor1_lob.delete(0,END)
                     self.sensor1_Rpwr.delete(0,END)
                 # if user choose to re-input the Sensor 1 LOB value
@@ -1162,11 +1171,12 @@ class App(customtkinter.CTk):
                 elif choice == 'Bypass':
                     bypass_ewt1_bool = True
                     # set all local Sensor 1 values to None
-                    self.sensor1_mgrs_val = None
+                    if self.sensor1_mgrs_val in [None,""] or not check_mgrs_input(self.sensor1_mgrs_val):
+                        self.sensor1_mgrs_val = None
+                        self.sensor1_mgrs.delete(0,END)
                     self.sensor1_grid_azimuth_val = None
                     self.sensor1_power_received_dBm_val = None
                     # clear all Sensor 1 input fields
-                    self.sensor1_mgrs.delete(0,END) 
                     self.sensor1_lob.delete(0,END)
                     self.sensor1_Rpwr.delete(0,END)
                 # if user chooses to re-input the Sensor 1 PWR Received value
@@ -1215,10 +1225,9 @@ class App(customtkinter.CTk):
                     elif choice == 'SL':
                         # set Single LOB boolean value to TRUE
                         single_lob_bool = True
-                        # set Sensor 2 MGRS value to None
-                        self.sensor2_mgrs_val = None
-                        # clear Sensor 2 MGRS input field
-                        self.sensor2_mgrs.delete(0,END)
+                        if self.sensor2_mgrs_val in [None,""] or not check_mgrs_input(self.sensor2_mgrs_val):
+                            self.sensor2_mgrs_val = None
+                            self.sensor2_mgrs.delete(0,END)
                 if not bypass_ewt2_bool:
                     # clear the previous sensor 2 MGRS input
                     self.sensor2_mgrs.delete(0,END)
@@ -1227,17 +1236,20 @@ class App(customtkinter.CTk):
             # if Single LOB Boolean value is TRUE
             else:
                 # set all local Sensor 2 values to None
-                self.sensor2_mgrs_val = None
+                if self.sensor2_mgrs_val in [None,""] or not check_mgrs_input(self.sensor2_mgrs_val):
+                    self.sensor2_mgrs_val = None
+                    self.sensor2_mgrs.delete(0,END)
                 self.sensor2_grid_azimuth_val = None
                 self.sensor2_power_received_dBm_val = None
                 # clear all Sensor 2 input fields
-                self.sensor2_mgrs.delete(0,END) 
                 self.sensor2_lob.delete(0,END)
                 self.sensor2_Rpwr.delete(0,END)   
         # exception handling for ValueError         
         except ValueError:
             # set local Sensor 2 MGRS value to None
-            self.sensor2_mgrs_val = None
+            if self.sensor2_mgrs_val in [None,""] or not check_mgrs_input(self.sensor2_mgrs_val):
+                self.sensor2_mgrs_val = None
+                self.sensor2_mgrs.delete(0,END)
             self.sensor2_grid_azimuth_val = None
             self.sensor2_power_received_dBm_val = None
         # if Single LOB Boolean value is FALSE
@@ -1268,11 +1280,12 @@ class App(customtkinter.CTk):
                 elif choice == 'Bypass':
                     bypass_ewt2_bool = True
                     # set all local Sensor 2 values to None
-                    self.sensor2_mgrs_val = None
+                    if self.sensor2_mgrs_val in [None,""] or not check_mgrs_input(self.sensor2_mgrs_val):
+                        self.sensor2_mgrs_val = None
+                        self.sensor2_mgrs.delete(0,END)
                     self.sensor2_grid_azimuth_val = None
                     self.sensor2_power_received_dBm_val = None
                     # clear all Sensor 2 input fields
-                    self.sensor2_mgrs.delete(0,END) 
                     self.sensor2_lob.delete(0,END)
                     self.sensor2_Rpwr.delete(0,END)
                 # if user chooses to re-input the Sensor 2 LOB value
@@ -1290,11 +1303,12 @@ class App(customtkinter.CTk):
         # if Single LOB Boolean value is TRUE
         else:
             # set all local Sensor 2 input values to None
-            self.sensor2_mgrs_val = None
+            if self.sensor2_mgrs_val in [None,""] or not check_mgrs_input(self.sensor2_mgrs_val):
+                self.sensor2_mgrs_val = None
+                self.sensor2_mgrs.delete(0,END)
             self.sensor2_grid_azimuth_val = None
             self.sensor2_power_received_dBm_val = None
             # clear all Sensor 2 input fields
-            self.sensor2_mgrs.delete(0,END) 
             self.sensor2_lob.delete(0,END)
             self.sensor2_Rpwr.delete(0,END)
         # if Single LOB Boolean value is FALSE
@@ -1325,11 +1339,12 @@ class App(customtkinter.CTk):
                 elif choice == 'Bypass':
                     bypass_ewt2_bool = True
                     # set all local Sensor 2 values to None
-                    self.sensor2_mgrs_val = None
+                    if self.sensor2_mgrs_val in [None,""] or not check_mgrs_input(self.sensor2_mgrs_val):
+                        self.sensor2_mgrs_val = None
+                        self.sensor2_mgrs.delete(0,END)
                     self.sensor2_grid_azimuth_val = None
                     self.sensor2_power_received_dBm_val = None
                     # clear all Sensor 2 input fields
-                    self.sensor2_mgrs.delete(0,END) 
                     self.sensor2_lob.delete(0,END)
                     self.sensor2_Rpwr.delete(0,END)
                 # if user chooses to re-input the Sensor 2 PWR Received value
@@ -1346,11 +1361,12 @@ class App(customtkinter.CTk):
                     self.sensor2_Rpwr.delete(0,END)
         else:
             # set all local Sensor 2 values to None
-            self.sensor2_mgrs_val = None
+            if self.sensor2_mgrs_val in [None,""] or not check_mgrs_input(self.sensor2_mgrs_val):
+                self.sensor2_mgrs_val = None
+                self.sensor2_mgrs.delete(0,END)
             self.sensor2_grid_azimuth_val = None
             self.sensor2_power_received_dBm_val = None
             # clear all Sensor 2 input fields
-            self.sensor2_mgrs.delete(0,END) 
             self.sensor2_lob.delete(0,END)
             self.sensor2_Rpwr.delete(0,END)
         try:
@@ -1396,19 +1412,17 @@ class App(customtkinter.CTk):
                         single_lob_bool = True
                         # set CUT boolean value to FALSE
                         cut_bool = False
-                        # set Sensor 3 MGRS value to None
-                        self.sensor3_mgrs_val = None
-                        # clear Sensor 3 MGRS input field
-                        self.sensor3_mgrs.delete(0,END)
+                        if self.sensor3_mgrs_val in [None,""] or not check_mgrs_input(self.sensor3_mgrs_val):
+                            self.sensor3_mgrs_val = None
+                            self.sensor3_mgrs.delete(0,END)
                     elif choice == 'LOB/CUT':
                         # set Single LOB boolean value to FALSE
                         single_lob_bool = False
                         # set CUT boolean value to TRUE
                         cut_bool = True
-                        # set Sensor 3 MGRS value to None
-                        self.sensor3_mgrs_val = None
-                        # clear Sensor 3 MGRS input field
-                        self.sensor3_mgrs.delete(0,END)
+                        if self.sensor3_mgrs_val in [None,""] or not check_mgrs_input(self.sensor3_mgrs_val):
+                            self.sensor3_mgrs_val = None
+                            self.sensor3_mgrs.delete(0,END)
                 if not bypass_ewt3_bool:
                     # clear the previous sensor 2 MGRS input
                     self.sensor3_mgrs.delete(0,END)
@@ -1417,17 +1431,19 @@ class App(customtkinter.CTk):
             # if Single LOB Boolean value is TRUE
             else:
                 # set all local Sensor 3 values to None
-                self.sensor3_mgrs_val = None
+                if self.sensor3_mgrs_val in [None,""] or not check_mgrs_input(self.sensor3_mgrs_val):
+                    self.sensor3_mgrs_val = None
+                    self.sensor3_mgrs.delete(0,END)
                 self.sensor3_grid_azimuth_val = None
                 self.sensor3_power_received_dBm_val = None
                 # clear all Sensor 3 input fields
-                self.sensor3_mgrs.delete(0,END) 
                 self.sensor3_lob.delete(0,END)
                 self.sensor3_Rpwr.delete(0,END)   
         # exception handling for ValueError         
         except ValueError:
-            # set local Sensor 3 MGRS value to None
-            self.sensor3_mgrs_val = None
+            if self.sensor3_mgrs_val in [None,""] or not check_mgrs_input(self.sensor3_mgrs_val):
+                self.sensor3_mgrs_val = None
+                self.sensor3_mgrs.delete(0,END)
         # if Single LOB and CUT Boolean value is FALSE
         if not single_lob_bool and not cut_bool and not bypass_ewt3_bool:
             # try to read Sensor 3 LOB value
@@ -1456,11 +1472,12 @@ class App(customtkinter.CTk):
                 elif choice == 'Bypass':
                     bypass_ewt3_bool = True
                     # set all local Sensor 3 values to None
-                    self.sensor3_mgrs_val = None
+                    if self.sensor3_mgrs_val in [None,""] or not check_mgrs_input(self.sensor3_mgrs_val):
+                        self.sensor3_mgrs_val = None
+                        self.sensor3_mgrs.delete(0,END)
                     self.sensor3_grid_azimuth_val = None
                     self.sensor3_power_received_dBm_val = None
                     # clear all Sensor 1 input fields
-                    self.sensor3_mgrs.delete(0,END) 
                     self.sensor3_lob.delete(0,END)
                     self.sensor3_Rpwr.delete(0,END)
                 # if user chooses to re-input the Sensor 3 LOB value
@@ -1473,18 +1490,18 @@ class App(customtkinter.CTk):
                     single_lob_bool = True
                     # set CUT boolean value to FALSE
                     cut_bool = False
-                    # set Sensor 3 MGRS value to None
-                    self.sensor3_mgrs_val = None
-                    # clear Sensor 3 MGRS input field
-                    self.sensor3_mgrs.delete(0,END)
+                    if self.sensor3_mgrs_val in [None,""] or not check_mgrs_input(self.sensor3_mgrs_val):
+                        self.sensor3_mgrs_val = None
+                        self.sensor3_mgrs.delete(0,END)
         # if Single LOB or CUT Boolean value is TRUE
         else:
             # set all local Sensor 3 input values to None
-            self.sensor3_mgrs_val = None
+            if self.sensor3_mgrs_val in [None,""] or not check_mgrs_input(self.sensor3_mgrs_val):
+                self.sensor3_mgrs_val = None
+                self.sensor3_mgrs.delete(0,END)
             self.sensor3_grid_azimuth_val = None
             self.sensor3_power_received_dBm_val = None
             # clear all Sensor 3 input fields
-            self.sensor3_mgrs.delete(0,END) 
             self.sensor3_lob.delete(0,END)
             self.sensor3_Rpwr.delete(0,END)
         # if Single LOB and CUT Boolean value is FALSE
@@ -1515,11 +1532,12 @@ class App(customtkinter.CTk):
                 elif choice == 'Bypass':
                     bypass_ewt3_bool = True
                     # set all local Sensor 3 values to None
-                    self.sensor3_mgrs_val = None
+                    if self.sensor3_mgrs_val in [None,""] or not check_mgrs_input(self.sensor3_mgrs_val):
+                        self.sensor3_mgrs_val = None
+                        self.sensor3_mgrs.delete(0,END)
                     self.sensor3_grid_azimuth_val = None
                     self.sensor3_power_received_dBm_val = None
                     # clear all Sensor 1 input fields
-                    self.sensor3_mgrs.delete(0,END) 
                     self.sensor3_lob.delete(0,END)
                     self.sensor3_Rpwr.delete(0,END)
                 # if user chooses to re-input the Sensor 3 PWR Received value
@@ -1532,17 +1550,17 @@ class App(customtkinter.CTk):
                     single_lob_bool = True
                     # set CUT boolean value to FALSE
                     cut_bool = False
-                    # set Sensor 3 MGRS value to None
-                    self.sensor3_mgrs_val = None
-                    # clear Sensor 3 MGRS input field
-                    self.sensor3_mgrs.delete(0,END)
+                    if self.sensor3_mgrs_val in [None,""] or not check_mgrs_input(self.sensor3_mgrs_val):
+                        self.sensor3_mgrs_val = None
+                        self.sensor3_mgrs.delete(0,END)
         else:
             # set all local Sensor 3 values to None
-            self.sensor3_mgrs_val = None
+            if self.sensor3_mgrs_val in [None,""] or not check_mgrs_input(self.sensor3_mgrs_val):
+                self.sensor3_mgrs_val = None
+                self.sensor3_mgrs.delete(0,END)
             self.sensor3_grid_azimuth_val = None
             self.sensor3_power_received_dBm_val = None
             # clear all Sensor 2 input fields
-            self.sensor3_mgrs.delete(0,END) 
             self.sensor3_lob.delete(0,END)
             self.sensor3_Rpwr.delete(0,END)
         if bypass_ewt1_bool and bypass_ewt2_bool and bypass_ewt3_bool:
@@ -1649,7 +1667,7 @@ class App(customtkinter.CTk):
                 # end function
                 return
 
-    def set_target_field(self):
+    def set_target_field(self) -> None:
         import numpy as np
         from utilities import convert_coords_to_mgrs, format_readable_mgrs
         if self.target_coord == None and self.target_mgrs == None:
@@ -1678,17 +1696,33 @@ class App(customtkinter.CTk):
                 target_coord_list = [f'{", ".join(x)}' for x in target_coord_list]
                 self.target_coord = f'{" | ".join(target_coord_list)}'
 
-    def ewt_function(self,*args):
+    def ewt_function(self,*args) -> None:
         from utilities import check_if_point_in_polygon, check_for_intersection, convert_coords_to_mgrs, convert_mgrs_to_coords, format_readable_DTG, format_readable_mgrs, generate_DTG, get_center_coord, get_coords_from_LOBs, get_distance_between_coords, get_emission_distance, get_intersection, get_line, get_polygon_area, organize_polygon_coords
         def plot_lobs(s1lnmc,s1lfmc,s2lnmc,s2lfmc,s3lnmc,s3lfmc,plot_ewt1_lob_tgt_bool=True,plot_ewt2_lob_tgt_bool=True,plot_ewt3_lob_tgt_bool=True):
+            self.sensor1_target_coord = None ; self.sensor2_target_coord = None ; self.sensor3_target_coord = None
             import numpy as np
-            num_lobs = 3-[self.sensor1_mgrs_val,self.sensor2_mgrs_val,self.sensor3_mgrs_val].count(None)
+            num_lobs = 3-[self.sensor1_lob,self.sensor2_lob,self.sensor3_lob].count(None)
             # assess if there is no target class
             if self.target_class == '':
                 # set target class
                 self.target_class = f'({num_lobs} {"LOB" if num_lobs == 1 else "LOBs"})'
                 # set target grid label to include target classification
                 self.label_target_grid.configure(text=f'TARGET GRIDs {self.target_class}'.strip(),text_color='red')
+            # assess if sensor 1 has a non-None grid
+            if self.sensor1_mgrs_val != None:
+                self.sensor1_coord = convert_mgrs_to_coords(self.sensor1_mgrs_val)
+                # define and set sensor 1 marker on the map
+                ew_team1_marker = self.map_widget.set_marker(
+                    deg_x=self.sensor1_coord[0], 
+                    deg_y=self.sensor1_coord[1], 
+                    text="", 
+                    image_zoom_visibility=(10, float("inf")),
+                    marker_color_circle='white',
+                    text_color='black',
+                    icon=self.ew_team1_image,
+                    command=self.marker_click,
+                    data=f'EWT 1\n{format_readable_mgrs(self.sensor1_mgrs_val)}\nat {format_readable_DTG(generate_DTG())}')
+                self.append_object(ew_team1_marker,"EWT")
             # assess if sensor 1 has non-None values
             if self.sensor1_mgrs_val != None and self.sensor1_grid_azimuth_val != None and self.sensor1_power_received_dBm_val != None:
                 # calculate sensor 1 target coordinate
@@ -1756,6 +1790,21 @@ class App(customtkinter.CTk):
                 self.sensor1_lob_error_acres = None
                 self.sensor1_target_coord = None
                 self.sensor1_distance.configure(text="N/A",text_color='white')
+            # assess if sensor 2 has a non-None grid
+            if self.sensor2_mgrs_val != None:
+                # define and set sensor 2 marker on the map
+                self.sensor2_coord = convert_mgrs_to_coords(self.sensor2_mgrs_val)
+                ew_team2_marker = self.map_widget.set_marker(
+                    deg_x=self.sensor2_coord[0], 
+                    deg_y=self.sensor2_coord[1], 
+                    text="", 
+                    image_zoom_visibility=(10, float("inf")),
+                    marker_color_circle='white',
+                    text_color='black',
+                    icon=self.ew_team2_image,
+                    command=self.marker_click,
+                    data=f'EWT 2\n{format_readable_mgrs(self.sensor2_mgrs_val)}\nat {format_readable_DTG(generate_DTG())}')
+                self.append_object(ew_team2_marker,"EWT")
             # assess if sensor 2 has non-None values
             if self.sensor2_mgrs_val != None and self.sensor2_grid_azimuth_val != None and self.sensor2_power_received_dBm_val != None:
                 # calculate sensor 2 target coordinate
@@ -1823,6 +1872,21 @@ class App(customtkinter.CTk):
                 self.sensor2_lob_error_acres = None
                 self.sensor2_target_coord = None
                 self.sensor2_distance.configure(text="N/A",text_color='white')
+            # assess if sensor 3 has a non-None grid
+            if self.sensor3_mgrs_val != None:
+                # define and set sensor 3 marker on the map
+                self.sensor3_coord = convert_mgrs_to_coords(self.sensor3_mgrs_val)
+                ew_team3_marker = self.map_widget.set_marker(
+                    deg_x=self.sensor3_coord[0], 
+                    deg_y=self.sensor3_coord[1], 
+                    text="", 
+                    image_zoom_visibility=(10, float("inf")),
+                    marker_color_circle='white',
+                    text_color='black',
+                    icon=self.ew_team3_image,
+                    command=self.marker_click,
+                    data=f'EWT 3\n{format_readable_mgrs(self.sensor3_mgrs_val)}\nat {format_readable_DTG(generate_DTG())}')
+                self.append_object(ew_team3_marker,"EWT")
             # assess if sensor 3 has non-None values
             if self.sensor3_mgrs_val != None and self.sensor3_grid_azimuth_val != None and self.sensor3_power_received_dBm_val != None:
                 # calculate sensor 3 target coordinate
@@ -1890,6 +1954,36 @@ class App(customtkinter.CTk):
                 self.sensor3_lob_error_acres = None
                 self.sensor3_target_coord = None
                 self.sensor3_distance.configure(text="N/A",text_color='white')
+            # calculate distance from EWT 1 to other EWT targets
+            if self.sensor1_distance._text == "N/A" and self.sensor1_coord != None:
+                if self.sensor2_target_coord != None:
+                    self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.sensor2_target_coord))
+                    dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
+                    self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
+                if self.sensor3_target_coord != None:
+                    self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.sensor3_target_coord))
+                    dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
+                    self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
+            # calculate distance from EWT 2 to other EWT targets
+            if self.sensor2_distance._text == "N/A" and self.sensor2_coord != None:
+                if self.sensor1_target_coord != None:
+                    self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.sensor1_target_coord))
+                    dist_sensor2_text = self.generate_sensor_distance_text(self.sensor2_distance_val)
+                    self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
+                if self.sensor3_target_coord != None:
+                    self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.sensor3_target_coord))
+                    dist_sensor2_text = self.generate_sensor_distance_text(self.sensor2_distance_val)
+                    self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
+            # calculate distance from EWT 3 to other EWT targets
+            if self.sensor3_distance._text == "N/A" and self.sensor3_coord != None:
+                if self.sensor2_target_coord != None:
+                    self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.sensor2_target_coord))
+                    dist_sensor3_text = self.generate_sensor_distance_text(self.sensor3_distance_val)
+                    self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
+                if self.sensor1_target_coord != None:
+                    self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.sensor1_target_coord))
+                    dist_sensor3_text = self.generate_sensor_distance_text(self.sensor3_distance_val)
+                    self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
     
         def plot_cut(l1c,l1r,l1l,l2c,l2r,l2l,multi_cut_bool=False,plot_cut_tgts=True):
             """
@@ -1980,6 +2074,20 @@ class App(customtkinter.CTk):
                         self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
                 else:
                     self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
+                        # calculate distance from EWT 1 to other EWT targets
+            # set EWT distance of EWTs without target data
+            if self.sensor1_distance._text == "N/A" and self.sensor1_coord != None:
+                self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
+                dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
+                self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
+            if self.sensor2_distance._text == "N/A" and self.sensor2_coord != None:
+                self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.target_coord))
+                dist_sensor2_text = self.generate_sensor_distance_text(self.sensor2_distance_val)
+                self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
+            if self.sensor3_distance._text == "N/A" and self.sensor3_coord != None:
+                self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.target_coord))
+                dist_sensor3_text = self.generate_sensor_distance_text(self.sensor3_distance_val)
+                self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
             # set target grid field with CUT center MGRS
             if multi_cut_bool: self.target_grid.configure(text="MULTIPLE CUTS")
             if not multi_cut_bool: self.target_grid.configure(text=f'{format_readable_mgrs(self.target_mgrs)}',text_color='yellow')
@@ -2144,7 +2252,19 @@ class App(customtkinter.CTk):
                 command=self.polygon_click,
                 data=fix_description)
             self.append_object(fix_area,"FIX")
-            
+            # set EWT distance of EWTs without target data
+            if self.sensor1_distance._text == "N/A" and self.sensor1_coord != None:
+                self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
+                dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
+                self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
+            if self.sensor2_distance._text == "N/A" and self.sensor2_coord != None:
+                self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.target_coord))
+                dist_sensor2_text = self.generate_sensor_distance_text(self.sensor2_distance_val)
+                self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
+            if self.sensor3_distance._text == "N/A" and self.sensor3_coord != None:
+                self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.target_coord))
+                dist_sensor3_text = self.generate_sensor_distance_text(self.sensor3_distance_val)
+                self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
         # reset fields to defaults
         self.label_target_grid.configure(text='')
         self.target_grid.configure(text='')
@@ -2192,7 +2312,7 @@ class App(customtkinter.CTk):
         # if sensor 1 has None input values
         else:
             # set sensor 1 input values to None
-            self.sensor1_mgrs_val = None; self.sensor1_grid_azimuth_val = None; self.sensor1_power_received_dBm_val = None; self.sensor1_lob_polygon = None; self.sensor1_lob_backstop = None
+            self.sensor1_grid_azimuth_val = None; self.sensor1_power_received_dBm_val = None; self.sensor1_lob_polygon = None; self.sensor1_lob_backstop = None
         # if sensor 2 has non-None input values
         if self.sensor2_mgrs_val != None and self.sensor2_grid_azimuth_val != None and self.sensor2_power_received_dBm_val != None:
             # convert sensor 2 MGRS to coordinates
@@ -2226,7 +2346,7 @@ class App(customtkinter.CTk):
         # if sensor 2 has None input values
         else:
             # set sensor 2 input values to None
-            self.sensor2_mgrs_val = None; self.sensor2_grid_azimuth_val = None; self.sensor2_power_received_dBm_val = None; self.sensor2_lob_polygon = None; self.sensor2_lob_backstop = None
+            self.sensor2_grid_azimuth_val = None; self.sensor2_power_received_dBm_val = None; self.sensor2_lob_polygon = None; self.sensor2_lob_backstop = None
         # if sensor 3 has non-None input values 
         if self.sensor3_mgrs_val != None and self.sensor3_grid_azimuth_val != None and self.sensor3_power_received_dBm_val != None:
             # convert sensor 3 MGRS to coordinates
@@ -2258,7 +2378,7 @@ class App(customtkinter.CTk):
         # if sensor 3 has None input values
         else:
             # set sensor 3 input values to None
-            self.sensor3_mgrs_val = None; self.sensor3_grid_azimuth_val = None; self.sensor3_power_received_dBm_val = None; self.sensor3_lob_polygon = None; self.sensor3_lob_backstop = None
+            self.sensor3_grid_azimuth_val = None; self.sensor3_power_received_dBm_val = None; self.sensor3_lob_polygon = None; self.sensor3_lob_backstop = None
         # assess which LOBs have intersections
         ewt1_ewt2_intersection_bool = check_for_intersection(self.sensor1_coord,sensor1_lob_far_middle_coord,self.sensor2_coord,sensor2_lob_far_middle_coord)
         ewt2_ewt3_intersection_bool = check_for_intersection(self.sensor2_coord,sensor2_lob_far_middle_coord,self.sensor3_coord,sensor3_lob_far_middle_coord)
@@ -2304,7 +2424,7 @@ class App(customtkinter.CTk):
         self.set_target_field()
         # self.plot_EUD_position()
     
-    def generate_sensor_distance_text(self,distance):
+    def generate_sensor_distance_text(self,distance : float) -> str:
         """
         Generate sensor distance string w/ adjusted units of measurement
         
@@ -2331,7 +2451,7 @@ class App(customtkinter.CTk):
         # return distance string
         return f'{distance:,.2f}{distance_unit}'
     
-    def log_target_data(self):
+    def log_target_data(self) -> None:
         from utilities import convert_coords_to_mgrs, generate_DTG
         """
         Logs current input fields and targeting data in a date-specific csv file
@@ -2479,7 +2599,7 @@ class App(customtkinter.CTk):
         # success pop-up
         self.show_info("Data successfully logged!!!",box_title='Successful Log',icon='info') 
     
-    def reload_last_log(self):
+    def reload_last_log(self) -> None:
         from utilities import read_csv
         def get_most_recently_modified_file(directory):
             # Get list of all files in the directory
@@ -2624,7 +2744,7 @@ class App(customtkinter.CTk):
         msg = f'"{mgrs}" copied to clipboard'
         self.show_info(msg,box_title="Selection Copied",icon="info")
 
-    def copy_selection(self,entry_object):
+    def copy_selection(self,entry_object) -> None:
         try:
             selected_text = entry_object.get()
         except AttributeError:
@@ -2641,7 +2761,7 @@ class App(customtkinter.CTk):
             msg = f'"{selected_text}" copied to clipboard'
         self.show_info(msg,box_title="Selection Copied",icon="info")
     
-    def paste_from_clipboard(self,entry_object):
+    def paste_from_clipboard(self,entry_object) -> None:
         try:
             selected_text = entry_object.selection_get().split()
             if len(selected_text) > 0:
@@ -2876,7 +2996,6 @@ class App(customtkinter.CTk):
         self.path_list = []
 
     def clear_user_markers(self):
-        self.clear_measurements()
         for user_marker in self.user_marker_list:
             user_marker.delete()
         for eud_marker in self.eud_marker_list:
@@ -2890,6 +3009,9 @@ class App(customtkinter.CTk):
         filename = App.DEFAULT_VALUES["User Marker Filename"]
         try:
             os.remove(os.path.join(self.log_directory, filename))
+        # if file does not exist
+        except FileNotFoundError:
+            pass
         # if file permissions prevent marker file deleting
         except PermissionError:
             # error message if file is currently open
@@ -2965,6 +3087,8 @@ class App(customtkinter.CTk):
             # delete marker from map
             lat, lon = marker.position[0], marker.position[1]
             marker.delete()
+            if len(self.user_marker_list) == len(self.path_list) == 0:
+                self.clear_user_markers()
             # self.map_widget.set_position(lat,lon)   
         
     def polygon_click(self,polygon) -> None:

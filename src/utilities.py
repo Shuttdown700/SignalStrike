@@ -495,7 +495,7 @@ def convert_mgrs_to_coords(milGrid: str) -> list:
     except AssertionError:
         return None
 
-def check_mgrs_input(mgrs_input: str) -> str:
+def check_mgrs_input(mgrs_input: str) -> bool:
     """
     Determine if the MGRS input is valid 
 
@@ -544,7 +544,7 @@ def correct_mgrs_input(mgrs_input: str) -> str:
         return mgrs_input
         
 
-def check_coord_input(coord_input):
+def check_coord_input(coord_input : list) -> bool:
     """
     Determine if the coordinates input is valid
 
