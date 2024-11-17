@@ -248,6 +248,87 @@ def write_csv(file_path: str,csv_data: list) -> None:
         writer.writeheader()
         writer.writerows(csv_data)
 
+def update_marker_num_with_row_number(file_path : str) -> None:
+    import csv, os
+    try:
+        # Check if the file exists
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"The file '{file_path}' does not exist.")
+
+        # Read the file and update the MARKER_NUM column
+        updated_rows = []
+        with open(file_path, mode='r') as infile:
+            reader = csv.DictReader(infile)
+
+            # Ensure the required column exists
+            if 'MARKER_NUM' not in reader.fieldnames:
+                raise KeyError("The CSV file must contain a 'MARKER_NUM' column.")
+
+            # Update MARKER_NUM based on row number
+            for i, row in enumerate(reader, start=1):
+                row['MARKER_NUM'] = str(i)  # Row numbers start at 1
+                updated_rows.append(row)
+
+        # Write the updated rows back to the file
+        with open(file_path, mode='w', newline='') as outfile:
+            writer = csv.DictWriter(outfile, fieldnames=reader.fieldnames)
+            writer.writeheader()
+            writer.writerows(updated_rows)
+
+        print("MARKER_NUM column updated successfully.")
+
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+    except PermissionError:
+        print(f"Error: Permission denied while trying to read or write '{file_path}'.")
+    except KeyError as e:
+        print(f"Error: {e}. Please check the CSV file structure.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}") 
+
+def remove_rows_from_csv(file_path : str, marker_type_value : str, marker_num_value : int) -> None:
+    import csv, os
+    try:
+        # Check if the file exists
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"The file '{file_path}' does not exist.")
+        # Read the file and filter rows
+        with open(file_path, mode='r') as infile:
+            reader = csv.DictReader(infile)
+            # Ensure required columns exist
+            if 'MARKER_TYPE' not in reader.fieldnames or 'MARKER_NUM' not in reader.fieldnames:
+                raise KeyError("The CSV file must contain 'MARKER_TYPE' and 'MARKER_NUM' columns.")
+            rows = []
+            for row in reader:
+                try:
+                    # Ensure MARKER_NUM is an integer and MARKER_TYPE is a string
+                    marker_num = int(row['MARKER_NUM'])
+                    marker_type = str(row['MARKER_TYPE'])
+                    assert isinstance(marker_num, int), "MARKER_NUM must be an integer."
+                    assert isinstance(marker_type, str), "MARKER_TYPE must be a string."
+                    # Filter rows based on condition
+                    if not (marker_type == marker_type_value and marker_num == marker_num_value):
+                        rows.append(row)
+                except ValueError as e:
+                    print(f"Data type error in row {row}: {e}")
+                except AssertionError as e:
+                    print(f"Assertion error in row {row}: {e}")
+        # Write the filtered rows back to the file
+        with open(file_path, mode='w', newline='') as outfile:
+            writer = csv.DictWriter(outfile, fieldnames=reader.fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
+        update_marker_num_with_row_number(file_path)
+        print("Rows removed and file saved successfully.")
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+    except PermissionError:
+        print(f"Error: Permission denied while trying to read or write '{file_path}'.")
+    except KeyError as e:
+        print(f"Error: {e}. Please check the CSV file structure.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
 def read_json(filepath: str) -> dict:
     import json
     with open(filepath, 'r', encoding='utf-8') as json_file:
@@ -543,7 +624,6 @@ def correct_mgrs_input(mgrs_input: str) -> str:
     except AttributeError:
         return mgrs_input
         
-
 def check_coord_input(coord_input : list) -> bool:
     """
     Determine if the coordinates input is valid

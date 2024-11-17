@@ -3056,8 +3056,8 @@ class App(customtkinter.CTk):
         else:
             # create marker file DataFrame
             marker_data = []
-        marker_columns = ['MARKER_NUM','LOC_MGRS','LOC_LATLON']
-        new_marker_data = [len(marker_data)+1,marker_mgrs,', '.join([str(x) for x in marker_coord])]
+        marker_columns = ['MARKER_NUM','MARKER_TYPE','LOC_MGRS','LOC_LATLON']
+        new_marker_data = [len(marker_data)+1,'USER',marker_mgrs,', '.join([str(x) for x in marker_coord])]
         # convert marker row into dictionary
         log_row_dict = dict(zip(marker_columns, new_marker_data))
         # append data row (dict) to marker data
@@ -3260,6 +3260,7 @@ class App(customtkinter.CTk):
         
     def marker_click(self,marker) -> None:
         from CTkMessagebox import CTkMessagebox
+        from utilities import remove_rows_from_csv
         # generate message box based on marker category
         if "TGT" in marker.data:
             msgBox_title = "TGT Data"
@@ -3289,10 +3290,19 @@ class App(customtkinter.CTk):
                 self.ewt_marker_list.remove(marker)
             elif msgBox_title == "Generic Marker":
                 self.user_marker_list.remove(marker)
+                filepath = os.path.join(self.log_directory,"current_user_markers.csv")
+                marker_num = int(str(marker.data).split('No. ')[-1].split(')')[0].strip())
+                remove_rows_from_csv(filepath,"USER",marker_num)
             elif msgBox_title == "OBJ Marker":
                 self.obj_list.remove(marker)
+                filepath = os.path.join(self.log_directory,"tactical_graphic_markers.csv")
+                marker_num = int(str(marker.data).split('No. ')[-1].split(')')[0].strip())
+                remove_rows_from_csv(filepath,"OBJ",marker_num)
             elif msgBox_title == "NAI Marker":
                 self.nai_list.remove(marker)
+                filepath = os.path.join(self.log_directory,"tactical_graphic_markers.csv")
+                marker_num = int(str(marker.data).split('No. ')[-1].split(')')[0].strip())
+                remove_rows_from_csv(filepath,"NAI",marker_num)
             # delete marker from map
             lat, lon = marker.position[0], marker.position[1]
             marker.delete()
