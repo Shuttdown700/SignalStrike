@@ -1737,7 +1737,7 @@ class App(customtkinter.CTk):
         def plot_lobs(s1lnmc,s1lfmc,s2lnmc,s2lfmc,s3lnmc,s3lfmc,plot_ewt1_lob_tgt_bool=True,plot_ewt2_lob_tgt_bool=True,plot_ewt3_lob_tgt_bool=True):
             self.sensor1_target_coord = None ; self.sensor2_target_coord = None ; self.sensor3_target_coord = None
             import numpy as np
-            num_lobs = 3-[self.sensor1_lob,self.sensor2_lob,self.sensor3_lob].count(None)
+            num_lobs = 3-[self.sensor1_grid_azimuth_val,self.sensor2_grid_azimuth_val,self.sensor3_grid_azimuth_val].count(None)
             # assess if there is no target class
             if self.target_class == '':
                 # set target class
@@ -2562,7 +2562,7 @@ class App(customtkinter.CTk):
             self.show_info("Missing required data. No data logged.",icon='warning')
             return
         # if sensor 1 has data in the input fields
-        if self.sensor1_mgrs_val != None:
+        if self.sensor1_grid_azimuth_val != None:
             row_data.append(self.sensor1_mgrs_val)
             row_data.append(', '.join([str(x) for x in self.sensor1_coord]))
             row_data.append(self.sensor1_grid_azimuth_val)
@@ -2579,7 +2579,7 @@ class App(customtkinter.CTk):
             # add blank entries to sensor 2 data log
             for i in range(num_ewt_datapoints): row_data.append('')
         # if sensor 2 has data in the input fields
-        if self.sensor2_mgrs_val != None:
+        if self.sensor2_grid_azimuth_val != None:
             row_data.append(self.sensor2_mgrs_val)
             row_data.append(', '.join([str(x) for x in self.sensor2_coord]))
             row_data.append(self.sensor2_grid_azimuth_val)
@@ -2595,7 +2595,7 @@ class App(customtkinter.CTk):
             # add blank entries to sensor 2 data log
             for i in range(num_ewt_datapoints): row_data.append('')
         # if sensor 2 has data in the input fields
-        if self.sensor3_mgrs_val != None:
+        if self.sensor3_grid_azimuth_val != None:
             row_data.append(self.sensor3_mgrs_val)
             row_data.append(', '.join([str(x) for x in self.sensor3_coord]))
             row_data.append(self.sensor3_grid_azimuth_val)
