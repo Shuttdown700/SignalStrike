@@ -2912,10 +2912,12 @@ class App(customtkinter.CTk):
             return
 
     def plot_EUD_position(self,coord=None):
+        import time
         from PIL import Image, ImageTk
         from utilities import convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, generate_EUD_coordinate
         max_time_seconds = 15
         self.show_info(f'Generating location from GPS... stand outside & wait {max_time_seconds} seconds',icon='info')
+        time.sleep(2)
         if coord == None:
             try:
                 gps_data = generate_EUD_coordinate(max_time_seconds)
