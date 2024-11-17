@@ -115,7 +115,7 @@ def main():
             else:
                 time.sleep(1)
     except Exception as e:
-        print('Exception detected: {e}\nRestarting Service')
+        print(f'Exception detected: {e}\nRestarting Service')
         main()
 
 if __name__ == "__main__":
