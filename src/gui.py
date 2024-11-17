@@ -64,7 +64,8 @@ class App(customtkinter.CTk):
         "Initial Latitude":conf["DEFAULT_INITIAL_LATITUDE"],
         "Initial Longitude":conf["DEFAULT_INITIAL_LONGITUDE"],
         "Map Server File Path":conf["DEFAULT_MAP_SERVER_PATH"],
-        "User Marker Filename":conf["FILENAME_USER_MARKERS"]
+        "User Marker Filename":conf["FILENAME_USER_MARKERS"],
+        "Tactical Graphic Marker Filename":conf["FILENAME_TACTICAL_GRAPHIC_MARKERS"]
     }
     PATH_LOSS_DICT = {
         'Free Space':2,
@@ -122,6 +123,10 @@ class App(customtkinter.CTk):
         self.iconbitmap(os.path.join(self.icon_directory, "app_icon.ico"))
         # define initial user marker list
         self.user_marker_list = []
+        # define objective list
+        self.obj_list = []
+        # define NAI list
+        self.nai_list = []
         # define initial EDU marker list
         self.eud_marker_list = []
         # define initial LOB list
@@ -752,7 +757,7 @@ class App(customtkinter.CTk):
         # define clear entries button 
         self.button_clear_entries = customtkinter.CTkButton(
             master=self.frame_left, 
-            text="CLEAR ENTRIES",
+            text="Clear User Inputs",
             fg_color='red',
             command = self.clear_entries)
         # assign clear entries button grid position
@@ -766,7 +771,7 @@ class App(customtkinter.CTk):
         # define calculate button attributes
         self.button_calculate = customtkinter.CTkButton(
             master=self.frame_left, 
-            text="CALCULATE",
+            text="Calcuate",
             fg_color='blue',
             command = self.ewt_function)
         # assign calculate button grid position
@@ -780,7 +785,7 @@ class App(customtkinter.CTk):
         # define TBD button attributes
         self.button_TBD = customtkinter.CTkButton(
             master=self.frame_left, 
-            text="RELOAD LAST LOG",
+            text="Reload Last Log",
             fg_color='brown',
             command=self.reload_last_log)
         # assign TBD button grid position
@@ -794,7 +799,7 @@ class App(customtkinter.CTk):
         # define log entries button 
         self.button_log_data = customtkinter.CTkButton(
             master=self.frame_left, 
-            text="LOG DATA",
+            text="Log Target Data",
             fg_color='green',
             command = self.log_target_data)
         # assign log entries button grid position
@@ -846,41 +851,42 @@ class App(customtkinter.CTk):
             max_zoom=App.MAX_ZOOM)
         # set initial zoom level for map tile server
         self.map_widget.set_zoom(14)
-        # define mgrs entry form attributes
-        self.search_mgrs = customtkinter.CTkEntry(
+        # define text label attributes
+        self.label_status = customtkinter.CTkLabel(
             master=self.frame_right,
-            placeholder_text="Insert MGRS Grid")
-        # assign mgrs entry form grid position
-        self.search_mgrs.grid(
-            row=0,
+            text="")
+        # assign text label grid position
+        self.label_status.grid(
+            row=0, 
             column=0,
             columnspan=1,
             padx=(12, 0), 
             pady=12,
-            sticky="ew")
-        # bind mgrs entry RETURN keystroke to search function
-        self.search_mgrs.bind("<Return>", self.search_event)
-        # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.search_mgrs.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.search_mgrs))
-        # define search button attributes
-        self.button_search = customtkinter.CTkButton(
+            sticky="we")
+        # define clear tactical graphics button attributes
+        self.botton_clear_tactical_graphics = customtkinter.CTkButton(
             master=self.frame_right,
-            text="Search Location",
-            width=90,
-            command=self.search_event)
-        # assign search button grid position
-        self.button_search.grid(
+            text="Clear OBJs & NAIs",
+            fg_color="red",
+            hover_color="black",
+            text_color="white",
+            command=self.clear_tactical_markers)
+        # assign clear tactical graphics button grid position
+        self.botton_clear_tactical_graphics.grid(
             row=0,
             rowspan=1,
             column=1, 
             columnspan=1, 
             padx=(12, 0), 
             pady=12,
-            sticky="ew")
+            sticky="ew")   
         # define clear LOBs button attributes
         self.button_clear_LOBs = customtkinter.CTkButton(
             master=self.frame_right,
             text="Clear TGT Graphics",
+            fg_color="red",
+            hover_color="black",
+            text_color="white",
             command=self.clear_target_overlays)
         # assign clear LOBs button grid position
         self.button_clear_LOBs.grid(
@@ -895,6 +901,9 @@ class App(customtkinter.CTk):
         self.button_clear_markers = customtkinter.CTkButton(
             master=self.frame_right,
             text="Clear Generic Markers",
+            fg_color="red",
+            hover_color="black",
+            text_color="white",
             command=self.clear_user_markers)
         # assign clear markers button grid position
         self.button_clear_markers.grid(
@@ -909,8 +918,11 @@ class App(customtkinter.CTk):
         self.button_clear_measurements = customtkinter.CTkButton(
             master=self.frame_right,
             text="Clear Measurements",
+            fg_color="red",
+            hover_color="black",
+            text_color="white",
             command=self.clear_measurements)
-        # assign batch download button grid position
+        # assign clear measurements button grid position
         self.button_clear_measurements.grid(
             row=0, 
             rowspan=1,
@@ -923,6 +935,8 @@ class App(customtkinter.CTk):
         self.map_option_menu = customtkinter.CTkOptionMenu(
             master=self.frame_right, 
             values=["Local Terrain Map", "Local Satellite Map", "OpenStreetMap", "Google Street", "Google Satellite"],
+            fg_color="green",
+            text_color="white",
             command=self.change_map)
         # assign map option dropdown grid position
         self.map_option_menu.grid(
@@ -933,72 +947,74 @@ class App(customtkinter.CTk):
             padx=(12, 0), 
             pady=12,
             sticky="ew")
-        # define text label attributes
-        self.label_status = customtkinter.CTkLabel(
+        # define mgrs entry form attributes
+        self.search_mgrs = customtkinter.CTkEntry(
             master=self.frame_right,
-            text="test")
-        # assign text label grid position
-        self.label_status.grid(
-            row=2, 
+            placeholder_text="Insert MGRS Grid")
+        # assign mgrs entry form grid position
+        self.search_mgrs.grid(
+            row=2,
             column=0,
-            columnspan=1,
+            columnspan=2,
+            padx=(12, 0), 
+            pady=12,
+            sticky="ew")
+        # bind mgrs entry RETURN keystroke to search function
+        self.search_mgrs.bind("<Return>", self.search_event)
+        # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
+        self.search_mgrs.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.search_mgrs))
+        # define search button attributes
+        self.button_search = customtkinter.CTkButton(
+            master=self.frame_right,
+            text="Search",
+            width=90,
+            command=self.search_event)
+        # assign search button grid position
+        self.button_search.grid(
+            row=2,
+            rowspan=1,
+            column=2, 
+            columnspan=1, 
+            padx=(12, 0), 
+            pady=12,
+            sticky="ew")
+        # define Brightness down button attributes
+        self.button_brightness_down = customtkinter.CTkButton(
+            master=self.frame_right,
+            text="Brightness Down",
+            fg_color="black",
+            hover_color="gray",
+            text_color="white",
+            command=self.increment_brightness_down)
+        # assign batch download radius 
+        self.button_brightness_down.grid(
+            row=2, 
+            column=3, 
             padx=(12, 0), 
             pady=12,
             sticky="we")
         # define Brightness up button attributes
         self.button_brightness_up = customtkinter.CTkButton(
             master=self.frame_right,
-            text="Brightness Down",
+            text="Brightness Up",
+            fg_color="yellow",
+            hover_color="orange",
+            text_color="black",
             command=self.increment_brightness_up)
         # assign batch download's center MGRS
         self.button_brightness_up.grid(
             row=2, 
-            column=1,
+            column=4,
             columnspan=1,
             padx=(12, 0), 
             pady=12,
             sticky="we")
-        # define Brightness down button attributes
-        self.button_brightness_down = customtkinter.CTkButton(
-            master=self.frame_right,
-            text="Brightness Down",
-            command=self.increment_brightness_down)
-        # assign batch download radius 
-        self.button_brightness_down.grid(
-            row=2, 
-            column=2, 
-            padx=(12, 0), 
-            pady=12,
-            sticky="we")
-        # define OBJ plot button attributes
-        self.button_plot_OBJ = customtkinter.CTkButton(
-            master=self.frame_right,
-            text="Plot OBJ",
-            command=self.plot_OBJ)
-        # assign OBJ plot button grid position
-        self.button_plot_OBJ.grid(
-            row=2, 
-            column=3, 
-            padx=(12, 0), 
-            pady=12,
-            sticky="we")
-        # define OBJ plot button attributes
-        self.button_plot_NAI = customtkinter.CTkButton(
-            master=self.frame_right,
-            text="Plot NAI",
-            command=self.plot_OBJ)
-        # assign NAI button grid position
-        self.button_plot_NAI.grid(
-            row=2,
-            rowspan=1,
-            column=4, 
-            columnspan=1,
-            padx=(12,0),
-            pady=(0,0))
         # define plot EUD button attributes
         self.button_plot_eud_location = customtkinter.CTkButton(
             master=self.frame_right,
             text="Plot Current Position",
+            fg_color="brown",
+            text_color="white",
             command=self.plot_EUD_position)
         # assign clear markers button grid position
         self.button_plot_eud_location.grid(
@@ -1026,21 +1042,41 @@ class App(customtkinter.CTk):
             label="Copy MGRS Gid",
             command=self.copy_mgrs_grid,
             pass_coords=True)
+        self.map_widget.add_right_click_menu_command(
+            label="Plot OBJ",
+            command=self.plot_OBJ,
+            pass_coords=True)
+        self.map_widget.add_right_click_menu_command(
+            label="Plot NAI",
+            command=self.plot_NAI,
+            pass_coords=True)
         self.plot_current_user_markers()
 
     def plot_current_user_markers(self) -> None:
         from utilities import read_csv
-        filepath = os.path.join(self.log_directory, App.DEFAULT_VALUES["User Marker Filename"])
+        user_marker_filepath = os.path.join(self.log_directory, App.DEFAULT_VALUES["User Marker Filename"])
         try:
-            marker_data_list = read_csv(filepath)
+            marker_data_list = read_csv(user_marker_filepath)
+            marker_data_list = sorted(marker_data_list,key=lambda x: int(x["MARKER_NUM"]))
+            for marker_data in marker_data_list:
+                marker_coord = marker_data['LOC_LATLON']
+                marker_coord = [float(x) for x in marker_coord.split(', ')]
+                print(marker_coord)
+                self.add_marker_event(marker_coord,True,True)
         except FileNotFoundError:
-            return
-        marker_data_list = sorted(marker_data_list,key=lambda x: int(x["MARKER_NUM"]))
-        for marker_data in marker_data_list:
-            marker_coord = marker_data['LOC_LATLON']
-            marker_coord = [float(x) for x in marker_coord.split(', ')]
-            print(marker_coord)
-            self.add_marker_event(marker_coord,True,True)
+            pass
+        tactical_marker_filepath = os.path.join(self.log_directory, App.DEFAULT_VALUES["Tactical Graphic Marker Filename"])
+        try:
+            marker_data_list = read_csv(tactical_marker_filepath)
+            for marker_data in marker_data_list:
+                marker_coord = marker_data['LOC_LATLON']
+                marker_coord = [float(x) for x in marker_coord.split(', ')]
+                if marker_data['MARKER_TYPE'] == 'OBJ':
+                    self.plot_OBJ(marker_coord,True)
+                elif marker_data['MARKER_TYPE'] == 'NAI':
+                    self.plot_NAI(marker_coord,True)
+        except FileNotFoundError:
+            pass
 
     def read_ewt_input_fields(self):
         """
@@ -2670,7 +2706,7 @@ class App(customtkinter.CTk):
         marker_num = len(self.user_marker_list) + 1
         # define marker's data string
         try:
-            maker_data = f"User marker (No. {marker_num%10}) plotted at {format_readable_mgrs(convert_coords_to_mgrs(list(coord)))} on {format_readable_DTG(generate_DTG())}"
+            marker_data = f"User marker (No. {marker_num%10}) plotted at {format_readable_mgrs(convert_coords_to_mgrs(list(coord)))} on {format_readable_DTG(generate_DTG())}"
             marker_icon = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "user_markers", f"user_marker_{marker_num}.png")).resize((40, 40)))
         except FileNotFoundError:
             maker_data = f"User marker plotted at {format_readable_mgrs(convert_coords_to_mgrs(list(coord)))} on {format_readable_DTG(generate_DTG())}"
@@ -2681,7 +2717,7 @@ class App(customtkinter.CTk):
                                                 icon=marker_icon,
                                                 image_zoom_visibility=(10, float("inf")),
                                                 command=self.marker_click,
-                                                data=maker_data)
+                                                data=marker_data)
         # append marker object to marker list
         self.append_object(new_marker,"USER")
         # log the marker 
@@ -2716,6 +2752,82 @@ class App(customtkinter.CTk):
             # add distance marker and connecting line to list
             self.path_list.append(dist_line)
             self.path_list.append(marker_dist)
+
+    def plot_OBJ(self,coord,bool_bypass_log=False):
+        """
+        Plot an "objective" on the map at user discretion
+
+        Parameters
+        ----------
+        coord : list
+            Marker coordinates in [lat,lon] format.
+
+        Returns
+        -------
+        None.
+
+        """
+        # import libraries
+        from PIL import Image, ImageTk
+        from utilities import convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, get_distance_between_coords
+        import numpy as np
+        import os
+        # define marker's mgrs string
+        marker_mgrs = f"{format_readable_mgrs(convert_coords_to_mgrs(list(coord)))}"
+        # define marker's number
+        marker_num = len(self.obj_list) + 1
+        # define marker's data string
+        marker_data = f"OBJ (No. {marker_num%10}) plotted at {format_readable_mgrs(convert_coords_to_mgrs(list(coord)))} on {format_readable_DTG(generate_DTG())}"
+        marker_icon = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "objective.png")).resize((40, 40)))
+        # plot marker
+        new_marker = self.map_widget.set_marker(coord[0], coord[1], 
+                                                text=marker_mgrs,
+                                                icon=marker_icon,
+                                                image_zoom_visibility=(10, float("inf")),
+                                                command=self.marker_click,
+                                                data=marker_data)
+        # append marker object to marker list
+        self.append_object(new_marker,"OBJ")
+        # log the marker 
+        if not bool_bypass_log: self.log_tactical_marker(new_marker,"OBJ")
+
+    def plot_NAI(self,coord,bool_bypass_log=False):
+        """
+        Plot a "NAI" on the map at user discretion
+
+        Parameters
+        ----------
+        coord : list
+            Marker coordinates in [lat,lon] format.
+
+        Returns
+        -------
+        None.
+
+        """
+        # import libraries
+        from PIL import Image, ImageTk
+        from utilities import convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, get_distance_between_coords
+        import numpy as np
+        import os
+        # define marker's mgrs string
+        marker_mgrs = f"{format_readable_mgrs(convert_coords_to_mgrs(list(coord)))}"
+        # define marker's number
+        marker_num = len(self.nai_list) + 1
+        # define marker's data string
+        marker_data = f"NAI (No. {marker_num%10}) plotted at {format_readable_mgrs(convert_coords_to_mgrs(list(coord)))} on {format_readable_DTG(generate_DTG())}"
+        marker_icon = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "nai.png")).resize((40, 40)))
+        # plot marker
+        new_marker = self.map_widget.set_marker(coord[0], coord[1], 
+                                                text=marker_mgrs,
+                                                icon=marker_icon,
+                                                image_zoom_visibility=(10, float("inf")),
+                                                command=self.marker_click,
+                                                data=marker_data)
+        # append marker object to marker list
+        self.append_object(new_marker,"NAI")
+        # log the marker 
+        if not bool_bypass_log: self.log_tactical_marker(new_marker,"NAI")
 
     def copy_mgrs_grid(self, coords: list) -> None:
         """
@@ -2806,7 +2918,7 @@ class App(customtkinter.CTk):
         if coord == None:
             try:
                 max_time_seconds = 15
-                self.show_info(f'Generating location from GPS... wait {max_time_seconds} seconds',icon='info')
+                self.show_info(f'Generating location from GPS... stand outside & wait {max_time_seconds} seconds',icon='info')
                 gps_data = generate_EUD_coordinate(max_time_seconds)
                 if gps_data is None:
                     self.show_info('No GPS data available at this time.',icon='warning')
@@ -2848,12 +2960,6 @@ class App(customtkinter.CTk):
         #                                                             outline='black')
         #     self.append_object(eud_position_error,"EUD")
         self.log_eud_location([lat,lon,acc])
-
-    def plot_OBJ(self):
-        pass
-
-    def plot_NAI(self):
-        pass
 
     def increment_brightness_up(self):
         from utilities import adjust_brightness
@@ -2935,6 +3041,40 @@ class App(customtkinter.CTk):
             self.show_info("User Marker file currently open. Cannot log data!",icon='warning')
             return
 
+    def log_tactical_marker(self,marker,marker_type):
+        import datetime
+        from utilities import convert_coords_to_mgrs, generate_DTG, read_csv, write_csv
+        marker_coord = [marker.position[0],marker.position[1]]
+        marker_mgrs = convert_coords_to_mgrs(marker_coord)
+        # assess if directory exists
+        if not os.path.exists(self.log_directory):
+            # create log directory
+            os.makedirs(self.log_directory)
+        # define marker file name
+        filename = App.DEFAULT_VALUES["Tactical Graphic Marker Filename"]
+        # if marker file already exists
+        if os.path.isfile(os.path.join(self.log_directory, filename)):
+            # read current log file
+            marker_data = read_csv(os.path.join(self.log_directory, filename))
+        # if marker file does not yet exist
+        else:
+            # create marker file DataFrame
+            marker_data = []
+        marker_columns = ['MARKER_NUM','MARKER_TYPE','LOC_MGRS','LOC_LATLON']
+        new_marker_data = [len(marker_data)+1,marker_type,marker_mgrs,', '.join([str(x) for x in marker_coord])]
+        # convert marker row into dictionary
+        log_row_dict = dict(zip(marker_columns, new_marker_data))
+        # append data row (dict) to marker data
+        marker_data.append(log_row_dict)
+        # try to save the updated log file
+        try:
+            write_csv(os.path.join(self.log_directory, filename),marker_data)
+        # if file permissions prevent log file saving
+        except PermissionError:
+            # error message if file is currently open
+            self.show_info("User Marker file currently open. Cannot log data!",icon='warning')
+            return
+
     def check_if_object_in_object_list(self,map_object,map_object_list):
         map_object_data = map_object.data
         object_data_list = [mo.data for mo in map_object_list]
@@ -2965,6 +3105,18 @@ class App(customtkinter.CTk):
             if not self.check_if_object_in_object_list(map_object,self.user_marker_list):
                 # append the EWT marker to the EWT marker list
                 self.user_marker_list.append(map_object)
+        # check if map object is an OBJ
+        elif map_object_list_name.upper() == 'OBJ':
+            # check if OBJ already exists in the OBJ list
+            if not self.check_if_object_in_object_list(map_object,self.obj_list):
+                # append the OBJ to the OBJ list
+                self.obj_list.append(map_object)
+        # check if map object is an NAI
+        elif map_object_list_name.upper() == 'NAI':
+            # check if NAI already exists in the NAI list
+            if not self.check_if_object_in_object_list(map_object,self.nai_list):
+                # append the NAI to the NAI list
+                self.nai_list.append(map_object)
         # check if map object is a EUD marker
         if map_object_list_name.upper() == 'EUD':
             # check if EWT marker already exists in the EWT marker list
@@ -2988,7 +3140,7 @@ class App(customtkinter.CTk):
             # check if FIX already exists in the FIX list
             if not self.check_if_object_in_object_list(map_object,self.fix_list):
                 # append the FIX to the FIX list
-                self.fix_list.append(map_object)     
+                self.fix_list.append(map_object)
 
     def clear_measurements(self) -> None:
         for path in self.path_list:
@@ -3017,6 +3169,28 @@ class App(customtkinter.CTk):
             # error message if file is currently open
             self.show_info("User Marker file currently open. Cannot log data!",icon='warning')
         self.user_marker_list = []; self.eud_marker_list = []
+
+    def clear_tactical_markers(self):
+        for obj_marker in self.obj_list:
+            obj_marker.delete()
+        for nai_marker in self.nai_list:
+            nai_marker.delete()
+        # assess if log directory exists
+        if not os.path.exists(self.log_directory):
+            # create log directory
+            os.makedirs(self.log_directory)
+        # define marker file name
+        filename = App.DEFAULT_VALUES["Tactical Graphic Marker Filename"]
+        try:
+            os.remove(os.path.join(self.log_directory, filename))
+        # if file does not exist
+        except FileNotFoundError:
+            pass
+        # if file permissions prevent marker file deleting
+        except PermissionError:
+            # error message if file is currently open
+            self.show_info("Tactical Marker file currently open. Cannot log data!",icon='warning')
+        self.obj_list = []; self.nai_list = []
     
     def clear_target_overlays(self):
         for ewt_marker in self.ewt_marker_list:
@@ -3054,11 +3228,6 @@ class App(customtkinter.CTk):
         # self.batch_download_radius.delete(0,END)
         # self.search_mgrs.delete(0,END)
         
-    def batch_download(self):
-        from utilities import check_internet_connection
-        if not check_internet_connection(): self.show_info("Function unavailable. No public internet connection.",box_title="Feature Unavailable",icon='info'); return
-        self.show_info("This function has been disabled by the dev",box_title="Function Disabled Notice",icon='info'); return
-        
     def marker_click(self,marker) -> None:
         from CTkMessagebox import CTkMessagebox
         # generate message box based on marker category
@@ -3071,6 +3240,12 @@ class App(customtkinter.CTk):
         elif "User" in marker.data:
             msgBox_title = "Generic Marker"
             msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])
+        elif "OBJ" in marker.data:
+            msgBox_title = "OBJ Marker"
+            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])        
+        elif "NAI" in marker.data:
+            msgBox_title = "NAI Marker"
+            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])        
         else:
             msgBox_title = "Unknown Marker"
             msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])
@@ -3084,12 +3259,17 @@ class App(customtkinter.CTk):
                 self.ewt_marker_list.remove(marker)
             elif msgBox_title == "Generic Marker":
                 self.user_marker_list.remove(marker)
+            elif msgBox_title == "OBJ Marker":
+                self.obj_list.remove(marker)
+            elif msgBox_title == "NAI Marker":
+                self.nai_list.remove(marker)
             # delete marker from map
             lat, lon = marker.position[0], marker.position[1]
             marker.delete()
             if len(self.user_marker_list) == len(self.path_list) == 0:
                 self.clear_user_markers()
-            # self.map_widget.set_position(lat,lon)   
+            if len(self.obj_list) == len(self.nai_list) == 0:
+                self.clear_tactical_markers()
         
     def polygon_click(self,polygon) -> None:
         from CTkMessagebox import CTkMessagebox
@@ -3187,7 +3367,6 @@ class App(customtkinter.CTk):
         self.destroy()
         sys.exit()
         
-
     def start(self):
         self.mainloop()
 

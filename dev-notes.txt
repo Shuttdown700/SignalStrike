@@ -4,14 +4,12 @@ NEW / UPDATED FEATURES
 - ability to delete any map object (except distances) individually
 - asks if you want to measure between points, before plotting
 - batch map downloads is now CLI-based, not part of the GUI
+- added ability to plot OBJs and NAIs
 
 --- STABLE RELEASE UPDATES ---
 
-- ability to add some graphics (NAIs, friendly battle positions,etc)
-    - buttons on the bottom or additional option from right click
-- ability to plot an EW team without plotting their LOB details and getting the distance from targets
-    - when bypassing an EWT, allow the MGRS grid to remain if input
-    - the distance from TGT to EWT should look from EWTs without LOB data
+- add option to add battle positions
+- when removing icons, ensure they are removed from the log file
 
 --- ENHANCING EXISTING FEATURES ---
 
