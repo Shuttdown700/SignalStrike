@@ -21,7 +21,6 @@ NEW / UPDATED FEATURES
 [EW FUNCTION]
 - improve bounds for cut polygon (some extreme cuts extend beyond LOB)
 - give estimate warning prior to executing batch download
-- pass paramters to batch download... not command
 - verified emitter at 10km, pushing 20W, reads 7.23km est with no foliage
 - improve propogation model with new model
 

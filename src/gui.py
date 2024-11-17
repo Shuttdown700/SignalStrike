@@ -2576,40 +2576,69 @@ class App(customtkinter.CTk):
             ewt_bool = True
         # if sensor 1 has no data in the input fields
         else:
+            diff = 0
+            # add blank entries to sensor 1 data log
+            if self.sensor1_mgrs_val != None:
+                row_data.append(self.sensor1_mgrs_val)
+                row_data.append(', '.join([str(x) for x in self.sensor1_coord]))
+                diff += 2
+                if self.sensor1_distance._text != 'N/A':
+                    for i in range(4): row_data.append('')
+                    row_data.append(f'{self.sensor1_distance_val/1000:,.2f}')
+                    diff += 5
             # add blank entries to sensor 2 data log
-            for i in range(num_ewt_datapoints): row_data.append('')
+            for i in range(num_ewt_datapoints-diff): row_data.append('')
         # if sensor 2 has data in the input fields
         if self.sensor2_grid_azimuth_val != None:
             row_data.append(self.sensor2_mgrs_val)
             row_data.append(', '.join([str(x) for x in self.sensor2_coord]))
             row_data.append(self.sensor2_grid_azimuth_val)
             row_data.append(self.sensor2_power_received_dBm_val)
+            row_data.append(convert_coords_to_mgrs(self.sensor2_target_coord))
             row_data.append(', '.join([str(x) for x in self.sensor2_target_coord]))
-            row_data.append(self.sensor2_target_coord)
             row_data.append(f'{self.sensor2_distance_val/1000:,.2f}')
             row_data.append(f'{self.sensor2_min_distance_km:,.2f}')
             row_data.append(f'{self.sensor2_max_distance_km:,.2f}')
             ewt_bool = True
         # if sensor 2 has no data in the input fields
         else:
+            diff = 0
             # add blank entries to sensor 2 data log
-            for i in range(num_ewt_datapoints): row_data.append('')
+            if self.sensor2_mgrs_val != None:
+                row_data.append(self.sensor2_mgrs_val)
+                row_data.append(', '.join([str(x) for x in self.sensor2_coord]))
+                diff += 2
+                if self.sensor2_distance._text != 'N/A':
+                    for i in range(4): row_data.append('')
+                    row_data.append(f'{self.sensor2_distance_val/1000:,.2f}')
+                    diff += 5
+            for i in range(num_ewt_datapoints-diff): row_data.append('')
         # if sensor 2 has data in the input fields
         if self.sensor3_grid_azimuth_val != None:
             row_data.append(self.sensor3_mgrs_val)
             row_data.append(', '.join([str(x) for x in self.sensor3_coord]))
             row_data.append(self.sensor3_grid_azimuth_val)
             row_data.append(self.sensor3_power_received_dBm_val)
+            row_data.append(convert_coords_to_mgrs(self.sensor3_target_coord))
             row_data.append(', '.join([str(x) for x in self.sensor3_target_coord]))
-            row_data.append(self.sensor3_target_coord)
             row_data.append(f'{self.sensor3_distance_val/1000:,.2f}')
             row_data.append(f'{self.sensor3_min_distance_km:,.2f}')
             row_data.append(f'{self.sensor3_max_distance_km:,.2f}')
             ewt_bool = True
         # if sensor 3 has no data in the input fields
         else:
+            diff = 0
+            # add blank entries to sensor 1 data log
+            if self.sensor3_mgrs_val != None:
+                row_data.append(self.sensor3_mgrs_val)
+                row_data.append(', '.join([str(x) for x in self.sensor3_coord]))
+                diff += 2
+                if self.sensor3_distance._text != 'N/A':
+                    for i in range(4): row_data.append('')
+                    row_data.append(f'{self.sensor3_distance_val/1000:,.2f}')
+                    diff += 5
             # add blank entries to sensor 3 data log
-            for i in range(num_ewt_datapoints): row_data.append('')
+            for i in range(num_ewt_datapoints-diff): row_data.append('')
         if not ewt_bool:
             # end function w/o logging
             print("There was no EWT data detected during log function.")
