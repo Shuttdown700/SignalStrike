@@ -851,15 +851,19 @@ class App(customtkinter.CTk):
             max_zoom=App.MAX_ZOOM)
         # set initial zoom level for map tile server
         self.map_widget.set_zoom(14)
-        # define text label attributes
-        self.label_status = customtkinter.CTkLabel(
+        # define plot EUD button attributes
+        self.button_plot_eud_location = customtkinter.CTkButton(
             master=self.frame_right,
-            text="")
-        # assign text label grid position
-        self.label_status.grid(
+            text="Plot Current Position",
+            fg_color="brown",
+            text_color="white",
+            command=self.plot_EUD_position)
+        # assign clear markers button grid position
+        self.button_plot_eud_location.grid(
             row=0, 
-            column=0,
-            columnspan=1,
+            rowspan=1,
+            column=0, 
+            columnspan=1, 
             padx=(12, 0), 
             pady=12,
             sticky="we")
@@ -1009,19 +1013,15 @@ class App(customtkinter.CTk):
             padx=(12, 0), 
             pady=12,
             sticky="we")
-        # define plot EUD button attributes
-        self.button_plot_eud_location = customtkinter.CTkButton(
+        # define text label attributes
+        self.label_status = customtkinter.CTkLabel(
             master=self.frame_right,
-            text="Plot Current Position",
-            fg_color="brown",
-            text_color="white",
-            command=self.plot_EUD_position)
-        # assign clear markers button grid position
-        self.button_plot_eud_location.grid(
+            text="")
+        # assign text label grid position
+        self.label_status.grid(
             row=2, 
-            rowspan=1,
-            column=5, 
-            columnspan=1, 
+            column=5,
+            columnspan=1,
             padx=(12, 0), 
             pady=12,
             sticky="we")
