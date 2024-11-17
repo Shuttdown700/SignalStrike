@@ -2458,7 +2458,6 @@ class App(customtkinter.CTk):
         else:
             print("Unknown case in EW function")
         self.set_target_field()
-        # self.plot_EUD_position()
     
     def generate_sensor_distance_text(self,distance : float) -> str:
         """
@@ -2915,10 +2914,10 @@ class App(customtkinter.CTk):
     def plot_EUD_position(self,coord=None):
         from PIL import Image, ImageTk
         from utilities import convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, generate_EUD_coordinate
+        max_time_seconds = 15
+        self.show_info(f'Generating location from GPS... stand outside & wait {max_time_seconds} seconds',icon='info')
         if coord == None:
             try:
-                max_time_seconds = 15
-                self.show_info(f'Generating location from GPS... stand outside & wait {max_time_seconds} seconds',icon='info')
                 gps_data = generate_EUD_coordinate(max_time_seconds)
                 if gps_data is None:
                     self.show_info('No GPS data available at this time.',icon='warning')
