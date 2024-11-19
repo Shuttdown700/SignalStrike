@@ -870,7 +870,7 @@ class App(customtkinter.CTk):
         # define clear tactical graphics button attributes
         self.botton_clear_tactical_graphics = customtkinter.CTkButton(
             master=self.frame_right,
-            text="Clear OBJs & NAIs",
+            text="Tactical Graphics",
             fg_color="red",
             hover_color="black",
             text_color="white",

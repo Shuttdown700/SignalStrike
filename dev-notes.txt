@@ -1,15 +1,14 @@
 NEW / UPDATED FEATURES
 - added a terrain map with contour lines and trails, in addition to the satellite map
-- automatically reloads user-plotted markers after restart
-- ability to delete any map object (except distances) individually
+- updated UI layout and color scheme
+- added in-GUI method to adjust brightness
+- ability to delete any map object (except meaurements) individually
 - asks if you want to measure between points, before plotting
-- batch map downloads is now CLI-based, not part of the GUI
-- added ability to plot OBJs and NAIs
+- automatically reloads user-plotted markers & tactical markers after restart
+- batch map downloads is now CLI-based, not part of the GUI (not fully stable yet)
+- added ability to plot OBJs and NAIs (working to develop variable size graphics)
 
 --- STABLE RELEASE UPDATES ---
-
-- add option to add battle positions
-- when removing icons, ensure they are removed from the log file
 
 --- ENHANCING EXISTING FEATURES ---
 
@@ -18,9 +17,10 @@ NEW / UPDATED FEATURES
 - add Zulu DTG logs files
 - add path-loss description in log
 - when reloading a past log, don't ask about bypassing EWTs
+- add user, target markers to the log
+- use the logging feature for standard actions
 [EW FUNCTION]
-- improve bounds for cut polygon (some extreme cuts extend beyond LOB)
-- give estimate warning prior to executing batch download
+- improve bounds / backstops for cut polygon (some extreme cuts extend beyond LOB)
 - verified emitter at 10km, pushing 20W, reads 7.23km est with no foliage
 - improve propogation model with new model
 
@@ -31,8 +31,11 @@ NEW / UPDATED FEATURES
 - remove the batch download function from the UI, replace with planning tool functionality
 - add MGRS gridlines (perhaps a button to do this?)
 - Various colors to right frame buttons
+- add option to add battle positions
+
 [TESTING]
 - add system for testing to verify functionality when next features are added
+
 [CODE STRUCTURE]
 - remove hard-coded api key references
 - set a standard padx, pady in defaults dict
@@ -44,13 +47,9 @@ NEW / UPDATED FEATURES
 --- ADDING NEW FEATURES ---
 
 [ANALYSIS]
-- log analysis tools
+- post-mission log analysis tools
 [ELEVATION DATA]
 - utilize elevation and GPS data to give terrian context to EW function
-[PLOT OBJs W/ OPACITY]
-- right-click option to plot objectives w/ radius
-[FORK GENERIC ICON REMOVAL]
-- dropdown menu to choose different types of graphics to remove from overlay
 [GENERIC MARKER LOG]
 - create a function to log all generic marker data
 [BLUETOOTH / WIFI CONNECTIVITY FOR TRANSFERING DATA]
