@@ -19,6 +19,7 @@ NEW / UPDATED FEATURES
 - when reloading a past log, don't ask about bypassing EWTs
 - add user, target markers to the log
 - use the logging feature for standard actions
+
 [EW FUNCTION]
 - improve bounds / backstops for cut polygon (some extreme cuts extend beyond LOB)
 - verified emitter at 10km, pushing 20W, reads 7.23km est with no foliage
@@ -32,6 +33,7 @@ NEW / UPDATED FEATURES
 - add MGRS gridlines (perhaps a button to do this?)
 - Various colors to right frame buttons
 - add option to add battle positions
+- fix issue with marker number changing, likely need a seperate indexing column in the marker log file
 
 [TESTING]
 - add system for testing to verify functionality when next features are added
