@@ -46,13 +46,17 @@ python --version
 # clone git repository
 git clone "https://github.com/Shuttdown700/ew_plt_targeting_app"
 # change directory to EW Target App directory
-cd ./ew_plt_targeting_app
+cd ./SignalStrike
 # create a virtual python environment titled "venv"
 python -m venv venv
+# change directory to virtual environment scripts
+cd venv/Scripts/
 # activate the virtual environment
-source ./venv/scripts/activate
+activate
 # update Python's Pip module
 python -m pip install --upgrade pip
+# change directory to root directory
+cd ../..
 # install required python modules
 python -m pip install -r requirements.txt
 ```
