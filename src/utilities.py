@@ -42,7 +42,7 @@ def import_libraries(libraries):
                 pass
 
 libraries = [['math',['sin','cos','pi']],['collections',['defaultdict']],
-             ['datetime',['date']],['jinja2'],['numpy'],['statistics',['mean']],
+             ['datetime',['date']],['numpy'],['statistics',['mean']],
              ['warnings'],['mgrs'],['haversine',['Unit']],['pyserial'],['screen_brightness_control']]
 
 import_libraries(libraries)

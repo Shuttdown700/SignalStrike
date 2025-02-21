@@ -7,6 +7,7 @@ NEW / UPDATED FEATURES
 - automatically reloads user-plotted markers & tactical markers after restart
 - batch map downloads is now CLI-based, not part of the GUI (not fully stable yet)
 - added ability to plot OBJs and NAIs (working to develop variable size graphics)
+- add target presets (MILBAND, GCS, VTX)
 
 --- STABLE RELEASE UPDATES ---
 
