@@ -1,13 +1,17 @@
 import logging
 import os
 import subprocess
+from colorama import init, Fore
 
-# ANSI color codes
-RESET = "\033[0m"
-GREEN = "\033[92m"
-YELLOW = "\033[93m"
-RED = "\033[91m"
-BLUE = "\033[94m"
+# Initialize colorama (ensures colors work properly on Windows)
+init(autoreset=True)
+
+# Define color constants
+RESET = Fore.RESET
+GREEN = Fore.GREEN
+YELLOW = Fore.YELLOW
+RED = Fore.RED
+BLUE = Fore.BLUE
 
 def delete_small_files_and_empty_dirs(directory: str, size_limit_kb: float, dry_run=False) -> None:
     # Convert size limit from kilobytes to bytes
@@ -130,14 +134,60 @@ def main():
                 elif response == 'n':
                     continue
             elif choice == len(location_options)+1:
-                print(f"{RED}Custom selection not ready yet{RESET}")
-                break
-                
+                while True:
+                    topLeft_latLon = input(f"\n{BLUE}Enter the top left latitude and longitude separated by a comma{RESET} (e.g. 35.32661,-116.54657): ")
+                    if "," in topLeft_latLon:
+                        try:
+                            tl_lat, tl_lon = [float(item) for item in topLeft_latLon.split(",")]
+                            break
+                        except ValueError:
+                            print(f"{RED}Invalid input. Please enter two numbers separated by a comma.{RESET}")
+                while True:
+                    bottomRight_latLon = input(f"\n{BLUE}Enter the bottom right latitude and longitude separated by a comma{RESET} (e.g. 35.32661,-116.54657): ")
+                    if "," in bottomRight_latLon:
+                        try:
+                            br_lat, br_lon = [float(item) for item in bottomRight_latLon.split(",")]
+                            break
+                        except ValueError:
+                            print(f"{RED}Invalid input. Please enter two numbers separated by a comma.{RESET}")
+                while True:
+                    mapType = input(f"\n{BLUE}Enter the map type{RESET} (Terrain/Satellite): ").lower()
+                    if mapType in ["terrain","satellite","t","s"]:
+                        if mapType == "s":
+                            mapType = "satellite"
+                        elif mapType == "t":
+                            mapType = "terrain"
+                        mapType = mapType.capitalize()
+                        break
+                    else:
+                        print(f"{RED}Invalid input. Please enter 'Terrain' or 'Satellite'.{RESET}")
+                while True:
+                    minZoom = input(f"\n{BLUE}Enter the minimum zoom level{RESET} (0-20): ")
+                    if minZoom.isdigit() and 0 <= int(minZoom) <= 20:
+                        minZoom = int(minZoom)
+                        break
+                    else:
+                        print(f"{RED}Invalid input. Please enter a number between 0 and 20.{RESET}")
+                while True:
+                    maxZoom = input(f"\n{BLUE}Enter the maximum zoom level{RESET} ({minZoom}-20): ")
+                    if maxZoom.isdigit() and minZoom <= int(maxZoom) <= 20:
+                        maxZoom = int(maxZoom)
+                        break
+                    else:
+                        print(f"{RED}Invalid input. Please enter a number between {minZoom} and 20.{RESET}")
+                download_tile_batch(
+                    [tl_lat, tl_lon],
+                    [br_lat, br_lon],
+                    os.path.join(map_dir,mapType),
+                    min_zoom=minZoom,
+                    max_zoom=maxZoom,
+                    parallel_threads=4
+                )                
             else:
                 print(f"{RED}\nInvalid choice. Please enter a number between 1 and {len(location_options)+1}.{RESET}")
         else:
             print(f"{RED}Invalid input. Please enter a number.{RESET}")
-    return choice
+    return 0
 
 if __name__ == "__main__":
     main()
@@ -150,14 +200,7 @@ if __name__ == "__main__":
 """
 
 """
-Re-design:
-
-Create an estimate on completion (# complete / # remaining)
-
-add color
-
 create another file or function to facilitate the copying of map data to storage devices
-
 """
 
 # xcopy "C:\Users\brend\Documents\Coding Projects\ew_plt_targeting_app\map_tiles" "S:\Coding Projects" /s /e /d
