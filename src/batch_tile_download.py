@@ -11,7 +11,7 @@ RESET = Fore.RESET
 GREEN = Fore.GREEN
 YELLOW = Fore.YELLOW
 RED = Fore.RED
-BLUE = Fore.BLUE
+MAGENTA = Fore.MAGENTA
 
 def delete_small_files_and_empty_dirs(directory: str, size_limit_kb: float, dry_run=False) -> None:
     # Convert size limit from kilobytes to bytes
@@ -99,7 +99,7 @@ def main():
     conf_download_presets = read_json(os.path.join(os.path.dirname(os.path.abspath(__file__)),"config_files","batch_download_presets.json"))
     location_options = list(conf_download_presets["Locations"].keys())
     while True:
-        print(f"\n{BLUE}Select a batch download option:{RESET}\n")
+        print(f"\n{YELLOW}Select a batch download option:{RESET}\n")
         for i,key in enumerate(location_options):
             print(f"{i+1}. {key}")
         print(f"{i+2}. Custom")
@@ -114,18 +114,18 @@ def main():
                 response = ""
                 while response not in ["y","n"]:
                     map_selection = location_options[choice-1]
-                    response = input(f"\n{BLUE}Confirm selection{RESET}:{YELLOW} {map_selection} {RESET}[Y/N] ").lower()
+                    response = input(f"\n{YELLOW}Confirm selection{RESET}:{MAGENTA} {map_selection} {RESET}[Y/N] ").lower()
                 if response == 'y':
                     response_map_type = "no-response"
                     while response_map_type not in ["terrain","satellite","","blank","t","s"]:
-                        response_map_type = input (f"\n{BLUE}Input map type{RESET}:{YELLOW} Terrain [T]{RESET}, {YELLOW}Satellite [S]{RESET}, or {YELLOW}Default [BLANK]{RESET} ").lower()
+                        response_map_type = input (f"\n{YELLOW}Input map type{RESET}:{MAGENTA} Terrain [T]{RESET}, {YELLOW}Satellite [S]{RESET}, or {YELLOW}Default [BLANK]{RESET} ").lower()
                     if response_map_type in ["","blank"]:
                         response_map_type = "Terrain"
                     elif response_map_type in ["satellite","Satellite","s","S"]:
                         response_map_type = "EGRI"
                     elif response_map_type in ["terrain","Terrain","t","T"]:
                         response_map_type = "Terrain"
-                    print(f"{GREEN}Downloading {YELLOW}{response_map_type}{RESET} map for {YELLOW}{map_selection}{RESET}\n")
+                    print(f"{GREEN}Downloading {MAGENTA}{response_map_type}{RESET} map for {MAGENTA}{map_selection}{RESET}\n")
                     download_tile_batch(
                         conf_download_presets["Locations"][map_selection]["lat_lon_top_left"],
                         conf_download_presets["Locations"][map_selection]["lat_lon_bottom_right"],
@@ -135,7 +135,7 @@ def main():
                     continue
             elif choice == len(location_options)+1:
                 while True:
-                    topLeft_latLon = input(f"\n{BLUE}Enter the top left latitude and longitude separated by a comma{RESET} (e.g. 35.32661,-116.54657): ")
+                    topLeft_latLon = input(f"\n{YELLOW}Enter the top left latitude and longitude separated by a comma{RESET} (e.g. 35.32661,-116.54657): ")
                     if "," in topLeft_latLon:
                         try:
                             tl_lat, tl_lon = [float(item) for item in topLeft_latLon.split(",")]
@@ -143,7 +143,7 @@ def main():
                         except ValueError:
                             print(f"{RED}Invalid input. Please enter two numbers separated by a comma.{RESET}")
                 while True:
-                    bottomRight_latLon = input(f"\n{BLUE}Enter the bottom right latitude and longitude separated by a comma{RESET} (e.g. 35.32661,-116.54657): ")
+                    bottomRight_latLon = input(f"\n{YELLOW}Enter the bottom right latitude and longitude separated by a comma{RESET} (e.g. 35.32661,-116.54657): ")
                     if "," in bottomRight_latLon:
                         try:
                             br_lat, br_lon = [float(item) for item in bottomRight_latLon.split(",")]
@@ -151,7 +151,7 @@ def main():
                         except ValueError:
                             print(f"{RED}Invalid input. Please enter two numbers separated by a comma.{RESET}")
                 while True:
-                    mapType = input(f"\n{BLUE}Enter the map type{RESET} (Terrain/Satellite): ").lower()
+                    mapType = input(f"\n{YELLOW}Enter the map type{RESET} (Terrain/Satellite): ").lower()
                     if mapType in ["terrain","satellite","t","s"]:
                         if mapType == "s":
                             mapType = "satellite"
@@ -162,14 +162,14 @@ def main():
                     else:
                         print(f"{RED}Invalid input. Please enter 'Terrain' or 'Satellite'.{RESET}")
                 while True:
-                    minZoom = input(f"\n{BLUE}Enter the minimum zoom level{RESET} (0-20): ")
+                    minZoom = input(f"\n{YELLOW}Enter the minimum zoom level{RESET} (0-20): ")
                     if minZoom.isdigit() and 0 <= int(minZoom) <= 20:
                         minZoom = int(minZoom)
                         break
                     else:
                         print(f"{RED}Invalid input. Please enter a number between 0 and 20.{RESET}")
                 while True:
-                    maxZoom = input(f"\n{BLUE}Enter the maximum zoom level{RESET} ({minZoom}-20): ")
+                    maxZoom = input(f"\n{YELLOW}Enter the maximum zoom level{RESET} ({minZoom}-20): ")
                     if maxZoom.isdigit() and minZoom <= int(maxZoom) <= 20:
                         maxZoom = int(maxZoom)
                         break

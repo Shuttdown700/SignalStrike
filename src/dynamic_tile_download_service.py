@@ -1,10 +1,14 @@
 import datetime, os, time, ssl
 from utilities import check_internet_connection, read_csv, write_csv
+from colorama import init, Fore
 
-RESET = "\033[0m"
-GREEN = "\033[32m"
-RED = "\033[31m"
-YELLOW = "\033[33m"
+init(autoreset=True)
+
+# Define color constants
+RESET = Fore.RESET
+GREEN = Fore.GREEN
+YELLOW = Fore.YELLOW
+RED = Fore.RED
 
 def download_tile(tile,
              output_dir="\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+'/map_tiles/',

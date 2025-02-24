@@ -1,17 +1,27 @@
 @echo off
-
-rem Navigate to your git repository directory
-rem cd /d C:\path\to\your\repository
+rem --- Start of Script ---
 
 rem Fetch the latest changes from the remote repository
+echo Fetching the latest changes...
 git fetch
+if errorlevel 1 (
+    echo Error during git fetch. Exiting script.
+    exit /b 1
+)
 
 rem Pull the latest changes from the remote repository into the current branch
+echo Pulling the latest changes...
 git pull
+if errorlevel 1 (
+    echo Error during git pull. Exiting script.
+    exit /b 1
+)
 
 rem Print that the code base was updated
 echo.
-echo Code Base was updated!
+echo Code base was updated successfully!
 
-rem Sleep for 5 seconds
-ping 127.0.0.1 -n 6 > nul
+rem Wait for 5 seconds using timeout
+timeout /t 5 > nul
+
+rem --- End of Script ---
