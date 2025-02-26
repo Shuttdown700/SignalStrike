@@ -33,15 +33,13 @@ def test_delete_small_files_and_empty_dirs(temp_dir):
 
 # Test invalid directory input
 def test_invalid_directory():
-    with patch("builtins.print") as mock_print:
+    with pytest.raises(AssertionError):
         delete_small_files_and_empty_dirs("invalid_dir", size_limit_kb=5)
-        mock_print.assert_called_with("\x1b[31mThe following directory does not exist: invalid_dir\x1b[0m")
 
 # Test download_tile_batch assertions
 def test_download_tile_batch_invalid_inputs():
-    with patch("builtins.print") as mock_print:
+    with pytest.raises(AssertionError):
         download_tile_batch([35.0], [40.0, -120.0])
-        mock_print.assert_called()
     
     with pytest.raises(AssertionError):
         download_tile_batch("invalid", [40.0, -120.0])

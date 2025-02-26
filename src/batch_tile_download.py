@@ -17,9 +17,10 @@ def delete_small_files_and_empty_dirs(directory: str, size_limit_kb: float, dry_
     # Convert size limit from kilobytes to bytes
     size_limit_bytes = size_limit_kb * 1024
     # Check if the provided directory exists
-    if not os.path.isdir(directory):
-        print(f"{RED}The following directory does not exist: {directory}{RESET}")
-        return
+    try:
+        assert os.path.isdir(directory), f"The following directory does not exist: {directory}"
+    except AssertionError as ae:
+        raise ae
     # Set up logging
     src_directory = os.path.dirname(os.path.abspath(__file__))
     log_directory = os.path.join(src_directory,"..","logs")
@@ -81,7 +82,7 @@ def download_tile_batch(
         assert isinstance(parallel_threads, int) and 1 <= parallel_threads <= 4, "'parallel_threads' must be an integer. [1-4]"
     except AssertionError as ae:
         print(f'{RED}Error with batch tile download function inputs: {ae}{RESET}')
-        return
+        raise ae
     src_directory = os.path.dirname(os.path.abspath(__file__))
     if tile_directory == "":
         tile_directory = "\\".join(src_directory.split('\\')[:-1])+"\\map_tiles\\Terrain"
