@@ -4,21 +4,7 @@ from utilities import read_csv, write_csv
 import os, sys
 
 def append_tile_to_queue(map_name,tile,file_path=os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\dynamic_tile_queue.csv"):
-    """
-    Appends tile row to queue csv file
-
-    Parameters
-    ----------
-    tile : list
-        Tile data represented as a [z,y,x] list
-    file_path : str, optional
-        csv file path string. The default is os.path.dirname(os.path.abspath(__file__))+"\\queue_files\\dynamic_tile_queue.csv".
-
-    Returns
-    -------
-    None.
-
-    """
+    """Appends tile row to queue csv file."""
     # end function if tile to append is blank
     if tile == "" or tile == []: return
     # open csv file

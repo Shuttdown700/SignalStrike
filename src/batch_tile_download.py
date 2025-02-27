@@ -93,6 +93,17 @@ def download_tile_batch(
     subprocess.run(cmd, shell=True, start_new_session=True)
     #delete_small_files_and_empty_dirs(tile_directory, min_map_tile_size_kb=3,dry_run=True)
 
+def get_coord_box(center_coord : list[float,float],x_dist_m : float,y_dist_m : float) -> str:
+    """Generate a coordinate box for the tile downloader."""
+    import numpy as np
+    from coords import adjust_coordinate
+    diag_dist = np.sqrt(x_dist_m**2 + y_dist_m**2)
+    tl_coord = adjust_coordinate(center_coord,315,diag_dist)
+    tl_coord = [round(coord,6) for coord in tl_coord]
+    br_coord = adjust_coordinate(center_coord,135,diag_dist)
+    br_coord = [round(coord,6) for coord in br_coord]
+    return f"{tl_coord[1]},{br_coord[0]},{br_coord[1]},{tl_coord[0]}"
+
 def main():
     from utilities import read_json
     conf = read_json(os.path.join(os.path.dirname(os.path.abspath(__file__)),"config_files","conf.json"))

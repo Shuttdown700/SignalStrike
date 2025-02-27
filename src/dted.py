@@ -29,12 +29,3 @@ def get_elevation(coord: list) -> float:
         raise RuntimeError(f"Error reading elevation data: {e}")
     
     return elevation
-
-if __name__ == "__main__":
-    # Example usage
-    coord = [49.1234, 18.5678]
-    try:
-        elevation = get_elevation(coord)
-        print(f"Elevation at {coord}: {elevation} meters")
-    except Exception as e:
-        print(f"Error: {e}")
