@@ -783,13 +783,13 @@ class App(customtkinter.CTk):
             padx=(0,0), 
             pady=(0,0))
         # define TBD button attributes
-        self.button_TBD = customtkinter.CTkButton(
+        self.button_reload_last_log = customtkinter.CTkButton(
             master=self.frame_left, 
             text="Reload Last Log",
             fg_color='brown',
             command=self.reload_last_log)
         # assign TBD button grid position
-        self.button_TBD.grid(
+        self.button_reload_last_log.grid(
             row=self.button_calculate.grid_info()["row"]+1,
             rowspan=1,
             column=0,

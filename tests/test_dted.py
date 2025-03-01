@@ -2,7 +2,6 @@ import os
 import pytest
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
-from batch_tile_download import delete_small_files_and_empty_dirs, download_tile_batch
 from dted import get_elevation
 
 # Mock function to replace actual DTED file reading
