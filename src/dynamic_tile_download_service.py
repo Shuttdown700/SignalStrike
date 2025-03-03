@@ -49,7 +49,7 @@ def download_tile(tile,
             # data = requests.get(url, verify=False)
             break
         except urllib.error.HTTPError as e:
-            print(f'HTTP Exception: {url}')
+            print(f'HTTP Exception: {url.split("?")[0]}')
             data = None
             break
             # raise Exception(str(e) + ":" + url)

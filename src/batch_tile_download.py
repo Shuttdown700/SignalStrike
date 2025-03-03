@@ -130,7 +130,7 @@ def main():
                 if response == 'y':
                     response_map_type = "no-response"
                     while response_map_type not in ["terrain","satellite","","blank","t","s"]:
-                        response_map_type = input (f"\n{YELLOW}Input map type{RESET}:{MAGENTA} Terrain [T]{RESET}, {YELLOW}Satellite [S]{RESET}, or {YELLOW}Default [BLANK]{RESET} ").lower()
+                        response_map_type = input (f"\n{YELLOW}Input map type{RESET}:{MAGENTA} Terrain [T]{RESET}, {MAGENTA}Satellite [S]{RESET}, or {MAGENTA}Default [BLANK]{RESET} ").lower()
                     if response_map_type in ["","blank"]:
                         response_map_type = "Terrain"
                     elif response_map_type in ["satellite","Satellite","s","S"]:
