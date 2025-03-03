@@ -56,4 +56,15 @@ if exist requirements.txt (
 )
 
 echo Virtual environment setup complete!
+echo.
+
+:: Run the create_shortcuts.bat script
+call create_shortcuts.bat
+if %errorlevel% neq 0 (
+    echo Failed to run create_shortcuts.bat.
+    exit /b %errorlevel%
+)
+
+timeout /t 5 > nul
+
 exit /b 0

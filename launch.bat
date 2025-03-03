@@ -1,9 +1,6 @@
 @ECHO OFF
 SETLOCAL ENABLEDELAYEDEXPANSION
 
-REM Upgrade pip if needed (uncomment if required)
-REM python -m pip install --upgrade pip
-
 REM Activate virtual environment
 CALL .\venv\Scripts\activate.bat || (
     ECHO Failed to activate virtual environment.
