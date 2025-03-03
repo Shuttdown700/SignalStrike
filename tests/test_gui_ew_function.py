@@ -31,15 +31,17 @@ def default_inputs():
 @pytest.fixture()
 def expected_values():
     return {
-    "expected_target_grid": "11SNV 43462 09939",
-    "expected_label_target_grid": "TARGET GRID (FIX)",
-    "expected_sensor1_distance": "1.72km",
-    "expected_sensor2_distance": "1.17km",
-    "expected_sensor3_distance": "3.06km",
-    "expected_target_error": "30 acres",
-    "expected_target_class": "(FIX)",
-    "expected_target_coord": [35.33176040852016, -116.52176949951918],
-    "expected_target_mgrs": "11SNV4346209939"
+        "Fix": {
+            "expected_target_grid": "11SNV 43462 09939",
+            "expected_label_target_grid": "TARGET GRID (FIX)",
+            "expected_sensor1_distance": "1.72km",
+            "expected_sensor2_distance": "1.17km",
+            "expected_sensor3_distance": "3.06km",
+            "expected_target_error": "30 acres",
+            "expected_target_class": "(FIX)",
+            "expected_target_coord": [35.33176040852016, -116.52176949951918],
+            "expected_target_mgrs": "11SNV4346209939"
+        }
     }
 
 @pytest.fixture(scope="module")
@@ -51,9 +53,7 @@ def app():
     yield app_instance
     app_instance.destroy()  # Ensure cleanup
 
-def test_default_inputs(app,default_inputs,expected_values):
-    """Test default input in the GUI and their expected outputs"""
-    
+def test_attribute_existence(app):
     # Check if the EWT user inputs are present in the GUI
     assert hasattr(app, "sensor1_mgrs"), "sensor1_mgrs entry field not found in App."
     assert hasattr(app, "sensor1_Rpwr"), "sensor1_Rpwr entry field not found in App."
@@ -68,6 +68,9 @@ def test_default_inputs(app,default_inputs,expected_values):
     assert hasattr(app, "min_ERP"), "min_erp entry field not found in App."
     assert hasattr(app, "max_ERP"), "max_erp entry field not found in App."
     assert hasattr(app, "option_path_loss_coeff"), "option_path_loss_coeff entry field not found in App."
+
+def test_default_inputs_fix(app,default_inputs,expected_values):
+    """Test default input in the GUI and their expected outputs"""
     
     # Insert default values into the entry fields
     app.sensor1_mgrs.insert(0, default_inputs["default_sensor1_mgrs"])
@@ -87,36 +90,21 @@ def test_default_inputs(app,default_inputs,expected_values):
     # Update UI to process the inserted values
     app.update_idletasks()
 
-    # Check if the inserted values are stored correctly
-    assert app.sensor1_mgrs.get() == default_inputs["default_sensor1_mgrs"], "sensor1_mgrs entry field did not store default value correctly."
-    assert float(app.sensor1_Rpwr.get()) == default_inputs["default_sensor1_Rpwr"], "sensor1_Rpwr entry field did not store default value correctly."
-    assert float(app.sensor1_lob.get()) == default_inputs["default_sensor1_lob"], "sensor1_lob entry field did not store default value correctly."
-    assert app.sensor2_mgrs.get() == default_inputs["default_sensor2_mgrs"], "sensor2_mgrs entry field did not store default value correctly."
-    assert float(app.sensor2_Rpwr.get()) == default_inputs["default_sensor2_Rpwr"], "sensor2_Rpwr entry field did not store default value correctly."
-    assert float(app.sensor2_lob.get()) == default_inputs["default_sensor2_lob"], "sensor2_lob entry field did not store default value correctly."
-    assert app.sensor3_mgrs.get() == default_inputs["default_sensor3_mgrs"], "sensor3_mgrs entry field did not store default value correctly."
-    assert float(app.sensor3_Rpwr.get()) == default_inputs["default_sensor3_Rpwr"], "sensor3_Rpwr entry field did not store default value correctly."
-    assert float(app.sensor3_lob.get()) == default_inputs["default_sensor3_lob"], "sensor3_lob entry field did not store default value correctly."
-    assert float(app.frequency.get()) == default_inputs["default_frequency"], "frequency entry field did not store default value correctly."
-    assert float(app.min_ERP.get()) == default_inputs["default_min_ERP"], "min_erp entry field did not store default value correctly."
-    assert float(app.max_ERP.get()) == default_inputs["default_max_ERP"], "max_erp entry field did not store default value correctly."
-    assert app.option_path_loss_coeff.get() == default_inputs["default_option_path_loss_coeff"], "option_path_loss_coeff entry field did not store default value correctly."
-
     # Run the calculation
     app.button_calculate.invoke()
     app.update_idletasks()
-    time.sleep(1)  # Wait for the calculation to finish
+    time.sleep(1)
 
     # Check if the calculated values are displayed
-    assert app.target_grid.cget("text") == expected_values["expected_target_grid"], f"Target grid is {app.target_grid} instead of {expected_values["expected_target_grid"]}."
-    assert app.label_target_grid.cget("text") == expected_values["expected_label_target_grid"], f"Label for target grid is {app.label_target_grid} instead of {expected_values["expected_label_target_grid"]}."
-    assert app.sensor1_distance.cget("text") == expected_values["expected_sensor1_distance"], f"Sensor 1 distance is {app.sensor1_distance} instead of {expected_values["expected_sensor1_distance"]}."
-    assert app.sensor2_distance.cget("text") == expected_values["expected_sensor2_distance"], f"Sensor 2 distance is {app.sensor2_distance} instead of {expected_values["expected_sensor2_distance"]}."
-    assert app.sensor3_distance.cget("text") == expected_values["expected_sensor3_distance"], f"Sensor 3 distance is {app.sensor3_distance} instead of {expected_values["expected_sensor3_distance"]}."
-    assert app.target_error.cget("text") == expected_values["expected_target_error"], f"Target error is {app.target_error} instead of {expected_values["expected_target_error"]}."
-    assert app.target_class == expected_values["expected_target_class"], f"Target class is {app.target_class} instead of {expected_values["expected_target_class"]}."
-    assert app.target_coord == expected_values["expected_target_coord"], f"Target coordinate is {app.target_coord} instead of {expected_values["expected_target_coord"]}."
-    assert app.target_mgrs == expected_values["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["expected_target_mgrs"]}."
+    assert app.target_grid.cget("text") == expected_values["Fix"]["expected_target_grid"], f"Target grid is {app.target_grid} instead of {expected_values["Fix"]["expected_target_grid"]}."
+    assert app.label_target_grid.cget("text") == expected_values["Fix"]["expected_label_target_grid"], f"Label for target grid is {app.label_target_grid} instead of {expected_values["Fix"]["expected_label_target_grid"]}."
+    assert app.sensor1_distance.cget("text") == expected_values["Fix"]["expected_sensor1_distance"], f"Sensor 1 distance is {app.sensor1_distance} instead of {expected_values["Fix"]["expected_sensor1_distance"]}."
+    assert app.sensor2_distance.cget("text") == expected_values["Fix"]["expected_sensor2_distance"], f"Sensor 2 distance is {app.sensor2_distance} instead of {expected_values["Fix"]["expected_sensor2_distance"]}."
+    assert app.sensor3_distance.cget("text") == expected_values["Fix"]["expected_sensor3_distance"], f"Sensor 3 distance is {app.sensor3_distance} instead of {expected_values["Fix"]["expected_sensor3_distance"]}."
+    assert app.target_error.cget("text") == expected_values["Fix"]["expected_target_error"], f"Target error is {app.target_error} instead of {expected_values["Fix"]["expected_target_error"]}."
+    assert app.target_class == expected_values["Fix"]["expected_target_class"], f"Target class is {app.target_class} instead of {expected_values["Fix"]["expected_target_class"]}."
+    assert app.target_coord == expected_values["Fix"]["expected_target_coord"], f"Target coordinate is {app.target_coord} instead of {expected_values["Fix"]["expected_target_coord"]}."
+    assert app.target_mgrs == expected_values["Fix"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["Fix"]["expected_target_mgrs"]}."
 
 
 

@@ -11,7 +11,7 @@ CALL .\venv\Scripts\activate.bat || (
 )
 
 ECHO [INFO] Starting Map Tile Downloader...
-START "Map Tile Downloader" /D . python src/batch_tile_download_service.py
+START "Map Tile Downloader" /D . python src/batch_tile_download.py
 IF ERRORLEVEL 1 (
     ECHO [ERROR] Failed to start Map Tile Downloader.
     EXIT /B 1

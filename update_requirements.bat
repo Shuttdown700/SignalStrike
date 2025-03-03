@@ -30,3 +30,6 @@ pip install --upgrade -r requirements.txt
 echo.
 echo All dependencies in requirements.txt have been updated.
 echo.
+
+rem Wait for 5 seconds using timeout
+timeout /t 5 > nul
