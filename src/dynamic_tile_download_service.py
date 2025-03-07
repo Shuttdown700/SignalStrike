@@ -1,10 +1,14 @@
 import datetime, os, time, ssl
 from utilities import check_internet_connection, read_csv, write_csv
+from colorama import init, Fore
 
-RESET = "\033[0m"
-GREEN = "\033[32m"
-RED = "\033[31m"
-YELLOW = "\033[33m"
+init(autoreset=True)
+
+# Define color constants
+RESET = Fore.RESET
+GREEN = Fore.GREEN
+YELLOW = Fore.YELLOW
+RED = Fore.RED
 
 def download_tile(tile,
              output_dir="\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+'/map_tiles/',
@@ -45,7 +49,7 @@ def download_tile(tile,
             # data = requests.get(url, verify=False)
             break
         except urllib.error.HTTPError as e:
-            print(f'HTTP Exception: {url}')
+            print(f'HTTP Exception: {url.split("?")[0]}')
             data = None
             break
             # raise Exception(str(e) + ":" + url)
@@ -66,8 +70,19 @@ def download_tile(tile,
             f.write(data.read())
         time.sleep(interval_num / 1000)
 
+def determine_tile_url(map_name : str,conf : dict) -> str:
+    # determine tile URL from map_name input
+    if map_name== 'Terrain':
+        tile_url = conf["TERRAIN_TILE_URL"]
+    elif map_name== 'ESRI':
+        tile_url = conf["SATELLITE_TILE_URL"]
+    else:
+        print(f"Error: {map_name} is not a valid local map")
+        tile_url = ""
+    return tile_url
+
 def main():
-    from utilities import read_json, determine_tile_url
+    from utilities import read_json
     conf = read_json(os.path.join(os.path.dirname(os.path.abspath(__file__)),"config_files","conf.json"))
     queue_file_name = os.path.join("\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1]),conf["DIR_RELATIVE_QUEUE"],"dynamic_tile_queue.csv")
     output_dir= os.path.join("\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1]),conf["DIR_RELATIVE_MAP_TILES"])

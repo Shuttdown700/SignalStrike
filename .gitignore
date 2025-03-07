@@ -2,6 +2,8 @@
 *.cfg
 *.pyc
 *.log
+*.dt1
+*.dt2
 **/map_tiles
 **/ewta_venv
 **/venv_test
@@ -11,6 +13,10 @@
 **/logs
 **/Scripts
 **/Lib
+**/.pytest_cache
+**/__pycache__
 **/src/__pycache__/
 src/queue_files/*
 !src/queue_files/.gitkeep
+dted/*
+!dted/.gitkeep

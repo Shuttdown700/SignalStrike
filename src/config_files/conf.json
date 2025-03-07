@@ -8,7 +8,7 @@
     "DIR_RELATIVE_TESTS": "tests",
     "DIR_RELATIVE_ICONS": "icons",
     "DIR_RELATIVE_QUEUE": "src/queue_files",
-    "DEFAULT_BASE_TILE_URL":"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/",
+    "DEFAULT_BASE_TILE_URL":"https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=8242f8cd508342868f3d7d29e472aca9",
     "SATELLITE_TILE_URL":"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     "TERRAIN_TILE_URL":"https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=8242f8cd508342868f3d7d29e472aca9",
     "DEFAULT_SENSOR_1_MGRS": "11SNV4178910362",

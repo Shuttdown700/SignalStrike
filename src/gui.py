@@ -244,7 +244,7 @@ class App(customtkinter.CTk):
         # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
         self.sensor1_mgrs.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor1_mgrs))
         # bind EWT function to RETURN keystroke in Sensor 1 MGRS input field
-        self.sensor1_mgrs.bind("<Return>", self.ewt_function)
+        self.sensor1_mgrs.bind("<Return>", self.ewt_input_processor)
         # define sensor 1 LOB label
         self.label_sensor1_lob = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -274,7 +274,7 @@ class App(customtkinter.CTk):
         # bind LOB entry "Right Click" to copy (if selection exists) / paste function (otherwise)
         self.sensor1_lob.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor1_lob))
         # bind EWT function to RETURN keystroke in Sensor 1 LOB input field
-        self.sensor1_lob.bind("<Return>", self.ewt_function)
+        self.sensor1_lob.bind("<Return>", self.ewt_input_processor)
         # define sensor 1 received power label attributes
         self.label_sensor1_Rpwr = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -304,7 +304,7 @@ class App(customtkinter.CTk):
         # bind power entry "Right Click" to copy (if selection exists) / paste function (otherwise)
         self.sensor1_Rpwr.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor1_Rpwr))
         # bind EWT function to RETURN keystroke in Sensor 1 Rpwr input field
-        self.sensor1_Rpwr.bind("<Return>", self.ewt_function)
+        self.sensor1_Rpwr.bind("<Return>", self.ewt_input_processor)
         # define sensor 2 mgrs label attributes
         self.label_sensor2_mgrs = customtkinter.CTkLabel(
             master = self.frame_left, 
@@ -334,7 +334,7 @@ class App(customtkinter.CTk):
         # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
         self.sensor2_mgrs.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor2_mgrs))
         # bind EWT function to RETURN keystroke in Sensor 2 MGRS input field
-        self.sensor2_mgrs.bind("<Return>", self.ewt_function)
+        self.sensor2_mgrs.bind("<Return>", self.ewt_input_processor)
         # define sensor 2 LOB label attributes
         self.label_sensor2_lob = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -364,7 +364,7 @@ class App(customtkinter.CTk):
         # bind LOB entry "Right Click" to copy (if selection exists) / paste function (otherwise)
         self.sensor2_lob.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor2_lob))
         # bind EWT function to RETURN keystroke in Sensor 2 LOB input field
-        self.sensor2_lob.bind("<Return>", self.ewt_function)
+        self.sensor2_lob.bind("<Return>", self.ewt_input_processor)
         # define sensor 2 received power attributes
         self.label_sensor2_Rpwr = customtkinter.CTkLabel(
             self.frame_left, 
@@ -394,7 +394,7 @@ class App(customtkinter.CTk):
         # bind Rpwr entry "Right Click" to copy (if selection exists) / paste function (otherwise)
         self.sensor2_Rpwr.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor2_Rpwr))
         # bind EWT function to RETURN keystroke in Sensor 2 Rpwr input field
-        self.sensor2_Rpwr.bind("<Return>", self.ewt_function)
+        self.sensor2_Rpwr.bind("<Return>", self.ewt_input_processor)
         # define sensor 3 mgrs label attributes
         self.label_sensor3_mgrs = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -424,7 +424,7 @@ class App(customtkinter.CTk):
         # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
         self.sensor3_mgrs.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor3_mgrs))
         # bind EWT function to RETURN keystroke in Sensor 3 MGRS input field
-        self.sensor3_mgrs.bind("<Return>", self.ewt_function)
+        self.sensor3_mgrs.bind("<Return>", self.ewt_input_processor)
         # define sensor 3 LOB label attributes
         self.label_sensor3_lob = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -454,7 +454,7 @@ class App(customtkinter.CTk):
         # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
         self.sensor3_lob.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor3_lob))
         # bind EWT function to RETURN keystroke in Sensor 3 LOB input field
-        self.sensor3_lob.bind("<Return>", self.ewt_function)
+        self.sensor3_lob.bind("<Return>", self.ewt_input_processor)
         # define sensor 3 received power label attributes
         self.label_sensor3_Rpwr = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -484,7 +484,7 @@ class App(customtkinter.CTk):
         # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
         self.sensor3_Rpwr.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor3_Rpwr))
         # bind EWT function to RETURN keystroke in Sensor 3 Rpwr input field
-        self.sensor3_Rpwr.bind("<Return>", self.ewt_function)
+        self.sensor3_Rpwr.bind("<Return>", self.ewt_input_processor)
         # define target frequency label attributes
         self.label_frequency = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -514,7 +514,7 @@ class App(customtkinter.CTk):
         # bind freq entry "Right Click" to copy (if selection exists) / paste function (otherwise)
         self.frequency.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.frequency))
         # bind EWT function to RETURN keystroke in Frequency input field
-        self.frequency.bind("<Return>", self.ewt_function)
+        self.frequency.bind("<Return>", self.ewt_input_processor)
         # define min ERP label attributes
         self.label_min_ERP = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -544,7 +544,7 @@ class App(customtkinter.CTk):
         # bind ERP entry "Right Click" to copy (if selection exists) / paste function (otherwise)
         self.min_ERP.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.min_ERP))
         # bind EWT function to RETURN keystroke in Min ERP input field
-        self.min_ERP.bind("<Return>", self.ewt_function)
+        self.min_ERP.bind("<Return>", self.ewt_input_processor)
         # define max ERP label attributes
         self.label_max_ERP = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -574,7 +574,7 @@ class App(customtkinter.CTk):
         # bind ERP entry "Right Click" to copy (if selection exists) / paste function (otherwise)
         self.max_ERP.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.max_ERP))
         # bind EWT function to RETURN keystroke in Max ERP input field
-        self.max_ERP.bind("<Return>", self.ewt_function)
+        self.max_ERP.bind("<Return>", self.ewt_input_processor)
         # define path-loss coefficient label attributes
         self.label_path_loss_coeff = customtkinter.CTkLabel(
             master=self.frame_left, 
@@ -773,7 +773,7 @@ class App(customtkinter.CTk):
             master=self.frame_left, 
             text="Calcuate",
             fg_color='blue',
-            command = self.ewt_function)
+            command = self.ewt_input_processor)
         # assign calculate button grid position
         self.button_calculate.grid(
             row=self.target_error.grid_info()["row"]+1,
@@ -783,13 +783,13 @@ class App(customtkinter.CTk):
             padx=(0,0), 
             pady=(0,0))
         # define TBD button attributes
-        self.button_TBD = customtkinter.CTkButton(
+        self.button_reload_last_log = customtkinter.CTkButton(
             master=self.frame_left, 
             text="Reload Last Log",
             fg_color='brown',
             command=self.reload_last_log)
         # assign TBD button grid position
-        self.button_TBD.grid(
+        self.button_reload_last_log.grid(
             row=self.button_calculate.grid_info()["row"]+1,
             rowspan=1,
             column=0,
@@ -1083,7 +1083,7 @@ class App(customtkinter.CTk):
         Function to read and ajudicate EWT input
         """
         from tkinter import END
-        from utilities import check_mgrs_input, correct_mgrs_input
+        from coords import check_mgrs_input, correct_mgrs_input
         # resets boolean values to FALSE, allowing EWT input
         single_lob_bool = False; cut_bool = False; bypass_ewt1_bool = False; bypass_ewt2_bool = False; bypass_ewt3_bool = False
         # reset sensor mgrs/coord reading to None, conditional in log method
@@ -1705,7 +1705,7 @@ class App(customtkinter.CTk):
 
     def set_target_field(self) -> None:
         import numpy as np
-        from utilities import convert_coords_to_mgrs, format_readable_mgrs
+        from coords import convert_coords_to_mgrs, format_readable_mgrs
         if self.target_coord == None and self.target_mgrs == None:
             sensor1_target_mgrs = convert_coords_to_mgrs(self.sensor1_target_coord)
             sensor2_target_mgrs = convert_coords_to_mgrs(self.sensor2_target_coord)
@@ -1732,8 +1732,11 @@ class App(customtkinter.CTk):
                 target_coord_list = [f'{", ".join(x)}' for x in target_coord_list]
                 self.target_coord = f'{" | ".join(target_coord_list)}'
 
-    def ewt_function(self,*args) -> None:
-        from utilities import check_if_point_in_polygon, check_for_intersection, convert_coords_to_mgrs, convert_mgrs_to_coords, format_readable_DTG, format_readable_mgrs, generate_DTG, get_center_coord, get_coords_from_LOBs, get_distance_between_coords, get_emission_distance, get_intersection, get_line, get_polygon_area, organize_polygon_coords
+    def ewt_input_processor(self,*args) -> None:
+        from utilities import format_readable_DTG, generate_DTG
+        from coords import convert_coords_to_mgrs, convert_mgrs_to_coords, format_readable_mgrs, get_distance_between_coords, get_center_coord, get_coords_from_LOBs
+        from ew import get_emission_distance
+        from map import check_for_intersection, check_if_point_in_polygon, get_intersection, get_line, get_polygon_area, organize_polygon_coords
         def plot_lobs(s1lnmc,s1lfmc,s2lnmc,s2lfmc,s3lnmc,s3lfmc,plot_ewt1_lob_tgt_bool=True,plot_ewt2_lob_tgt_bool=True,plot_ewt3_lob_tgt_bool=True):
             self.sensor1_target_coord = None ; self.sensor2_target_coord = None ; self.sensor3_target_coord = None
             import numpy as np
@@ -2139,7 +2142,7 @@ class App(customtkinter.CTk):
             incorporating alt method as temp solution
             """
             
-            from utilities import adjust_coordinate, get_bearing_between_coordinates
+            from coords import adjust_coordinate, get_bearing_between_coordinates
             # get intersection of LOB 1 & LOB 2 right-bound errors
             intersection_l1r_l2r = get_intersection(lob1_right_bound, lob2_right_bound)
             # get intersection of LOB 1 right-bound error and LOB 2 left-bound error
@@ -2460,21 +2463,7 @@ class App(customtkinter.CTk):
         self.set_target_field()
     
     def generate_sensor_distance_text(self,distance : float) -> str:
-        """
-        Generate sensor distance string w/ adjusted units of measurement
-        
-        Parameters:
-        ----------
-        self: App Object
-            GUI application object
-        distance : float
-            Sensor distance to target in meters 
-
-        Returns:
-        ----------
-        String
-            Sensor distance string with adjusted units of measurement
-        """
+        """Generate sensor distance string w/ adjusted units of measurement."""
         # set default unit of measurement
         distance_unit = 'm'
         # if distance is greater than 1000m
@@ -2487,20 +2476,9 @@ class App(customtkinter.CTk):
         return f'{distance:,.2f}{distance_unit}'
     
     def log_target_data(self) -> None:
-        from utilities import convert_coords_to_mgrs, generate_DTG
-        """
-        Logs current input fields and targeting data in a date-specific csv file
-
-        Parameters:
-        ----------
-        self: App Object
-            GUI application object
-
-        Returns:
-        ----------
-        None
-
-        """        
+        from utilities import generate_DTG
+        from coords import convert_coords_to_mgrs
+        """Logs current input fields and targeting data in a date-specific csv file."""        
         import datetime
         from utilities import read_csv, write_csv
         # define log columns
@@ -2707,25 +2685,14 @@ class App(customtkinter.CTk):
         self.path_loss_coeff = last_log_entry['PATH_LOSS_COEFF']
         self.option_path_loss_coeff.set(self.get_pathloss_description_from_coeff(last_log_entry['PATH_LOSS_COEFF']))
         # run EWT function
-        self.ewt_function()
+        self.ewt_input_processor()
     
-    def add_marker_event(self, coord: list, bool_bypass_measurement = False, bool_bypass_log = False) -> None:
-        """
-        Plot a "user marker" on the map at user discretion
-
-        Parameters
-        ----------
-        coord : list
-            Marker coordinates in [lat,lon] format.
-
-        Returns
-        -------
-        None.
-
-        """
+    def add_marker_event(self, coord: list[float,float], bool_bypass_measurement = False, bool_bypass_log = False) -> None:
+        """Plot a "user marker" on the map at user discretion."""
         # import libraries
         from PIL import Image, ImageTk
-        from utilities import convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, get_distance_between_coords
+        from utilities import format_readable_DTG, generate_DTG
+        from coords import convert_coords_to_mgrs, format_readable_mgrs, get_distance_between_coords
         import numpy as np
         import os
         # define marker's mgrs string
@@ -2781,23 +2748,12 @@ class App(customtkinter.CTk):
             self.path_list.append(dist_line)
             self.path_list.append(marker_dist)
 
-    def plot_OBJ(self,coord,bool_bypass_log=False):
-        """
-        Plot an "objective" on the map at user discretion
-
-        Parameters
-        ----------
-        coord : list
-            Marker coordinates in [lat,lon] format.
-
-        Returns
-        -------
-        None.
-
-        """
+    def plot_OBJ(self,coord : list[float,float],bool_bypass_log = False):
+        """Plot an "objective" on the map at user discretion."""
         # import libraries
         from PIL import Image, ImageTk
-        from utilities import convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, get_distance_between_coords
+        from utilities import format_readable_DTG, generate_DTG
+        from coords import convert_coords_to_mgrs, format_readable_mgrs, get_distance_between_coords
         import numpy as np
         import os
         # define marker's mgrs string
@@ -2819,23 +2775,12 @@ class App(customtkinter.CTk):
         # log the marker 
         if not bool_bypass_log: self.log_tactical_marker(new_marker,"OBJ")
 
-    def plot_NAI(self,coord,bool_bypass_log=False):
-        """
-        Plot a "NAI" on the map at user discretion
-
-        Parameters
-        ----------
-        coord : list
-            Marker coordinates in [lat,lon] format.
-
-        Returns
-        -------
-        None.
-
-        """
+    def plot_NAI(self,coord : list[float,float], bool_bypass_log = False):
+        """Plot a "NAI" on the map at user discretion."""
         # import libraries
         from PIL import Image, ImageTk
-        from utilities import convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, get_distance_between_coords
+        from utilities import format_readable_DTG, generate_DTG
+        from coords import convert_coords_to_mgrs, format_readable_mgrs, get_distance_between_coords
         import numpy as np
         import os
         # define marker's mgrs string
@@ -2857,21 +2802,9 @@ class App(customtkinter.CTk):
         # log the marker 
         if not bool_bypass_log: self.log_tactical_marker(new_marker,"NAI")
 
-    def copy_mgrs_grid(self, coords: list) -> None:
-        """
-        Function to copy MGRS coordinates to clipboard
-
-        Parameters
-        ----------
-        coords : tuple
-            Coordinates in (lat,lon) format
-
-        Returns
-        -------
-        None
-
-        """
-        from utilities import convert_coords_to_mgrs
+    def copy_mgrs_grid(self, coords: tuple[float,float]) -> None:
+        """Function to copy MGRS coordinates to clipboard."""
+        from coords import convert_coords_to_mgrs
         # function to write text to clipboard
         def copy2clip(txt):
             self.clipboard_clear()
@@ -2919,7 +2852,7 @@ class App(customtkinter.CTk):
 
     def search_event(self, event=None):
         from tkinter import END
-        from utilities import check_coord_input, check_mgrs_input, convert_mgrs_to_coords, correct_coord_input, correct_mgrs_input
+        from coords import convert_mgrs_to_coords, check_mgrs_input, correct_mgrs_input, check_coord_input, correct_coord_input
         try:
             search_mgrs = self.search_mgrs.get()
         except ValueError:
@@ -2943,7 +2876,9 @@ class App(customtkinter.CTk):
     def plot_EUD_position(self,coord=None):
         import time
         from PIL import Image, ImageTk
-        from utilities import convert_coords_to_mgrs, format_readable_DTG, format_readable_mgrs, generate_DTG, generate_EUD_coordinate
+        from utilities import format_readable_DTG, generate_DTG
+        from coords import convert_coords_to_mgrs, format_readable_mgrs
+        from gnss import generate_EUD_coordinate
         max_time_seconds = 15
         self.show_info(f'Generating location from GPS... stand outside & wait {max_time_seconds} seconds',icon='info')
         time.sleep(2)
@@ -2999,9 +2934,10 @@ class App(customtkinter.CTk):
         from utilities import adjust_brightness
         adjust_brightness('decrease')
 
-    def log_eud_location(self,eud_location_data):
+    def log_eud_location(self,eud_location_data : list[float,float,float]) -> None:
         import datetime
         from utilities import convert_coords_to_mgrs, generate_DTG, read_csv, write_csv
+        from coords import convert_coords_to_mgrs
         eud_coord = [eud_location_data[0],eud_location_data[1]]
         eud_mgrs = convert_coords_to_mgrs(eud_coord)
         dtg = generate_DTG()
@@ -3038,7 +2974,8 @@ class App(customtkinter.CTk):
 
     def log_user_marker(self,marker):
         import datetime
-        from utilities import convert_coords_to_mgrs, generate_DTG, read_csv, write_csv
+        from utilities import generate_DTG, read_csv, write_csv
+        from coords import convert_coords_to_mgrs
         marker_coord = [marker.position[0],marker.position[1]]
         marker_mgrs = convert_coords_to_mgrs(marker_coord)
         dtg = generate_DTG()
@@ -3073,7 +3010,8 @@ class App(customtkinter.CTk):
 
     def log_tactical_marker(self,marker,marker_type):
         import datetime
-        from utilities import convert_coords_to_mgrs, generate_DTG, read_csv, write_csv
+        from utilities import generate_DTG, read_csv, write_csv
+        from coords import convert_coords_to_mgrs
         marker_coord = [marker.position[0],marker.position[1]]
         marker_mgrs = convert_coords_to_mgrs(marker_coord)
         # assess if directory exists
@@ -3260,7 +3198,7 @@ class App(customtkinter.CTk):
         
     def marker_click(self,marker) -> None:
         from CTkMessagebox import CTkMessagebox
-        from utilities import remove_rows_from_csv
+        from map import remove_rows_from_marker_csv
         # generate message box based on marker category
         if "TGT" in marker.data:
             msgBox_title = "TGT Data"
@@ -3292,17 +3230,17 @@ class App(customtkinter.CTk):
                 self.user_marker_list.remove(marker)
                 filepath = os.path.join(self.log_directory,"current_user_markers.csv")
                 marker_num = int(str(marker.data).split('No. ')[-1].split(')')[0].strip())
-                remove_rows_from_csv(filepath,"USER",marker_num)
+                remove_rows_from_marker_csv(filepath,"USER",marker_num)
             elif msgBox_title == "OBJ Marker":
                 self.obj_list.remove(marker)
                 filepath = os.path.join(self.log_directory,"tactical_graphic_markers.csv")
                 marker_num = int(str(marker.data).split('No. ')[-1].split(')')[0].strip())
-                remove_rows_from_csv(filepath,"OBJ",marker_num)
+                remove_rows_from_marker_csv(filepath,"OBJ",marker_num)
             elif msgBox_title == "NAI Marker":
                 self.nai_list.remove(marker)
                 filepath = os.path.join(self.log_directory,"tactical_graphic_markers.csv")
                 marker_num = int(str(marker.data).split('No. ')[-1].split(')')[0].strip())
-                remove_rows_from_csv(filepath,"NAI",marker_num)
+                remove_rows_from_marker_csv(filepath,"NAI",marker_num)
             # delete marker from map
             lat, lon = marker.position[0], marker.position[1]
             marker.delete()
