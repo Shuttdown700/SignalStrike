@@ -61,7 +61,7 @@ def delete_small_files_and_empty_dirs(directory: str, size_limit_kb: float, dry_
 def download_tile_batch(
         lat_lon_top_left:list[float],
         lat_lon_bottom_right:list[float],
-        tile_directory:str = "terrain",
+        tile_directory:str = "",
         tile_url: str = "https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=8242f8cd508342868f3d7d29e472aca9",
         min_zoom: int = 0,
         max_zoom: int = 18,
@@ -134,14 +134,18 @@ def main():
                     if response_map_type in ["","blank"]:
                         response_map_type = "Terrain"
                     elif response_map_type in ["satellite","Satellite","s","S"]:
-                        response_map_type = "EGRI"
+                        response_map_type = "ESRI"
                     elif response_map_type in ["terrain","Terrain","t","T"]:
                         response_map_type = "Terrain"
                     print(f"{GREEN}Downloading {MAGENTA}{response_map_type}{RESET} map for {MAGENTA}{map_selection}{RESET}\n")
                     download_tile_batch(
                         conf_download_presets["Locations"][map_selection]["lat_lon_top_left"],
                         conf_download_presets["Locations"][map_selection]["lat_lon_bottom_right"],
-                        os.path.join(map_dir,response_map_type)
+                        os.path.join(map_dir,response_map_type),
+                        conf_download_presets["Tile Source"][response_map_type]["tile_url"],
+                        conf_download_presets["Parameters"]["min_zoom"],
+                        conf_download_presets["Parameters"]["max_zoom"],
+                        conf_download_presets["Parameters"]["parallel_threads"]
                     )
                 elif response == 'n':
                     continue
@@ -191,6 +195,7 @@ def main():
                     [tl_lat, tl_lon],
                     [br_lat, br_lon],
                     os.path.join(map_dir,mapType),
+                    conf_download_presets["Tile Source"][mapType]["tile_url"],
                     min_zoom=minZoom,
                     max_zoom=maxZoom,
                     parallel_threads=4
