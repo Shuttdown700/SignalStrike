@@ -133,15 +133,18 @@ def main():
                         response_map_type = input (f"\n{YELLOW}Input map type{RESET}:{MAGENTA} Terrain [T]{RESET}, {MAGENTA}Satellite [S]{RESET}, or {MAGENTA}Default [BLANK]{RESET} ").lower()
                     if response_map_type in ["","blank"]:
                         response_map_type = "Terrain"
+                        map_tile_folder_name = "Terrain"
                     elif response_map_type in ["satellite","Satellite","s","S"]:
-                        response_map_type = "ESRI"
+                        response_map_type = "Satellite"
+                        map_tile_folder_name = "ESRI"
                     elif response_map_type in ["terrain","Terrain","t","T"]:
                         response_map_type = "Terrain"
+                        map_tile_folder_name = "Terrain"
                     print(f"{GREEN}Downloading {MAGENTA}{response_map_type}{RESET} map for {MAGENTA}{map_selection}{RESET}\n")
                     download_tile_batch(
                         conf_download_presets["Locations"][map_selection]["lat_lon_top_left"],
                         conf_download_presets["Locations"][map_selection]["lat_lon_bottom_right"],
-                        os.path.join(map_dir,response_map_type),
+                        os.path.join(map_dir,map_tile_folder_name),
                         conf_download_presets["Tile Source"][response_map_type]["tile_url"],
                         conf_download_presets["Parameters"]["min_zoom"],
                         conf_download_presets["Parameters"]["max_zoom"],
