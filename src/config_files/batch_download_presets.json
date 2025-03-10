@@ -13,7 +13,7 @@
             "lat_lon_bottom_right": [49.18337189700959, 11.938263364917287]
         },
         "Joint Readiness Training Center (JRTC)": {
-            "lat_lon_top_left": [0, 0],
+            "lat_lon_top_left": [0, 0], 
             "lat_lon_bottom_right": [0, 0]
         },
         "Zagan & Trzebien Training Area": {
