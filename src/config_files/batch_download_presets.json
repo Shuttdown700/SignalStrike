@@ -28,5 +28,10 @@
         "Satellite": {
             "tile_url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
         }
+    },
+    "Parameters": {
+        "min_zoom": 0,
+        "max_zoom": 18,
+        "parallel_threads": 4
     }
 }
