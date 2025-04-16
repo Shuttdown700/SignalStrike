@@ -33,6 +33,7 @@ def convert_coords_to_mgrs(coords: list[float,float],precision:int = 5) -> str:
     try:
         assert isinstance(coords,list), 'Coordinate input must be a list.'
         assert len(coords) == 2, 'Coordinate input must be of length 2.'
+        coords = [float(c) for c in coords]
         return str(mgrs.MGRS().toMGRS(coords[0], coords[1],MGRSPrecision=precision)).strip()
     except AssertionError:
         return None

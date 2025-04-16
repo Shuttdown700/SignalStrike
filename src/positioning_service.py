@@ -128,7 +128,7 @@ class PositioningService:
         while not self._stop_event.is_set():
             position = self.generate_EUD_coordinate()
             if position:
-                timestamp = datetime.utcnow().isoformat()
+                timestamp = datetime.now(UTC).isoformat()
                 entry = {
                     'timestamp': timestamp,
                     'data': position
