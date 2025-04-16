@@ -29,8 +29,10 @@ class PositioningService:
 
     def find_gnss_port(self):
         ports = serial.tools.list_ports.comports()
+        print(f'All available ports: {ports}')
         for port_info in ports:
             port = port_info.device
+            print(f'Trying port: {port} | {port_info.description}')
             try:
                 with serial.Serial(port, 9600, timeout=1) as ser:
                     for _ in range(5):
