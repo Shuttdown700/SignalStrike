@@ -15,7 +15,7 @@ class PositioningService:
     def __init__(self, interval=30):
         conf = read_json(os.path.join(os.path.dirname(os.path.abspath(__file__)),"config_files","conf.json"))
         self.src_dir = os.path.dirname(os.path.abspath(__file__))
-        self.logs_dir = os.path.join(os.path.dirname(self.src_dir),conf["DIR_RELATIVE_LOGS_EUD_POSITION"])
+        self.logs_dir = Path(os.path.join(os.path.dirname(self.src_dir),conf["DIR_RELATIVE_LOGS_EUD_POSITION"]))
         self.interval = interval
         self.latest_position = None
         self.port, self.baudrate = self.find_gnss_port()
@@ -72,7 +72,7 @@ class PositioningService:
         return None, None
 
     def get_log_filename(self):
-        Path(self.logs_dir).mkdir(parents=True, exist_ok=True)
+        self.logs_dir.mkdir(parents=True, exist_ok=True)
         date_str = datetime.now(UTC).strftime("%Y-%m-%d")
         return self.logs_dir / f'position_log_{date_str}.jsonl'
 
