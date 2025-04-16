@@ -72,7 +72,7 @@ class PositioningService:
         return None, None
 
     def get_log_filename(self):
-        self.logs_dir.mkdir(parents=True, exist_ok=True)
+        Path(self.logs_dir).mkdir(parents=True, exist_ok=True)
         date_str = datetime.now(UTC).strftime("%Y-%m-%d")
         return self.logs_dir / f'position_log_{date_str}.jsonl'
 
