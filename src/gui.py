@@ -2885,7 +2885,7 @@ class App(customtkinter.CTk):
             return None
 
         # Get list of log files, sorted by date descending
-        log_files = sorted(self.log_eud_position_directory.glob("position_log_*.jsonl"), reverse=True)
+        log_files = sorted(Path(self.log_eud_position_directory).glob("position_log_*.jsonl"), reverse=True)
 
         for log_file in log_files:
             try:
