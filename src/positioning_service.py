@@ -2,15 +2,20 @@ import serial
 import serial.tools.list_ports
 import time
 import json
+import os
 from datetime import datetime
 from pathlib import Path
 import mgrs
 import threading
 from datetime import datetime, UTC
 from coords import convert_coords_to_mgrs
+from utilities import read_json
 
 class PositioningService:
     def __init__(self, interval=30):
+        conf = read_json(os.path.join(os.path.dirname(os.path.abspath(__file__)),"config_files","conf.json"))
+        self.src_dir = os.path.dirname(os.path.abspath(__file__))
+        self.logs_dir = os.path.join(os.path.dirname(self.src_dir),conf["DIR_RELATIVE_LOGS_EUD_POSITION"])
         self.interval = interval
         self.latest_position = None
         self.port, self.baudrate = self.find_gnss_port()
@@ -67,10 +72,9 @@ class PositioningService:
         return None, None
 
     def get_log_filename(self):
-        logs_dir = Path(__file__).resolve().parent.parent / "logs"
-        logs_dir.mkdir(parents=True, exist_ok=True)
+        self.logs_dir.mkdir(parents=True, exist_ok=True)
         date_str = datetime.now(UTC).strftime("%Y-%m-%d")
-        return logs_dir / f'position_log_{date_str}.jsonl'
+        return self.logs_dir / f'position_log_{date_str}.jsonl'
 
     def _log_to_file(self, entry):
         try:
@@ -145,7 +149,7 @@ class PositioningService:
         self._stop_event.set()
 
     def get_latest_position_from_logs(self):
-        log_files = sorted(Path('.').glob('position_log_*.jsonl'), reverse=True)
+        log_files = sorted(self.logs_dir.glob("position_log_*.jsonl"),key=lambda f: f.stat().st_mtime,reverse=True)
         for log_file in log_files:
             try:
                 with open(log_file, 'r') as f:

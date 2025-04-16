@@ -103,6 +103,8 @@ class App(customtkinter.CTk):
         self.tile_directory = os.path.join("\\".join(self.src_directory.split('\\')[:-1]),App.conf["DIR_RELATIVE_MAP_TILES"])
         # define icon file directory
         self.log_directory = os.path.join("\\".join(self.src_directory.split('\\')[:-1]),App.conf["DIR_RELATIVE_LOGS"])
+        # define EUD log file directory
+        self.log_eud_position_directory = os.path.join(os.path.dirname(self.src_directory),App.conf["DIR_RELATIVE_LOGS_EUD_POSITION"])
         # define target image icon
         self.target_image_LOB = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "target_LOB.png")).resize((40, 40)))
         # define target image icon
@@ -2879,12 +2881,11 @@ class App(customtkinter.CTk):
         from pathlib import Path
         from datetime import datetime
 
-        logs_dir = Path(os.path.join(os.path.dirname(__file__), "../logs"))
-        if not logs_dir.exists():
+        if not self.log_eud_position_directory.exists():
             return None
 
         # Get list of log files, sorted by date descending
-        log_files = sorted(logs_dir.glob("position_log_*.jsonl"), reverse=True)
+        log_files = sorted(self.log_eud_position_directory.glob("position_log_*.jsonl"), reverse=True)
 
         for log_file in log_files:
             try:
@@ -2922,11 +2923,11 @@ class App(customtkinter.CTk):
                     return
                 lat, lon, acc = latest_position
             except Exception as e:
-                print(f"Unknown error in 'generate_EUD_coordinate' method: {e}")
+                print(f"Unknown error in 'plot_EUD_position' method: {e}")
                 return
             acc = ''
             if lat is None or lon is None:
-                print("The output of the 'generate_EUD_coordinate' method is a NoneType")
+                print("The output of the 'plot_EUD_position' method is a NoneType")
                 self.show_info("Cannot read GPS receiver",icon='warning')
                 return
         else:
@@ -2945,7 +2946,6 @@ class App(customtkinter.CTk):
         response = msgBox.get()
         if response == "Yes":
             self.map_widget.set_position(lat, lon)
-        self.log_eud_location([lat,lon,acc])
 
     def increment_brightness_up(self):
         from utilities import adjust_brightness
@@ -2954,44 +2954,6 @@ class App(customtkinter.CTk):
     def increment_brightness_down(self):
         from utilities import adjust_brightness
         adjust_brightness('decrease')
-
-    def log_eud_location(self,eud_location_data : list[float,float,float]) -> None:
-        import datetime
-        from utilities import convert_coords_to_mgrs, generate_DTG, read_csv, write_csv
-        from coords import convert_coords_to_mgrs
-        eud_coord = [eud_location_data[0],eud_location_data[1]]
-        eud_mgrs = convert_coords_to_mgrs(eud_coord)
-        dtg = generate_DTG()
-        # assess if directory exists
-        if not os.path.exists(self.log_directory):
-            # create log directory
-            os.makedirs(self.log_directory)
-        # define log file name
-        filename = f"EUD-location-log-{str(datetime.datetime.today()).split()[0]}.csv"
-        # if log file already exists
-        if os.path.isfile(os.path.join(self.log_directory, filename)):
-            # read current log file
-            log_data = read_csv(os.path.join(self.log_directory, filename))
-        # if log file does not yet exist
-        else:
-            # create log file DataFrame
-            log_data = []
-        log_columns = ['DTG_LOCAL','LOC_MGRS','LOC_LATLON','LOC_ERROR_M']
-        row_data = [dtg,eud_mgrs,', '.join([str(x) for x in eud_coord]),eud_location_data[2]]
-        # convert log row into dictionary
-        log_row_dict = dict(zip(log_columns, row_data))
-        # append data row (dict) to log data
-        log_data.append(log_row_dict)
-        # try to save the updated log file
-        try:
-            write_csv(os.path.join(self.log_directory, filename),log_data)
-        # if file permissions prevent log file saving
-        except PermissionError:
-            # error message if file is currently open
-            self.show_info("EUD Log file currently open. Cannot log data!",icon='warning')
-            return
-        # success pop-up
-        # self.show_info("EUD location data successfully logged!!!",icon='info')
 
     def log_user_marker(self,marker):
         import datetime

@@ -5,6 +5,7 @@
     "MAX_ZOOM": 18,
     "DIR_RELATIVE_MAP_TILES": "map_tiles",
     "DIR_RELATIVE_LOGS": "logs",
+    "DIR_RELATIVE_LOGS_EUD_POSITION": "logs/eud_position",
     "DIR_RELATIVE_TESTS": "tests",
     "DIR_RELATIVE_ICONS": "icons",
     "DIR_RELATIVE_QUEUE": "src/queue_files",
