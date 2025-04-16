@@ -7,6 +7,7 @@ from pathlib import Path
 import mgrs
 import threading
 from datetime import datetime, UTC
+from coords import convert_coords_to_mgrs
 
 class PositioningService:
     def __init__(self, interval=30):
@@ -17,17 +18,23 @@ class PositioningService:
         self._stop_event = threading.Event()
 
     def coordinate_format_conversion(self,lat,lat_dir,lon,lon_dir):
-        lat = str(lat); lon = str(lon)
-        lat_var1 = lat[:2]
-        lat_var2 = lat[2:]
-        lat_var3 = float(lat_var2)/60
-        lat_new = lat_var1+'.'+str(lat_var3).split('.')[-1]
-        if lat_dir == 'S': lat_new = '-'+str(float(lat_new))
-        lon_var1 = lon[:3]
-        lon_var2 = lon[3:]
-        lon_var3 = float(lon_var2)/60
-        lon_new = lon_var1+'.'+str(lon_var3).split('.')[-1]
-        if lon_dir == 'W': lon_new = '-'+str(float(lon_new))
+        try:
+            lat = str(lat); lon = str(lon)
+            lat_var1 = lat[:2]
+            lat_var2 = lat[2:]
+            lat_var3 = float(lat_var2)/60
+            lat_new = lat_var1+'.'+str(lat_var3).split('.')[-1]
+            if lat_dir == 'S': lat_new = '-'+str(float(lat_new))
+            lon_var1 = lon[:3]
+            lon_var2 = lon[3:]
+            lon_var3 = float(lon_var2)/60
+            lon_new = lon_var1+'.'+str(lon_var3).split('.')[-1]
+            if lon_dir == 'W': lon_new = '-'+str(float(lon_new))
+        except Exception as e:
+            print(f"Coordinate conversion error: {e}")
+            print('Inputs: ',lat,lat_dir,lon,lon_dir)
+            return None, None
+
         return lat_new, lon_new
 
     def find_gnss_port(self):
@@ -90,20 +97,20 @@ class PositioningService:
                         if len(data) >= 10 and data[2] and data[4]:
                             utc = data[1]
                             print(f'UTC: {utc}')
-                            lat = data[2]
+                            lat_DDmm = data[2]
                             lat_dir = data[3]
                             print(f'Latitude: {lat}')
                             print(f'Latitude Direction: {lat_dir}')
-                            lon = data[4]
+                            lon_DDmm = data[4]
                             lon_dir = data[5]
                             print(f'Longitude: {lon}')
                             print(f'Longitude Direction: {lon_dir}')
-                            lat, lon = self.coordinate_format_conversion(lat, lat_dir, lon, lon_dir)
+                            lat, lon = self.coordinate_format_conversion(lat_DDmm, lat_dir, lon_DDmm, lon_dir)
                             num_sats = data[7]
                             print(f'Number of Satellites: {num_sats}')
                             alt = data[9]
                             print(f'Altitude: {alt}')
-                            mgrs_coord = self.mgrs_converter.toMGRS(lat, lon).decode()
+                            mgrs_coord = convert_coords_to_mgrs(lat, lon)
                             print(f'MGRS Coordinate: {mgrs_coord}')
                             gps_data = {
                                 'utc': utc,
