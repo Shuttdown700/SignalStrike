@@ -99,13 +99,12 @@ class PositioningService:
                             print(f'UTC: {utc}')
                             lat_DDDmm = data[2]
                             lat_dir = data[3]
-                            print(f'Latitude (DDD.mm format): {lat_DDDmm}')
-                            print(f'Latitude Direction: {lat_dir}')
+                            print(f'Latitude (DDD.mm format): {lat_DDDmm} {lat_dir}')
                             lon_DDmm = data[4]
                             lon_dir = data[5]
-                            print(f'Longitude (DDD.mm format): {lon_DDmm}')
-                            print(f'Longitude Direction: {lon_dir}')
+                            print(f'Longitude (DDD.mm format): {lon_DDmm} {lon_dir}')
                             lat, lon = self.coordinate_format_conversion(lat_DDDmm, lat_dir, lon_DDmm, lon_dir)
+                            print(f'Coordinate (lat,lon): {lat,lon}')
                             num_sats = data[7]
                             print(f'Number of Satellites: {num_sats}')
                             alt = data[9]
