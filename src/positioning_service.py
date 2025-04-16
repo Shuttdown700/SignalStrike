@@ -149,7 +149,7 @@ class PositioningService:
         self._stop_event.set()
 
     def get_latest_position_from_logs(self):
-        log_files = sorted(self.logs_dir.glob("position_log_*.jsonl"),key=lambda f: f.stat().st_mtime,reverse=True)
+        log_files = sorted(Path(self.logs_dir).glob("position_log_*.jsonl"),key=lambda f: f.stat().st_mtime,reverse=True)
         for log_file in log_files:
             try:
                 with open(log_file, 'r') as f:
