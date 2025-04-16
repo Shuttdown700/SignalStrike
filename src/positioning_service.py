@@ -29,19 +29,33 @@ class PositioningService:
 
     def find_gnss_port(self):
         ports = serial.tools.list_ports.comports()
-        print(f'All available ports: {ports}')
+        print(f"All available ports: {[p.device for p in ports]}")
+
+        # Priority: try to identify a u-blox device from the description
         for port_info in ports:
             port = port_info.device
-            print(f'Trying port: {port} | {port_info.description}')
-            try:
-                with serial.Serial(port, 9600, timeout=1) as ser:
-                    for _ in range(5):
-                        line = ser.readline().decode('utf-8', errors='ignore').strip()
-                        if line.startswith('$GPGGA'):
-                            print(f"Detected GNSS on {port}")
-                            return port
-            except:
-                continue
+            desc = port_info.description.lower()
+            print(desc)
+            if 'u-blox' in desc or 'gnss' in desc:
+                print(f"Likely GNSS device detected by name: {port} | {port_info.description}")
+                return port
+
+        # If nothing obvious, try scanning ports for GGA NMEA sentences
+        common_baud_rates = [9600, 38400, 115200]
+        for port_info in ports:
+            port = port_info.device
+            print(f"Trying port: {port} | {port_info.description}")
+            for baudrate in common_baud_rates:
+                try:
+                    with serial.Serial(port, baudrate, timeout=1) as ser:
+                        for _ in range(5):
+                            line = ser.readline().decode('utf-8', errors='ignore').strip()
+                            if line.startswith('$GPGGA'):
+                                print(f"Detected GNSS on {port} at {baudrate} baud")
+                                return port
+                except Exception as e:
+                    continue
+
         print("GNSS serial port not found.")
         return None
 
