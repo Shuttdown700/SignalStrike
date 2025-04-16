@@ -35,7 +35,6 @@ class PositioningService:
         for port_info in ports:
             port = port_info.device
             desc = port_info.description.lower()
-            print(desc)
             if 'u-blox' in desc or 'gnss' in desc:
                 print(f"Likely GNSS device detected by name: {port} | {port_info.description}")
                 return port
@@ -82,9 +81,11 @@ class PositioningService:
             with serial.Serial(self.port, 9600, timeout=1) as ser:
                 start_time = time.time()
                 while time.time() - start_time < max_time_seconds:
+                    print(ser)
                     line = ser.readline().decode('utf-8', errors='ignore').strip()
                     if line.startswith('$GPGGA'):
                         data = line.split(',')
+                        print(data)
                         if len(data) >= 10 and data[2] and data[4]:
                             utc = data[1]
                             lat, lon = self.coordinate_format_conversion(data[2], data[3], data[4], data[5])
