@@ -2881,7 +2881,7 @@ class App(customtkinter.CTk):
         from pathlib import Path
         from datetime import datetime
 
-        if not self.log_eud_position_directory.exists():
+        if not os.path.exists(self.log_eud_position_directory):
             return None
 
         # Get list of log files, sorted by date descending
