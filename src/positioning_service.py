@@ -173,3 +173,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         service.stop()
         print("Positioning service stopped.")
+        time.sleep(1000)
