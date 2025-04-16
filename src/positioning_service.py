@@ -12,7 +12,7 @@ class PositioningService:
     def __init__(self, interval=30):
         self.interval = interval
         self.latest_position = None
-        self.port = self.find_gnss_port()
+        self.port, self.baudrate = self.find_gnss_port()
         self.mgrs_converter = mgrs.MGRS()
         self._stop_event = threading.Event()
 
@@ -34,10 +34,9 @@ class PositioningService:
         # Priority: try to identify a u-blox device from the description
         for port_info in ports:
             port = port_info.device
-            desc = port_info.description.lower()
-            if 'u-blox' in desc or 'gnss' in desc:
+            if 'u-blox' in port_info.description.lower():
                 print(f"Likely GNSS device detected by name: {port} | {port_info.description}")
-                return port
+                return port, 9600
 
         # If nothing obvious, try scanning ports for GGA NMEA sentences
         common_baud_rates = [9600, 38400, 115200]
@@ -51,12 +50,12 @@ class PositioningService:
                             line = ser.readline().decode('utf-8', errors='ignore').strip()
                             if line.startswith('$GPGGA'):
                                 print(f"Detected GNSS on {port} at {baudrate} baud")
-                                return port
+                                return port, baudrate
                 except Exception as e:
                     continue
 
         print("GNSS serial port not found.")
-        return None
+        return None, None
 
     def get_log_filename(self):
         logs_dir = Path(__file__).resolve().parent.parent / "logs"
@@ -78,31 +77,31 @@ class PositioningService:
             return None
 
         try:
-            with serial.Serial(self.port, 9600, timeout=1) as ser:
+            with serial.Serial(self.port, self.baudrate, timeout=1) as ser:
                 start_time = time.time()
-                while time.time() - start_time < max_time_seconds:
-                    print(ser)
-                    line = ser.readline().decode('utf-8', errors='ignore').strip()
-                    if line.startswith('$GPGGA'):
-                        data = line.split(',')
-                        print(data)
-                        if len(data) >= 10 and data[2] and data[4]:
-                            utc = data[1]
-                            lat, lon = self.coordinate_format_conversion(data[2], data[3], data[4], data[5])
-                            num_sats = data[7]
-                            alt = data[9]
-                            mgrs_coord = self.mgrs_converter.toMGRS(lat, lon).decode()
+                print(ser)
+                print(ser.readline())
+                line = ser.readline().decode('utf-8', errors='ignore').strip()
+                if line.startswith('$GPGGA'):
+                    data = line.split(',')
+                    print(data)
+                    if len(data) >= 10 and data[2] and data[4]:
+                        utc = data[1]
+                        lat, lon = self.coordinate_format_conversion(data[2], data[3], data[4], data[5])
+                        num_sats = data[7]
+                        alt = data[9]
+                        mgrs_coord = self.mgrs_converter.toMGRS(lat, lon).decode()
 
-                            gps_data = {
-                                'utc': utc,
-                                'lat': lat,
-                                'lon': lon,
-                                'mgrs': mgrs_coord,
-                                'num_sats': num_sats,
-                                'alt_m': alt
-                            }
-                            print("GPS data:", gps_data)
-                            return gps_data
+                        gps_data = {
+                            'utc': utc,
+                            'lat': lat,
+                            'lon': lon,
+                            'mgrs': mgrs_coord,
+                            'num_sats': num_sats,
+                            'alt_m': alt
+                        }
+                        print("GPS data:", gps_data)
+                        return gps_data
         except Exception as e:
             print(f"Error reading GNSS data: {e}")
 
