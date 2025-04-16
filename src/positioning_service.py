@@ -109,7 +109,7 @@ class PositioningService:
                             print(f'Number of Satellites: {num_sats}')
                             alt = data[9]
                             print(f'Altitude: {alt}')
-                            mgrs_coord = convert_coords_to_mgrs(lat, lon)
+                            mgrs_coord = convert_coords_to_mgrs([lat, lon])
                             print(f'MGRS Coordinate: {mgrs_coord}')
                             gps_data = {
                                 'utc': utc,
