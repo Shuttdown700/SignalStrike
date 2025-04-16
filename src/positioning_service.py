@@ -16,16 +16,19 @@ class PositioningService:
         self.mgrs_converter = mgrs.MGRS()
         self._stop_event = threading.Event()
 
-    def coordinate_format_conversion(self, lat, lat_dir, lon, lon_dir):
-        lat = str(lat)
-        lon = str(lon)
-        lat_deg = float(lat[:2]) + float(lat[2:]) / 60
-        if lat_dir == 'S':
-            lat_deg *= -1
-        lon_deg = float(lon[:3]) + float(lon[3:]) / 60
-        if lon_dir == 'W':
-            lon_deg *= -1
-        return lat_deg, lon_deg
+    def coordinate_format_conversion(self,lat,lat_dir,lon,lon_dir):
+        lat = str(lat); lon = str(lon)
+        lat_var1 = lat[:2]
+        lat_var2 = lat[2:]
+        lat_var3 = float(lat_var2)/60
+        lat_new = lat_var1+'.'+str(lat_var3).split('.')[-1]
+        if lat_dir == 'S': lat_new = '-'+str(float(lat_new))
+        lon_var1 = lon[:3]
+        lon_var2 = lon[3:]
+        lon_var3 = float(lon_var2)/60
+        lon_new = lon_var1+'.'+str(lon_var3).split('.')[-1]
+        if lon_dir == 'W': lon_new = '-'+str(float(lon_new))
+        return lat_new, lon_new
 
     def find_gnss_port(self):
         ports = serial.tools.list_ports.comports()
@@ -53,7 +56,6 @@ class PositioningService:
                                 return port, baudrate
                 except Exception as e:
                     continue
-
         print("GNSS serial port not found.")
         return None, None
 
@@ -78,21 +80,31 @@ class PositioningService:
         try:
             with serial.Serial(self.port, self.baudrate, timeout=1) as ser:
                 while True:
-                    print(f'Serial Output:\n {ser}')
                     try:
                         line = ser.readline().decode('utf-8', errors='ignore').strip()  # Decode bytes to UTF-8 string
                     except UnicodeDecodeError:
                         continue  # Skip decoding errors and try to read the next line
                     if line.startswith('$GPGGA'):
                         data = line.split(',')
-                        print(data)
+                        print(print(f'GNSS Data:\n {data}'))
                         if len(data) >= 10 and data[2] and data[4]:
                             utc = data[1]
-                            lat, lon = self.coordinate_format_conversion(data[2], data[3], data[4], data[5])
+                            print(f'UTC: {utc}')
+                            lat = data[2]
+                            lat_dir = data[3]
+                            print(f'Latitude: {lat}')
+                            print(f'Latitude Direction: {lat_dir}')
+                            lon = data[4]
+                            lon_dir = data[5]
+                            print(f'Longitude: {lon}')
+                            print(f'Longitude Direction: {lon_dir}')
+                            lat, lon = self.coordinate_format_conversion(lat, lat_dir, lon, lon_dir)
                             num_sats = data[7]
+                            print(f'Number of Satellites: {num_sats}')
                             alt = data[9]
+                            print(f'Altitude: {alt}')
                             mgrs_coord = self.mgrs_converter.toMGRS(lat, lon).decode()
-
+                            print(f'MGRS Coordinate: {mgrs_coord}')
                             gps_data = {
                                 'utc': utc,
                                 'lat': lat,
@@ -101,7 +113,6 @@ class PositioningService:
                                 'num_sats': num_sats,
                                 'alt_m': alt
                             }
-                            print("GPS data:", gps_data)
                             return gps_data
         except Exception as e:
             print(f"Error reading GNSS data: {e}")
