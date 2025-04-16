@@ -71,10 +71,10 @@ def download_tile_batch(
     try:
         assert isinstance(lat_lon_top_left, list), "'lat_lon_top_left' must be a list."
         assert len(lat_lon_top_left) == 2, "'lat_lon_top_left' list must contain exactly two elements."
-        assert all(isinstance(item, float) for item in lat_lon_top_left), "All elements in the 'lat_lon_top_left' list must be floats."
+        assert all(isinstance(item, (float,int)) for item in lat_lon_top_left), "All elements in the 'lat_lon_top_left' list must be floats."
         assert isinstance(lat_lon_bottom_right, list), "'lat_lon_bottom_right' must be a list."
         assert len(lat_lon_bottom_right) == 2, "'lat_lon_bottom_right' list must contain exactly two elements."
-        assert all(isinstance(item, float) for item in lat_lon_bottom_right), "All elements in the 'lat_lon_bottom_right' list must be floats."
+        assert all(isinstance(item, (float,int)) for item in lat_lon_bottom_right), "All elements in the 'lat_lon_bottom_right' list must be floats."
         assert isinstance(tile_directory, str), "'tile_directory' must be a string."
         assert isinstance(tile_url, str), "'tile_url' must be a string."
         assert isinstance(min_zoom, int)   and 0 <= max_zoom <= max_zoom, "'min_zoom' must be an integer. [0-20]"
@@ -115,6 +115,7 @@ def main():
         for i,key in enumerate(location_options):
             print(f"{i+1}. {key}")
         print(f"{i+2}. Custom")
+        print(f"{i+3}. Global (High-Level Map)")
         print(f"{RED}0. Exit{RESET}\n")
         choice = input("Enter your choice: ")
         if choice.isdigit():
@@ -203,8 +204,36 @@ def main():
                     max_zoom=maxZoom,
                     parallel_threads=4
                 )                
+            elif choice == len(location_options)+2:
+                response = ""
+                while response not in ["y","n"]:
+                    response = input(f"\n{YELLOW}Confirm selection{RESET}:{MAGENTA} Global (High-Level Map) {RESET}[Y/N] ").lower()
+                if response == 'y':
+                    while True:
+                        mapType = input(f"\n{YELLOW}Enter the map type{RESET} {MAGENTA}(Terrain/Satellite){RESET}: ").lower()
+                        if mapType in ["terrain","satellite","t","s"]:
+                            if mapType == "s":
+                                mapType = "satellite"
+                            elif mapType == "t":
+                                mapType = "terrain"
+                            mapType = mapType.capitalize()
+                            break
+                        else:
+                            print(f"{RED}Invalid input. Please enter 'Terrain' or 'Satellite'.{RESET}")
+                    download_tile_batch(
+                        [90, -180],
+                        [-90, 180],
+                        os.path.join(map_dir,mapType),
+                        conf_download_presets["Tile Source"][mapType]["tile_url"],
+                        min_zoom=0,
+                        max_zoom=14,
+                        parallel_threads=4
+                    )
+                    download_tile_batch()
+                elif response == 'n':
+                    continue
             else:
-                print(f"{RED}\nInvalid choice. Please enter a number between 1 and {len(location_options)+1}.{RESET}")
+                print(f"{RED}\nInvalid choice ({choice}). Please enter a number between 1 and {len(location_options)+2}.{RESET}")
         else:
             print(f"{RED}Invalid input. Please enter a number.{RESET}")
     return 0

@@ -103,7 +103,7 @@ def main():
 
     def download(tile):
         import time
-        basepath = args["tileurl"].split('?')[0].split("/")[-1]  # ?foo=bar&z={z}.ext
+        basepath = args["tileurl"].split('?')[0].split("/")[-1]
         segments = basepath.split(".")
         ext = "." + segments[-1] if len(segments) > 1 else ".png"
 
