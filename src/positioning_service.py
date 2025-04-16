@@ -75,36 +75,36 @@ class PositioningService:
         if not self.port:
             print("No serial port available for GNSS.")
             return None
-
         try:
             with serial.Serial(self.port, self.baudrate, timeout=1) as ser:
-                start_time = time.time()
-                print(ser)
-                print(ser.readline())
-                line = ser.readline().decode('utf-8', errors='ignore').strip()
-                if line.startswith('$GPGGA'):
-                    data = line.split(',')
-                    print(data)
-                    if len(data) >= 10 and data[2] and data[4]:
-                        utc = data[1]
-                        lat, lon = self.coordinate_format_conversion(data[2], data[3], data[4], data[5])
-                        num_sats = data[7]
-                        alt = data[9]
-                        mgrs_coord = self.mgrs_converter.toMGRS(lat, lon).decode()
+                while True:
+                    print(f'Serial Output:\n {ser}')
+                    try:
+                        line = ser.readline().decode('utf-8', errors='ignore').strip()  # Decode bytes to UTF-8 string
+                    except UnicodeDecodeError:
+                        continue  # Skip decoding errors and try to read the next line
+                    if line.startswith('$GPGGA'):
+                        data = line.split(',')
+                        print(data)
+                        if len(data) >= 10 and data[2] and data[4]:
+                            utc = data[1]
+                            lat, lon = self.coordinate_format_conversion(data[2], data[3], data[4], data[5])
+                            num_sats = data[7]
+                            alt = data[9]
+                            mgrs_coord = self.mgrs_converter.toMGRS(lat, lon).decode()
 
-                        gps_data = {
-                            'utc': utc,
-                            'lat': lat,
-                            'lon': lon,
-                            'mgrs': mgrs_coord,
-                            'num_sats': num_sats,
-                            'alt_m': alt
-                        }
-                        print("GPS data:", gps_data)
-                        return gps_data
+                            gps_data = {
+                                'utc': utc,
+                                'lat': lat,
+                                'lon': lon,
+                                'mgrs': mgrs_coord,
+                                'num_sats': num_sats,
+                                'alt_m': alt
+                            }
+                            print("GPS data:", gps_data)
+                            return gps_data
         except Exception as e:
             print(f"Error reading GNSS data: {e}")
-
         return None
 
     def poll_location(self):
