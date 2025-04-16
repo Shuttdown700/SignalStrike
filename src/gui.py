@@ -854,7 +854,7 @@ class App(customtkinter.CTk):
         # define plot EUD button attributes
         self.button_plot_eud_location = customtkinter.CTkButton(
             master=self.frame_right,
-            text="Plot Current Position",
+            text="Plot EUD Position",
             fg_color="brown",
             text_color="white",
             command=self.plot_EUD_position)
@@ -2873,23 +2873,54 @@ class App(customtkinter.CTk):
             self.show_info("Invalid MGRS input!",icon='warning')
             return
 
+    def get_latest_logged_position(self):
+        import os
+        import json
+        from pathlib import Path
+        from datetime import datetime
+
+        logs_dir = Path(os.path.join(os.path.dirname(__file__), "../logs"))
+        if not logs_dir.exists():
+            return None
+
+        # Get list of log files, sorted by date descending
+        log_files = sorted(logs_dir.glob("position_log_*.jsonl"), reverse=True)
+
+        for log_file in log_files:
+            try:
+                with open(log_file, "r", encoding="utf-8") as f:
+                    lines = f.readlines()
+                    if not lines:
+                        continue
+                    # Read from the bottom up
+                    for line in reversed(lines):
+                        try:
+                            entry = json.loads(line)
+                            data = entry.get("data", {})
+                            lat = float(data.get("lat"))
+                            lon = float(data.get("lon"))
+                            acc = float(data.get("accuracy_m", 0))
+                            return lat, lon, acc
+                        except Exception:
+                            continue
+            except Exception:
+                continue
+        return None
+
     def plot_EUD_position(self,coord=None):
         import time
         from PIL import Image, ImageTk
         from utilities import format_readable_DTG, generate_DTG
         from coords import convert_coords_to_mgrs, format_readable_mgrs
-        from gnss import generate_EUD_coordinate
-        max_time_seconds = 15
-        self.show_info(f'Generating location from GPS... stand outside & wait {max_time_seconds} seconds',icon='info')
+        from CTkMessagebox import CTkMessagebox
         time.sleep(2)
         if coord == None:
             try:
-                gps_data = generate_EUD_coordinate(max_time_seconds)
-                if gps_data is None:
-                    self.show_info('No GPS data available at this time.',icon='warning')
+                latest_position = self.get_latest_logged_position()
+                if latest_position is None:
+                    self.show_info('No positioning data available.', icon='warning')
                     return
-                lat = float(gps_data['lat']); lon = float(gps_data['lon']); 
-                # print(f'Latitude: {lat}, Longitude: {lon}')
+                lat, lon, acc = latest_position
             except Exception as e:
                 print(f"Unknown error in 'generate_EUD_coordinate' method: {e}")
                 return
@@ -2910,20 +2941,10 @@ class App(customtkinter.CTk):
                                                 command=self.marker_click,
                                                 data=eud_marker_data)
         self.append_object(eud_marker,"EUD")
-        self.show_info("Current position successfully plotted.",box_title="EUD Position Plotted",icon='info')
-        self.map_widget.set_position(lat, lon)
-        # if acc > 20:
-        #     circle_top_left = adjust_coordinate([lat,lon], 315, acc)
-        #     circle_bottom_right = adjust_coordinate([lat,lon], 135, acc)
-        #     print(type(circle_top_left),type(circle_bottom_right))
-        #     eud_position_error = self.map_widget.canvas.create_oval(circle_top_left[0],
-        #                                                             circle_top_left[1],
-        #                                                             circle_bottom_right[0],
-        #                                                             circle_bottom_right[1],
-        #                                                             dash=True,
-        #                                                             disabledfill=True,
-        #                                                             outline='black')
-        #     self.append_object(eud_position_error,"EUD")
+        msgBox = CTkMessagebox(title="EUD Position Plotted", message='Do you want to adjust the map view to the most updated EUD location?', icon='info',options=['Yes','No'])
+        response = msgBox.get()
+        if response == "Yes":
+            self.map_widget.set_position(lat, lon)
         self.log_eud_location([lat,lon,acc])
 
     def increment_brightness_up(self):

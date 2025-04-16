@@ -1,4 +1,8 @@
-NEW / UPDATED FEATURES
+--- JMRC Release Features ---
+
+- positioning service that logs location over time
+- Option to plot elevation map with a single LOB
+- general logging features to track user activity
 
 --- ENHANCING EXISTING FEATURES ---
 
