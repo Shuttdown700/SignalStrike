@@ -40,7 +40,7 @@ class PositioningService:
             print('Inputs: ',lat,lat_dir,lon,lon_dir)
             return None, None
 
-        return lat_new, lon_new
+        return float(lat_new), float(lon_new)
 
     def find_gnss_port(self):
         ports = serial.tools.list_ports.comports()
@@ -97,7 +97,6 @@ class PositioningService:
                         continue  # Skip decoding errors and try to read the next line
                     if line.startswith('$GPGGA'):
                         data = line.split(',')
-                        print(print(f'GNSS Data:\n {data}'))
                         if len(data) >= 10 and data[2] and data[4]:
                             utc = data[1]
                             print(f'UTC: {utc}')
@@ -146,6 +145,7 @@ class PositioningService:
         threading.Thread(target=self.poll_location, daemon=True).start()
 
     def stop(self):
+        print("Positioning service stopping.")
         self._stop_event.set()
 
     def get_latest_position_from_logs(self):
@@ -163,14 +163,16 @@ class PositioningService:
 if __name__ == "__main__":
     service = PositioningService(interval=30)
     service.start()
-
+    sleep_internval = 15
     try:
         while True:
-            time.sleep(10)
+            time.sleep(sleep_internval)
             latest = service.get_latest_position_from_logs()
             if latest:
                 print("Latest logged position:", latest)
+            if service.port is None:
+                print("No GNSS device found. Exiting...")
+                service.stop()
     except KeyboardInterrupt:
         service.stop()
-        print("Positioning service stopped.")
-        time.sleep(1000)
+    time.sleep(1000)

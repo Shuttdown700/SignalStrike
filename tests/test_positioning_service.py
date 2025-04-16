@@ -28,7 +28,7 @@ def test_log_entry_written(temp_log_dir, monkeypatch):
     log_path = Path(temp_log_dir) / "test_log.jsonl"
     monkeypatch.setattr(service, "get_log_filename", lambda: log_path)
 
-    fake_entry = {"timestamp": "2025-04-16T00:00:00Z", "data": {"lat": 1.0, "lon": 2.0}}
+    fake_entry = {"timestamp": "2025-04-16T19:05:04.484709+00:00", "data": {"utc": "190506.00", "lat": "35.338020247504424", "lon": "-116.54291727858292", "MGRS": "11SNV4153710625", "num_sats": "04", "alt_m":"737"}}
     service._log_to_file(fake_entry)
 
     assert log_path.exists()
