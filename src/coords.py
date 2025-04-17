@@ -118,9 +118,11 @@ def format_readable_mgrs(mgrs:str) -> str:
     # return the input MGRS if invalid
     return mgrs
 
-def get_distance_between_coords(coord1 : list[float,float],coord2 : list[float,float]) -> float:
+def get_distance_between_coords(coord1 : list[float,float],coord2 : list[float,float], unit = 'm') -> float:
     """Determines distance between two coordinates in meters."""
     import haversine
+    unit = unit.lower()
+    assert unit in ['m','km'], 'Unit must be either meters or kilometers.'
     if isinstance(coord1,tuple):
         coord1 = list(coord1)
     if isinstance(coord2,tuple):
@@ -129,7 +131,10 @@ def get_distance_between_coords(coord1 : list[float,float],coord2 : list[float,f
     assert len(coord1) == 2, 'Coordinate 1 must be of length 2.'
     # assert isinstance(coord2,list), 'Coordinate 2 must be a list.'
     assert len(coord2) == 2, 'Coordinate 2 must be of length 2.'
-    return haversine.haversine(coord1,coord2,unit=haversine.Unit.METERS)
+    if unit == 'm':
+        return haversine.haversine(coord1,coord2,unit=haversine.Unit.METERS)
+    if unit== 'km':
+        return haversine.haversine(coord1,coord2,unit=haversine.Unit.KILOMETERS)
 
 def get_bearing_between_coordinates(coord_origin: list,coord_tgt: list) -> float:
     """Determines bearing (in degrees) between origin coordinates and target coordinate."""

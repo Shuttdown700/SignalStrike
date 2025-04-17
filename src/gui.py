@@ -910,7 +910,7 @@ class App(customtkinter.CTk):
             fg_color="red",
             hover_color="black",
             text_color="white",
-            command=self.clear_user_markers)
+            command=self._clear_user_markers)
         # assign clear markers button grid position
         self.button_clear_markers.grid(
             row=0, 
@@ -1053,6 +1053,10 @@ class App(customtkinter.CTk):
             command=self.plot_NAI,
             pass_coords=True)
         self.plot_current_user_markers()
+
+    def safe_plot_callback(self,elevation_data, sensor_coord, nearside_km, target_coord, farside_km):
+        from dted import plot_elevation_profile
+        plot_elevation_profile(elevation_data, sensor_coord, nearside_km, target_coord, farside_km)
 
     def plot_current_user_markers(self) -> None:
         from utilities import read_csv
@@ -1739,6 +1743,31 @@ class App(customtkinter.CTk):
         from coords import convert_coords_to_mgrs, convert_mgrs_to_coords, format_readable_mgrs, get_distance_between_coords, get_center_coord, get_coords_from_LOBs
         from ew import get_emission_distance
         from map import check_for_intersection, check_if_point_in_polygon, get_intersection, get_line, get_polygon_area, organize_polygon_coords
+        import threading
+
+        def elevation_profile_worker(sensor_coord, nearside_target_distance_km, target_coord, farside_target_distance_km, callback):
+            from dted import get_elevation_profile, generate_coordinates_of_interest
+            try:
+                farside_coord = generate_coordinates_of_interest(sensor_coord, target_coord, farside_target_distance_km)
+                elevation_data = get_elevation_profile(sensor_coord, farside_coord, interpoint_distance_m=30)
+
+                # Schedule callback in main thread using after
+                if hasattr(callback, '__self__') and hasattr(callback.__self__, 'after'):
+                    callback.__self__.after(0, callback, elevation_data, sensor_coord, nearside_target_distance_km, target_coord, farside_target_distance_km)
+                else:
+                    # fallback if no .after() is found — will run in the thread (unsafe for GUI)
+                    callback(elevation_data, sensor_coord, nearside_target_distance_km, target_coord, farside_target_distance_km)
+            except Exception as e:
+                print(f"Error generating elevation profile: {e}")
+
+        def run_2D_elevation_plotter_threaded(sensor_coord, nearside_target_distance_km, target_coord, farside_target_distance_km, callback):
+            thread = threading.Thread(
+                target=elevation_profile_worker,
+                args=(sensor_coord, nearside_target_distance_km, target_coord, farside_target_distance_km, callback)
+            )
+            thread.daemon = True
+            thread.start()
+
         def plot_lobs(s1lnmc,s1lfmc,s2lnmc,s2lfmc,s3lnmc,s3lfmc,plot_ewt1_lob_tgt_bool=True,plot_ewt2_lob_tgt_bool=True,plot_ewt3_lob_tgt_bool=True):
             self.sensor1_target_coord = None ; self.sensor2_target_coord = None ; self.sensor3_target_coord = None
             import numpy as np
@@ -1826,6 +1855,12 @@ class App(customtkinter.CTk):
                 dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
                 # set sensor 1 distance field
                 self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
+                # generate a 2D elevation plot
+                if self.target_class == '(1 LOB)':
+                    from CTkMessagebox import CTkMessagebox
+                    msgBox = CTkMessagebox(title="2D Elevation Plot", message="Do you want to generate a 2D Elevation Plot", icon='info',options=['Yes','No'])
+                    response = msgBox.get()
+                    if response == 'Yes': run_2D_elevation_plotter_threaded(self.sensor1_coord,self.sensor1_min_distance_km,self.sensor1_target_coord,self.sensor1_max_distance_km,callback=self.safe_plot_callback)
             else:
                 sensor1_target_mgrs = None
                 self.sensor1_lob_error_acres = None
@@ -1908,6 +1943,12 @@ class App(customtkinter.CTk):
                 dist_sensor2_text = self.generate_sensor_distance_text(self.sensor2_distance_val)
                 # set sensor 2 distance field
                 self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
+                # generate a 2D elevation plot
+                if self.target_class == '(1 LOB)':
+                    from CTkMessagebox import CTkMessagebox
+                    msgBox = CTkMessagebox(title="2D Elevation Plot", message="Do you want to generate a 2D Elevation Plot", icon='info',options=['Yes','No'])
+                    response = msgBox.get()
+                    if response == 'Yes': run_2D_elevation_plotter_threaded(self.sensor2_coord,self.sensor2_min_distance_km,self.sensor2_target_coord,self.sensor2_max_distance_km,callback=self.safe_plot_callback)
             else:
                 sensor2_target_mgrs = None
                 self.sensor2_lob_error_acres = None
@@ -1990,6 +2031,12 @@ class App(customtkinter.CTk):
                 dist_sensor3_text = self.generate_sensor_distance_text(self.sensor3_distance_val)
                 # set sensor 3 distance field
                 self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
+                # generate a 2D elevation plot
+                if self.target_class == '(1 LOB)':
+                    from CTkMessagebox import CTkMessagebox
+                    msgBox = CTkMessagebox(title="2D Elevation Plot", message="Do you want to generate a 2D Elevation Plot", icon='info',options=['Yes','No'])
+                    response = msgBox.get()
+                    if response == 'Yes': run_2D_elevation_plotter_threaded(self.sensor3_coord,self.sensor3_min_distance_km,self.sensor3_target_coord,self.sensor3_max_distance_km,callback=self.safe_plot_callback)
             else:
                 sensor3_target_mgrs = None
                 self.sensor3_lob_error_acres = None
@@ -2886,7 +2933,7 @@ class App(customtkinter.CTk):
 
         # Get list of log files, sorted by date descending
         log_files = sorted(Path(self.log_eud_position_directory).glob("position_log_*.jsonl"), reverse=True)
-
+        
         for log_file in log_files:
             try:
                 with open(log_file, "r", encoding="utf-8") as f:
@@ -3098,28 +3145,41 @@ class App(customtkinter.CTk):
             path.delete()
         self.path_list = []
 
-    def clear_user_markers(self):
+    def _clear_user_markers(self):
+        from logger import get_log_path, setup_logger
+        log_path = get_log_path("user_actions")
+        logger = setup_logger("clear_user_markers", log_path)
+
+        logger.info("Clearing user and EUD markers.")
+
         for user_marker in self.user_marker_list:
             user_marker.delete()
+            logger.info("Deleted a user marker.")
+
         for eud_marker in self.eud_marker_list:
             eud_marker.delete()
             self.map_widget.canvas.delete(eud_marker)
-        # assess if log directory exists
+            logger.info("Deleted an EUD marker and removed it from canvas.")
+
         if not os.path.exists(self.log_directory):
-            # create log directory
             os.makedirs(self.log_directory)
-        # define marker file name
+            logger.info(f"Created marker log directory at {self.log_directory}")
+
         filename = App.DEFAULT_VALUES["User Marker Filename"]
+        marker_file_path = os.path.join(self.log_directory, filename)
+
         try:
-            os.remove(os.path.join(self.log_directory, filename))
-        # if file does not exist
+            os.remove(marker_file_path)
+            logger.info(f"Deleted marker file: {marker_file_path}")
         except FileNotFoundError:
-            pass
-        # if file permissions prevent marker file deleting
+            logger.info(f"Marker file not found: {marker_file_path}")
         except PermissionError:
-            # error message if file is currently open
-            self.show_info("User Marker file currently open. Cannot log data!",icon='warning')
-        self.user_marker_list = []; self.eud_marker_list = []
+            self.show_info("User Marker file currently open. Cannot log data!", icon='warning')
+            logger.warning(f"Permission denied while deleting: {marker_file_path}")
+
+        self.user_marker_list = []
+        self.eud_marker_list = []
+        logger.info("Cleared all marker lists.")
 
     def clear_tactical_markers(self):
         for obj_marker in self.obj_list:
@@ -3228,7 +3288,7 @@ class App(customtkinter.CTk):
             lat, lon = marker.position[0], marker.position[1]
             marker.delete()
             if len(self.user_marker_list) == len(self.path_list) == 0:
-                self.clear_user_markers()
+                self._clear_user_markers()
             if len(self.obj_list) == len(self.nai_list) == 0:
                 self.clear_tactical_markers()
         

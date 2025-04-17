@@ -1,5 +1,7 @@
 import os
 import rasterio
+from coords import adjust_coordinate, get_distance_between_coords, get_bearing_between_coordinates
+from datetime import datetime
 
 def get_dted_file(lat: float, lon: float) -> str:
     """Constructs the DTED file path based on latitude and longitude."""
@@ -30,16 +32,24 @@ def get_elevation(coord: list) -> float:
     
     return elevation
 
-def get_elevation_profile(start: list, end: list, num_points: int = 100) -> list:
+def generate_coordinates_of_interest(sensor_coord: list[float], target_coord: list[float], farside_target_distance_km: float) -> list:
+    farside_target_distance_m = farside_target_distance_km * 1000
+    offset_distnace_m = farside_target_distance_m * 0.2
+    bearing_sensor_to_target = get_bearing_between_coordinates(sensor_coord, target_coord)
+    farside_coord = adjust_coordinate(sensor_coord,bearing_sensor_to_target, farside_target_distance_m+offset_distnace_m)
+    return farside_coord
+
+def get_elevation_profile(start: list, end: list, interpoint_distance_m: int = 30) -> list:
     """Returns a list of elevations along a line between two points."""
     assert isinstance(start, list) and len(start) == 2, "Start coordinate must be a list of two floats."
     assert isinstance(end, list) and len(end) == 2, "End coordinate must be a list of two floats."
-    assert isinstance(num_points, int) and num_points > 0, "Number of points must be a positive integer."
+    assert isinstance(interpoint_distance_m, int) and interpoint_distance_m > 0, "Number of points must be a positive integer."
     lat1, lon1 = start
     lat2, lon2 = end
     assert -90 <= lat1 <= 90 and -90 <= lat2 <= 90, "Latitude must be between -90 and 90 degrees."
     assert -180 <= lon1 <= 180 and -180 <= lon2 <= 180, "Longitude must be between -180 and 180 degrees."
     
+    max_points = 50
     file_path1 = get_dted_file(lat1, lon1)
     file_path2 = get_dted_file(lat2, lon2)
     
@@ -48,31 +58,99 @@ def get_elevation_profile(start: list, end: list, num_points: int = 100) -> list
     if not os.path.exists(file_path2):
         raise FileNotFoundError(f"DTED file not found: {file_path2}")
     
+    num_points = int(get_distance_between_coords(start, end, 'm') / interpoint_distance_m)
+    if num_points > max_points: num_points = max_points 
     try:
-        with rasterio.open(file_path1) as dted1, rasterio.open(file_path2) as dted2:
-            lats = [lat1 + (lat2 - lat1) * i / num_points for i in range(num_points)]
-            lons = [lon1 + (lon2 - lon1) * i / num_points for i in range(num_points)]
-            elevations = []
-            for lat, lon in zip(lats, lons):
-                elevation = get_elevation([lat, lon])
-                elevations.append(elevation)
+        lats = [lat1 + (lat2 - lat1) * i / num_points for i in range(num_points)]
+        lons = [lon1 + (lon2 - lon1) * i / num_points for i in range(num_points)]
+        elevation_data = []
+        for lat, lon in zip(lats, lons):
+            elevation = get_elevation([lat, lon])
+            distance_km = get_distance_between_coords(start,[lat, lon],'km')
+            elevation_data.append((lat,lon,int(elevation),distance_km))
     except Exception as e:
         raise RuntimeError(f"Error reading elevation data: {e}")
-    return elevations
+    return elevation_data
 
-def plot_elevation_profile(elevations : list):
-    """Plots the elevation profile."""
+def get_elevation_plot_filename(target_class="LOB"):
+    # Get today's date for subdirectory
+    date_str = datetime.now().strftime('%Y-%m-%d')
+    logs_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'logs', 'elevation_plots', date_str))
+    os.makedirs(logs_dir, exist_ok=True)
+
+    # Use full timestamp for base filename
+    timestamp = datetime.now().strftime('%Hh%Mm%Ss')
+    base_name = f"{target_class}_elevation-plot_{date_str}_{timestamp}"
+
+    # Incremental numbering if file exists
+    counter = 0
+    filename = os.path.join(logs_dir, f"{base_name}.png")
+    while os.path.exists(filename):
+        counter += 1
+        filename = os.path.join(logs_dir, f"{base_name}_{counter}.png")
+
+    return filename
+
+def plot_elevation_profile(elevation_data: list[tuple[float, int]],sensor_coord: list[float],nearside_target_distance_km: float,target_coord: list[float],farside_target_distance_km: float) -> None:
+    """Plots the elevation profile with visual enhancements."""
     import matplotlib.pyplot as plt
-    plt.plot(elevations)
-    plt.xlabel("Distance (m)")
-    plt.ylabel("Elevation (m)")
-    plt.title("Elevation Profile")
+    import numpy as np
+
+    # Extract elevation and distance data
+    elevations = [e[2] for e in elevation_data]  # elevation (m)
+    distances = [e[3] for e in elevation_data]   # distance (km)
+
+    # Convert to numpy for easier indexing
+    distances = np.array(distances)
+    elevations = np.array(elevations)
+
+    # Compute distances
+    target_distance = get_distance_between_coords(sensor_coord, target_coord, 'km')
+
+    # Create the plot
+    fig, ax = plt.subplots()
+    ax.plot(distances, elevations, color="black", label="Elevation Profile")
+
+    # Plot blue dot at sensor position
+    ax.plot(distances[0], elevations[0], 'bo', label="Sensor Position")
+
+    # Plot red dot at target position
+    ax.plot(target_distance, get_elevation(target_coord), 'ro', label="Target")
+
+    # Fill below the elevation profile with light brown (terrain)
+    ax.fill_between(distances, elevations, min(elevations) - 50, color='#d2b48c', alpha=0.5)
+
+    # Fill above the elevation profile with light blue (sky)
+    ax.fill_between(distances, elevations, max(elevations) + 100, color='#add8e6', alpha=0.3)
+
+    # Fill light red only above the line between near/far bounds
+    in_target_zone = (distances >= nearside_target_distance_km) & (distances <= farside_target_distance_km)
+    ax.fill_between(
+        distances[in_target_zone],
+        elevations[in_target_zone],
+        max(elevations) + 100,
+        color='lightcoral',
+        alpha=0.3,
+        label="Target Area of Error"
+    )
+    # Labels and title
+    ax.set_xlabel("Distance (km)")
+    ax.set_ylabel("Elevation (m)")
+    ax.set_title("Elevation Profile")
+    ax.legend(loc='upper left')
+    plt.tight_layout()
+    save_path = get_elevation_plot_filename()
+    plt.savefig(save_path)
     plt.show()
+    plt.close()
 
 if __name__ == "__main__":
     # Example usage of the DTED functions
-    coord1 = [49.24818881153634, 11.8154842917353]
-    coord2 = [49.22891111693264, 11.84535337003443]
-    elevations = get_elevation_profile(coord1, coord2, num_points=10)
-    print(f"Elevation profile between {coord1} and {coord2}: {elevations}")
-    plot_elevation_profile(elevations)
+    sensor_coord = [49.24818881153634, 11.8154842917353]
+    target_coord = [49.22891111693264, 11.84535337003443]
+    nearside_target_distance_km = 2.5
+    farside_target_distance_km = 3.5
+    farside_coord = generate_coordinates_of_interest(sensor_coord, target_coord, farside_target_distance_km)
+    elevation_data = get_elevation_profile(sensor_coord, farside_coord, interpoint_distance_m=30)
+    # print(f"Elevation profile between {sensor_coord} and {farside_coord}: {elevation_data}")
+    plot_elevation_profile(elevation_data,sensor_coord,nearside_target_distance_km,target_coord,farside_target_distance_km)

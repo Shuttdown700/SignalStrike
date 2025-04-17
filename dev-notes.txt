@@ -41,6 +41,7 @@
 Add a right-click map option to add an EWT and then the data in input in the correct field
 Add target presets (MILBAND, GCS, VTX)
 browser-based map download feature
+remove the import_libraries function
 
 [ANALYSIS]
 - post-mission log analysis tools

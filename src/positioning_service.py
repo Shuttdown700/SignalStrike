@@ -173,6 +173,7 @@ if __name__ == "__main__":
             if service.port is None:
                 print("No GNSS device found. Exiting...")
                 service.stop()
+                break
     except KeyboardInterrupt:
         service.stop()
     time.sleep(1000)
