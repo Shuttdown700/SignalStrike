@@ -10,6 +10,8 @@ libraries = [['customtkinter'],['CTkMessagebox',['CTkMessagebox']],
 import_libraries(libraries)
 
 import customtkinter
+import logging
+from logger import LoggerManager
 from _tkinter import TclError
 
 customtkinter.set_default_color_theme(os.path.dirname(os.path.abspath(__file__))+"/config_files/color_theme.json")
@@ -81,6 +83,12 @@ class App(customtkinter.CTk):
         Defines application initialization attributes
         """
         super().__init__(*args, **kwargs)
+        self.logger = LoggerManager.get_logger(
+                    name="gui",
+                    category="app",
+                    level=logging.INFO
+                )
+        self.logger.info("Application initialized")
         from tkintermapview import TkinterMapView
         from PIL import Image, ImageTk
         # set title of application 
@@ -3146,40 +3154,36 @@ class App(customtkinter.CTk):
         self.path_list = []
 
     def _clear_user_markers(self):
-        from logger import get_log_path, setup_logger
-        log_path = get_log_path("user_actions")
-        logger = setup_logger("clear_user_markers", log_path)
-
-        logger.info("Clearing user and EUD markers.")
+        self.logger.info("Clearing user and EUD markers.")
 
         for user_marker in self.user_marker_list:
             user_marker.delete()
-            logger.info("Deleted a user marker.")
+            self.logger.info("Deleted a user marker.")
 
         for eud_marker in self.eud_marker_list:
             eud_marker.delete()
             self.map_widget.canvas.delete(eud_marker)
-            logger.info("Deleted an EUD marker and removed it from canvas.")
+            self.logger.info("Deleted an EUD marker and removed it from canvas.")
 
         if not os.path.exists(self.log_directory):
             os.makedirs(self.log_directory)
-            logger.info(f"Created marker log directory at {self.log_directory}")
+            self.logger.info(f"Created marker log directory at {self.log_directory}")
 
         filename = App.DEFAULT_VALUES["User Marker Filename"]
         marker_file_path = os.path.join(self.log_directory, filename)
 
         try:
             os.remove(marker_file_path)
-            logger.info(f"Deleted marker file: {marker_file_path}")
+            self.logger.info(f"Deleted marker file: {marker_file_path}")
         except FileNotFoundError:
-            logger.info(f"Marker file not found: {marker_file_path}")
+            self.logger.info(f"Marker file not found: {marker_file_path}")
         except PermissionError:
             self.show_info("User Marker file currently open. Cannot log data!", icon='warning')
-            logger.warning(f"Permission denied while deleting: {marker_file_path}")
+            self.logger.warning(f"Permission denied while deleting: {marker_file_path}")
 
         self.user_marker_list = []
         self.eud_marker_list = []
-        logger.info("Cleared all marker lists.")
+        self.logger.info("Cleared all marker lists.")
 
     def clear_tactical_markers(self):
         for obj_marker in self.obj_list:
@@ -3383,23 +3387,17 @@ class App(customtkinter.CTk):
             self.sensor2_error = 6
             self.sensor3_error = 6
 
-    def on_closing(self, event=0):
+    def destroy(self):
+        self.logger.info("Application closing")
+        LoggerManager.clear_cache()
+        super().destroy()
+
+    def on_closing(self):
         import sys
         self.destroy()
-        sys.exit()
+        sys.exit()          
         
-    def start(self):
-        self.mainloop()
-
-def main():
-    app = App()
-    app.start()
-
 if __name__ == "__main__":
-    from multiprocessing import Process
-    # global procs; procs = []
-    proc_app = Process(target=main)
-    # procs.append(proc_app)
-    proc_app.start()
-
+    app = App()
+    app.mainloop()
 
