@@ -3,45 +3,46 @@ import serial.tools.list_ports
 import time
 import json
 import os
-from datetime import datetime
+from datetime import datetime, UTC
 from pathlib import Path
 import mgrs
 import threading
-from datetime import datetime, UTC
-from coords import convert_coords_to_mgrs
-from utilities import read_json
 import winreg
 import win32com.client
+from coords import convert_coords_to_mgrs
+from utilities import read_json
 
 class PositioningService:
     def __init__(self, interval=30):
-        conf = read_json(os.path.join(os.path.dirname(os.path.abspath(__file__)),"config_files","conf.json"))
+        conf = read_json(os.path.join(os.path.dirname(os.path.abspath(__file__)), "config_files", "conf.json"))
         self.src_dir = os.path.dirname(os.path.abspath(__file__))
-        self.logs_dir = Path(os.path.join(os.path.dirname(self.src_dir),conf["DIR_RELATIVE_LOGS_EUD_POSITION"]))
+        self.logs_dir = Path(os.path.join(os.path.dirname(self.src_dir), conf["DIR_RELATIVE_LOGS_EUD_POSITION"]))
         self.interval = interval
         self.latest_position = None
-        self.port, self.baudrate = self.find_gnss_port()
+        self.device_type, self.port, self.baudrate = self.find_gnss_port()
         self.mgrs_converter = mgrs.MGRS()
         self._stop_event = threading.Event()
 
-    def coordinate_format_conversion(self,lat,lat_dir,lon,lon_dir):
+    def coordinate_format_conversion(self, lat, lat_dir, lon, lon_dir):
         try:
-            lat = str(lat); lon = str(lon)
+            lat = str(lat)
+            lon = str(lon)
             lat_var1 = lat[:2]
             lat_var2 = lat[2:]
-            lat_var3 = float(lat_var2)/60
-            lat_new = lat_var1+'.'+str(lat_var3).split('.')[-1]
-            if lat_dir == 'S': lat_new = '-'+str(float(lat_new))
+            lat_var3 = float(lat_var2) / 60
+            lat_new = f"{lat_var1}.{str(lat_var3).split('.')[-1]}"
+            if lat_dir == 'S':
+                lat_new = f"-{float(lat_new)}"
             lon_var1 = lon[:3]
             lon_var2 = lon[3:]
-            lon_var3 = float(lon_var2)/60
-            lon_new = lon_var1+'.'+str(lon_var3).split('.')[-1]
-            if lon_dir == 'W': lon_new = '-'+str(float(lon_new))
+            lon_var3 = float(lon_var2) / 60
+            lon_new = f"{lon_var1}.{str(lon_var3).split('.')[-1]}"
+            if lon_dir == 'W':
+                lon_new = f"-{float(lon_new)}"
         except Exception as e:
             print(f"Coordinate conversion error: {e}")
-            print('Inputs: ',lat,lat_dir,lon,lon_dir)
+            print('Inputs:', lat, lat_dir, lon, lon_dir)
             return None, None
-
         return float(lat_new), float(lon_new)
 
     def find_gnss_port(self):
@@ -54,13 +55,12 @@ class PositioningService:
             port = port_info.device
             if 'u-blox' in port_info.description.lower():
                 print(f"Likely GNSS device detected by name: {port} | {port_info.description}")
-                return port, 9600
+                return "serial", port, 9600
 
         # Step 3: Check for u-blox GNSS sensor in Windows Device Manager
         try:
             wmi = win32com.client.GetObject("winmgmts:")
             for sensor in wmi.InstancesOf("Win32_PnPEntity"):
-                # Check if sensor.Name exists and is not None
                 sensor_name = sensor.Name if sensor.Name else ""
                 if sensor_name and 'u-blox' in sensor_name.lower() and 'gnss' in sensor_name.lower():
                     print(f"Found u-blox GNSS sensor: {sensor_name}")
@@ -68,13 +68,14 @@ class PositioningService:
                     port = self.get_com_port_from_registry(sensor.DeviceID)
                     if port:
                         print(f"Associated COM port: {port}")
-                        return port, 9600
+                        return "serial", port, 9600
                     else:
-                        print("No COM port associated with GNSS sensor.")
+                        print("No COM port associated; using Windows Location API.")
+                        return "sensor", None, None
         except Exception as e:
             print(f"Error checking sensors: {e}")
 
-        # Step 4: Fallback to scanning for GGA sentences (as in original code)
+        # Step 4: Fallback to scanning for GGA sentences
         common_baud_rates = [9600, 38400, 115200]
         for port_info in ports:
             port = port_info.device
@@ -86,15 +87,14 @@ class PositioningService:
                             line = ser.readline().decode('utf-8', errors='ignore').strip()
                             if line.startswith('$GPGGA'):
                                 print(f"Detected GNSS on {port} at {baudrate} baud")
-                                return port, baudrate
+                                return "serial", port, baudrate
                 except Exception as e:
                     continue
 
         print("GNSS serial port or sensor not found.")
-        return None, None
+        return None, None, None
 
-    def get_com_port_from_registry(self,device_id):
-        """Check Windows Registry for COM port associated with a device ID."""
+    def get_com_port_from_registry(self, device_id):
         try:
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Enum")
             subkey = winreg.OpenKey(key, device_id)
@@ -109,6 +109,76 @@ class PositioningService:
             print(f"Registry check failed: {e}")
         return None
 
+    def get_gnss_data_from_sensor(self, max_time_seconds=15):
+        try:
+            locator = win32com.client.Dispatch("LocationDisp.Geolocation")
+            start_time = time.time()
+            while time.time() - start_time < max_time_seconds:
+                location = locator.GetLatLongReport()
+                if location.Status == 1:  # Valid report
+                    latitude = location.Latitude
+                    longitude = location.Longitude
+                    altitude = location.Altitude if hasattr(location, 'Altitude') else None
+                    timestamp = location.Timestamp if hasattr(location, 'Timestamp') else datetime.now(UTC).strftime("%H%M%S")
+                    # Simulate NMEA-like data structure
+                    gps_data = {
+                        'utc': timestamp,
+                        'lat': latitude,
+                        'lon': longitude,
+                        'mgrs': convert_coords_to_mgrs([latitude, longitude]),
+                        'num_sats': None,  # Windows API may not provide satellite count
+                        'alt_m': altitude if altitude else None
+                    }
+                    return gps_data
+                time.sleep(1)
+            print("No valid GNSS data from sensor within timeout.")
+            return None
+        except Exception as e:
+            print(f"Error reading GNSS sensor data: {e}")
+            return None
+
+    def generate_EUD_coordinate(self, max_time_seconds=15):
+        if self.device_type == "serial" and self.port:
+            try:
+                with serial.Serial(self.port, self.baudrate, timeout=1) as ser:
+                    start_time = time.time()
+                    while time.time() - start_time < max_time_seconds:
+                        try:
+                            line = ser.readline().decode('utf-8', errors='ignore').strip()
+                        except UnicodeDecodeError:
+                            continue
+                        if line.startswith('$GPGGA'):
+                            data = line.split(',')
+                            if len(data) >= 10 and data[2] and data[4]:
+                                utc = data[1]
+                                lat_DDDmm = data[2]
+                                lat_dir = data[3]
+                                lon_DDmm = data[4]
+                                lon_dir = data[5]
+                                lat, lon = self.coordinate_format_conversion(lat_DDDmm, lat_dir, lon_DDmm, lon_dir)
+                                if lat is None or lon is None:
+                                    continue
+                                num_sats = data[7]
+                                alt = data[9]
+                                mgrs_coord = convert_coords_to_mgrs([lat, lon])
+                                gps_data = {
+                                    'utc': utc,
+                                    'lat': lat,
+                                    'lon': lon,
+                                    'mgrs': mgrs_coord,
+                                    'num_sats': num_sats,
+                                    'alt_m': alt
+                                }
+                                return gps_data
+            except Exception as e:
+                print(f"Error reading GNSS serial data: {e}")
+                return None
+        elif self.device_type == "sensor":
+            return self.get_gnss_data_from_sensor(max_time_seconds)
+        else:
+            print("No GNSS device available.")
+            return None
+
     def get_log_filename(self):
         self.logs_dir.mkdir(parents=True, exist_ok=True)
         date_str = datetime.now(UTC).strftime("%Y-%m-%d")
@@ -121,49 +191,6 @@ class PositioningService:
                 f.write(json.dumps(entry) + '\n')
         except Exception as e:
             print(f"Failed to write to log file: {e}")
-
-    def generate_EUD_coordinate(self, max_time_seconds=15):
-        if not self.port:
-            print("No serial port available for GNSS.")
-            return None
-        try:
-            with serial.Serial(self.port, self.baudrate, timeout=1) as ser:
-                while True:
-                    try:
-                        line = ser.readline().decode('utf-8', errors='ignore').strip()  # Decode bytes to UTF-8 string
-                    except UnicodeDecodeError:
-                        continue  # Skip decoding errors and try to read the next line
-                    if line.startswith('$GPGGA'):
-                        data = line.split(',')
-                        if len(data) >= 10 and data[2] and data[4]:
-                            utc = data[1]
-                            print(f'UTC: {utc}')
-                            lat_DDDmm = data[2]
-                            lat_dir = data[3]
-                            print(f'Latitude (DDD.mm format): {lat_DDDmm} {lat_dir}')
-                            lon_DDmm = data[4]
-                            lon_dir = data[5]
-                            print(f'Longitude (DDD.mm format): {lon_DDmm} {lon_dir}')
-                            lat, lon = self.coordinate_format_conversion(lat_DDDmm, lat_dir, lon_DDmm, lon_dir)
-                            print(f'Coordinate (lat,lon): {lat,lon}')
-                            num_sats = data[7]
-                            print(f'Number of Satellites: {num_sats}')
-                            alt = data[9]
-                            print(f'Altitude: {alt}')
-                            mgrs_coord = convert_coords_to_mgrs([lat, lon])
-                            print(f'MGRS Coordinate: {mgrs_coord}')
-                            gps_data = {
-                                'utc': utc,
-                                'lat': lat,
-                                'lon': lon,
-                                'mgrs': mgrs_coord,
-                                'num_sats': num_sats,
-                                'alt_m': alt
-                            }
-                            return gps_data
-        except Exception as e:
-            print(f"Error reading GNSS data: {e}")
-        return None
 
     def poll_location(self):
         while not self._stop_event.is_set():
@@ -187,7 +214,7 @@ class PositioningService:
         self._stop_event.set()
 
     def get_latest_position_from_logs(self):
-        log_files = sorted(Path(self.logs_dir).glob("position_log_*.jsonl"),key=lambda f: f.stat().st_mtime,reverse=True)
+        log_files = sorted(Path(self.logs_dir).glob("position_log_*.jsonl"), key=lambda f: f.stat().st_mtime, reverse=True)
         for log_file in log_files:
             try:
                 with open(log_file, 'r') as f:
@@ -201,14 +228,14 @@ class PositioningService:
 if __name__ == "__main__":
     service = PositioningService(interval=30)
     service.start()
-    sleep_internval = 15
+    sleep_interval = 15
     try:
         while True:
-            time.sleep(sleep_internval)
+            time.sleep(sleep_interval)
             latest = service.get_latest_position_from_logs()
             if latest:
                 print("Latest logged position:", latest)
-            if service.port is None:
+            if service.device_type is None:
                 print("No GNSS device found. Exiting...")
                 service.stop()
                 break
