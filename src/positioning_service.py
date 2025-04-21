@@ -125,26 +125,30 @@ class PositioningService:
 
     def get_gnss_data_from_sensor(self, max_time_seconds=15):
         try:
-            locator = win32com.client.Dispatch("LocationDisp.Geolocation")
+            import pylocation
+            locator = pylocation.Geolocator()
             start_time = time.time()
             while time.time() - start_time < max_time_seconds:
-                location = locator.GetLatLongReport()
-                if location.Status == 1:  # Valid report
-                    latitude = location.Latitude
-                    longitude = location.Longitude
-                    altitude = location.Altitude if hasattr(location, 'Altitude') else None
-                    timestamp = location.Timestamp if hasattr(location, 'Timestamp') else datetime.now(UTC).strftime("%H%M%S")
+                position = locator.get_position()
+                if position:
+                    latitude = position.latitude
+                    longitude = position.longitude
+                    altitude = position.altitude if position.altitude else None
+                    timestamp = datetime.now(UTC).strftime("%H%M%S")
                     gps_data = {
                         'utc': timestamp,
                         'lat': latitude,
                         'lon': longitude,
                         'mgrs': convert_coords_to_mgrs([latitude, longitude]),
-                        'num_sats': None,  # Windows API may not provide satellite count
-                        'alt_m': altitude if altitude else None
+                        'num_sats': None,
+                        'alt_m': altitude
                     }
                     return gps_data
                 time.sleep(1)
             print("No valid GNSS data from sensor within timeout.")
+            return None
+        except ImportError:
+            print("pylocation library not installed. Install with: pip install pylocation")
             return None
         except Exception as e:
             print(f"Error reading GNSS sensor data: {e}")
