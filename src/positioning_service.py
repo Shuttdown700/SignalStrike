@@ -10,6 +10,8 @@ import threading
 from datetime import datetime, UTC
 from coords import convert_coords_to_mgrs
 from utilities import read_json
+import winreg
+import win32com.client
 
 class PositioningService:
     def __init__(self, interval=30):
@@ -43,17 +45,32 @@ class PositioningService:
         return float(lat_new), float(lon_new)
 
     def find_gnss_port(self):
+        # Step 1: List all COM ports
         ports = serial.tools.list_ports.comports()
         print(f"All available ports: {[p.device for p in ports]}")
 
-        # Priority: try to identify a u-blox device from the description
+        # Step 2: Try to identify u-blox by port description
         for port_info in ports:
             port = port_info.device
             if 'u-blox' in port_info.description.lower():
                 print(f"Likely GNSS device detected by name: {port} | {port_info.description}")
                 return port, 9600
 
-        # If nothing obvious, try scanning ports for GGA NMEA sentences
+        # Step 3: Check for u-blox GNSS sensor in Windows Device Manager
+        try:
+            wmi = win32com.client.GetObject("winmgmts:")
+            for sensor in wmi.InstancesOf("Win32_PnPEntity"):
+                if 'u-blox' in sensor.Name.lower() and 'GNSS' in sensor.Name:
+                    print(f"Found u-blox GNSS sensor: {sensor.Name}")
+                    # Check if a COM port is associated
+                    port = self.get_com_port_from_registry(sensor.DeviceID)
+                    if port:
+                        print(f"Associated COM port: {port}")
+                        return port, 9600
+        except Exception as e:
+            print(f"Error checking sensors: {e}")
+
+        # Step 4: Fallback to scanning for GGA sentences (as in original code)
         common_baud_rates = [9600, 38400, 115200]
         for port_info in ports:
             port = port_info.device
@@ -68,8 +85,25 @@ class PositioningService:
                                 return port, baudrate
                 except Exception as e:
                     continue
-        print("GNSS serial port not found.")
+
+        print("GNSS serial port or sensor not found.")
         return None, None
+
+    def get_com_port_from_registry(self,device_id):
+        """Check Windows Registry for COM port associated with a device ID."""
+        try:
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Enum")
+            subkey = winreg.OpenKey(key, device_id)
+            for i in range(winreg.QueryInfoKey(subkey)[1]):
+                name, value, _ = winreg.EnumValue(subkey, i)
+                if name == "FriendlyName" and "COM" in value:
+                    com_port = value.split("(COM")[1].split(")")[0]
+                    return f"COM{com_port}"
+            winreg.CloseKey(subkey)
+            winreg.CloseKey(key)
+        except Exception as e:
+            print(f"Registry check failed: {e}")
+        return None
 
     def get_log_filename(self):
         self.logs_dir.mkdir(parents=True, exist_ok=True)
