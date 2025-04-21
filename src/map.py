@@ -26,8 +26,6 @@ def remove_rows_from_marker_csv(file_path : str, marker_type_value : str, marker
                 writer.writeheader()
                 writer.writerows(updated_rows)
 
-            print("MARKER_NUM column updated successfully.")
-
         except FileNotFoundError as e:
             print(f"Error: {e}")
         except PermissionError:
@@ -68,7 +66,6 @@ def remove_rows_from_marker_csv(file_path : str, marker_type_value : str, marker
             writer.writeheader()
             writer.writerows(rows)
         update_marker_num_with_row_number(file_path)
-        print("Rows removed and file saved successfully.")
     except FileNotFoundError as e:
         print(f"Error: {e}")
     except PermissionError:

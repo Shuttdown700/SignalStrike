@@ -83,12 +83,22 @@ class App(customtkinter.CTk):
         Defines application initialization attributes
         """
         super().__init__(*args, **kwargs)
-        self.logger = LoggerManager.get_logger(
+        self.logger_gui = LoggerManager.get_logger(
                     name="gui",
                     category="app",
                     level=logging.INFO
                 )
-        self.logger.info("Application initialized")
+        self.logger_gui.info("Application initialized")
+        self.logger_targeting = LoggerManager.get_logger(
+                    name="targeting",
+                    category="app",
+                    level=logging.INFO
+                )
+        self.logger_positioning = LoggerManager.get_logger(
+                    name="eud_position",
+                    category="app",
+                    level=logging.INFO
+                )
         from tkintermapview import TkinterMapView
         from PIL import Image, ImageTk
         # set title of application 
@@ -106,13 +116,13 @@ class App(customtkinter.CTk):
         # define source file directory
         self.src_directory = os.path.dirname(os.path.abspath(__file__))
         # define icon file directory
-        self.icon_directory = os.path.join("\\".join(self.src_directory.split('\\')[:-1]),App.conf["DIR_RELATIVE_ICONS"])
+        self.icon_directory = os.path.join(os.path.dirname(self.src_directory), App.conf["DIR_RELATIVE_ICONS"])
         # define map tile directory
-        self.tile_directory = os.path.join("\\".join(self.src_directory.split('\\')[:-1]),App.conf["DIR_RELATIVE_MAP_TILES"])
+        self.tile_directory = os.path.join(os.path.dirname(self.src_directory), App.conf["DIR_RELATIVE_MAP_TILES"])
         # define icon file directory
-        self.log_directory = os.path.join("\\".join(self.src_directory.split('\\')[:-1]),App.conf["DIR_RELATIVE_LOGS"])
+        self.log_directory = os.path.join(os.path.dirname(self.src_directory), App.conf["DIR_RELATIVE_LOGS"])
         # define EUD log file directory
-        self.log_eud_position_directory = os.path.join(os.path.dirname(self.src_directory),App.conf["DIR_RELATIVE_LOGS_EUD_POSITION"])
+        self.log_eud_position_directory = os.path.join(os.path.dirname(self.src_directory), App.conf["DIR_RELATIVE_LOGS_EUD_POSITION"])
         # define target image icon
         self.target_image_LOB = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "target_LOB.png")).resize((40, 40)))
         # define target image icon
@@ -876,7 +886,7 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(12, 0), 
             pady=12,
-            sticky="we")
+            sticky="e")
         # define clear tactical graphics button attributes
         self.botton_clear_tactical_graphics = customtkinter.CTkButton(
             master=self.frame_right,
@@ -1067,6 +1077,7 @@ class App(customtkinter.CTk):
         plot_elevation_profile(elevation_data, sensor_coord, nearside_km, target_coord, farside_km)
 
     def plot_current_user_markers(self) -> None:
+        from coords import convert_coords_to_mgrs, format_readable_mgrs
         from utilities import read_csv
         user_marker_filepath = os.path.join(self.log_directory, App.DEFAULT_VALUES["User Marker Filename"])
         try:
@@ -1075,8 +1086,8 @@ class App(customtkinter.CTk):
             for marker_data in marker_data_list:
                 marker_coord = marker_data['LOC_LATLON']
                 marker_coord = [float(x) for x in marker_coord.split(', ')]
-                print(marker_coord)
                 self.add_marker_event(marker_coord,True,True)
+                self.logger_gui.info(f"Loaded User Marker No. {marker_data['MARKER_NUM']} at {format_readable_mgrs(convert_coords_to_mgrs(marker_coord))}")   
         except FileNotFoundError:
             pass
         tactical_marker_filepath = os.path.join(self.log_directory, App.DEFAULT_VALUES["Tactical Graphic Marker Filename"])
@@ -1087,8 +1098,10 @@ class App(customtkinter.CTk):
                 marker_coord = [float(x) for x in marker_coord.split(', ')]
                 if marker_data['MARKER_TYPE'] == 'OBJ':
                     self.plot_OBJ(marker_coord,True)
+                    self.logger_gui.info(f"Loaded OBJ Marker at {format_readable_mgrs(convert_coords_to_mgrs(marker_coord))}")
                 elif marker_data['MARKER_TYPE'] == 'NAI':
                     self.plot_NAI(marker_coord,True)
+                    self.logger_gui.info(f"Loaded NAI Marker at {format_readable_mgrs(convert_coords_to_mgrs(marker_coord))}")
         except FileNotFoundError:
             pass
 
@@ -1716,6 +1729,8 @@ class App(customtkinter.CTk):
             elif choice == 'Re-input':
                 # end function
                 return
+        # logging the input values
+        self._log_ewt_input_values()
 
     def set_target_field(self) -> None:
         import numpy as np
@@ -1745,6 +1760,9 @@ class App(customtkinter.CTk):
                 target_coord_list = [[str(x[0]),str(x[1])] for x in target_coord_list]
                 target_coord_list = [f'{", ".join(x)}' for x in target_coord_list]
                 self.target_coord = f'{" | ".join(target_coord_list)}'
+            self.logger_targeting.info(f'{self.target_class} {"Targets" if len(target_grid_list) > 1 else "Target"} at {self.target_mgrs} with an error of {self.target_error_val:,.0f} acres')
+        else:
+            self.logger_targeting.info(f'{self.target_class} Target at {self.target_mgrs} with an error of {self.target_error_val:,.0f} acres')
 
     def ewt_input_processor(self,*args) -> None:
         from utilities import format_readable_DTG, generate_DTG
@@ -2516,7 +2534,7 @@ class App(customtkinter.CTk):
             plot_fix(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound)
         # Unexpected situation
         else:
-            print("Unknown case in EW function")
+            self.logger_gui.error(f"Unexpected situation with EWTs: {self.sensor1_mgrs_val}, {self.sensor2_mgrs_val}, {self.sensor3_mgrs_val}")
         self.set_target_field()
     
     def generate_sensor_distance_text(self,distance : float) -> str:
@@ -2744,7 +2762,7 @@ class App(customtkinter.CTk):
         # run EWT function
         self.ewt_input_processor()
     
-    def add_marker_event(self, coord: list[float,float], bool_bypass_measurement = False, bool_bypass_log = False) -> None:
+    def add_marker_event(self, coord: list[float,float], bool_bypass_measurement: bool = False, bool_bypass_log: bool = False) -> None:
         """Plot a "user marker" on the map at user discretion."""
         # import libraries
         from PIL import Image, ImageTk
@@ -2772,12 +2790,14 @@ class App(customtkinter.CTk):
                                                 data=marker_data)
         # append marker object to marker list
         self.append_object(new_marker,"USER")
+        self.logger_gui.info(f"User marker (No. {marker_num}) plotted at {marker_mgrs}")
         # log the marker 
         if not bool_bypass_log: self.log_user_marker(new_marker)
         # if other markers current exist
         if len(self.user_marker_list) > 1 and not bool_bypass_measurement:
             from CTkMessagebox import CTkMessagebox
-            msgBox = CTkMessagebox(title="Measurement Option", message=f"Measure distance from point {len(self.user_marker_list)-1}?", icon='info',options=['Yes','No'])
+            num_start_point = len(self.user_marker_list)-1
+            msgBox = CTkMessagebox(title="Measurement Option", message=f"Measure distance from point {num_start_point}?", icon='info',options=['Yes','No'])
             response = msgBox.get()
             if response == "No": return
             # reverse user marker list (last marker first)
@@ -2804,6 +2824,9 @@ class App(customtkinter.CTk):
             # add distance marker and connecting line to list
             self.path_list.append(dist_line)
             self.path_list.append(marker_dist)
+            mgrs_start = format_readable_mgrs(convert_coords_to_mgrs(sequencial_coord_list[0]))
+            mgrs_end = format_readable_mgrs(convert_coords_to_mgrs(sequencial_coord_list[1]))
+            self.logger_gui.info(f"Measurement plotted from {mgrs_start} to {mgrs_end}: {distance_text}")
 
     def plot_OBJ(self,coord : list[float,float],bool_bypass_log = False):
         """Plot an "objective" on the map at user discretion."""
@@ -2970,26 +2993,28 @@ class App(customtkinter.CTk):
         from coords import convert_coords_to_mgrs, format_readable_mgrs
         from CTkMessagebox import CTkMessagebox
         time.sleep(2)
+        self.logger_positioning.info("Attempting to plot EUD position.")
         if coord == None:
             try:
                 latest_position = self.get_latest_logged_position()
                 if latest_position is None:
                     self.show_info('No positioning data available.', icon='warning')
+                    self.logger_positioning.warning(f"No positioning data available.")
                     return
                 lat, lon, acc = latest_position
             except Exception as e:
-                print(f"Unknown error in 'plot_EUD_position' method: {e}")
+                self.logger_positioning.error(f"Failure to plot EUD position: {e}.")
                 return
-            acc = ''
             if lat is None or lon is None:
-                print("The output of the 'plot_EUD_position' method is a NoneType")
+                self.logger_positioning.warning("No GPS data available. Cannot read GPS receiver.")
                 self.show_info("Cannot read GPS receiver",icon='warning')
                 return
         else:
             lat = coord[0]; lon = coord[1]
+        mgrs_formated = format_readable_mgrs(convert_coords_to_mgrs([lat,lon]))
         marker_icon = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "eud_marker.png")).resize((40, 40)))
-        eud_marker_text = f"{format_readable_mgrs(convert_coords_to_mgrs([lat,lon]))}"
-        eud_marker_data = f"EUD at {format_readable_mgrs(convert_coords_to_mgrs([lat,lon]))} at {format_readable_DTG(generate_DTG())}"
+        eud_marker_text = f"{mgrs_formated}"
+        eud_marker_data = f"EUD at {mgrs_formated} at {format_readable_DTG(generate_DTG())}"
         eud_marker = self.map_widget.set_marker(lat, lon, 
                                                 text=eud_marker_text,
                                                 icon=marker_icon,
@@ -2997,10 +3022,12 @@ class App(customtkinter.CTk):
                                                 command=self.marker_click,
                                                 data=eud_marker_data)
         self.append_object(eud_marker,"EUD")
+        self.logger_positioning.info(f"Plotted EUD position at {mgrs_formated} ({lat}, {lon}).")
         msgBox = CTkMessagebox(title="EUD Position Plotted", message='Do you want to adjust the map view to the most updated EUD location?', icon='info',options=['Yes','No'])
         response = msgBox.get()
         if response == "Yes":
             self.map_widget.set_position(lat, lon)
+            self.logger_gui.info(f"Map view adjusted to EUD position at {mgrs_formated} ({lat}, {lon}).")
 
     def increment_brightness_up(self):
         from utilities import adjust_brightness
@@ -3152,40 +3179,37 @@ class App(customtkinter.CTk):
         for path in self.path_list:
             path.delete()
         self.path_list = []
+        self.logger_gui.info("Cleared all measurements from map and path list.")
 
-    def _clear_user_markers(self):
-        self.logger.info("Clearing user and EUD markers.")
-
+    def _clear_user_markers(self) -> None:
+        """Clear all user markers from the map and the marker list."""
         for user_marker in self.user_marker_list:
             user_marker.delete()
-            self.logger.info("Deleted a user marker.")
 
         for eud_marker in self.eud_marker_list:
             eud_marker.delete()
             self.map_widget.canvas.delete(eud_marker)
-            self.logger.info("Deleted an EUD marker and removed it from canvas.")
 
         if not os.path.exists(self.log_directory):
             os.makedirs(self.log_directory)
-            self.logger.info(f"Created marker log directory at {self.log_directory}")
+            self.logger_gui.info(f"Created marker log directory at {self.log_directory}")
 
         filename = App.DEFAULT_VALUES["User Marker Filename"]
         marker_file_path = os.path.join(self.log_directory, filename)
 
         try:
             os.remove(marker_file_path)
-            self.logger.info(f"Deleted marker file: {marker_file_path}")
         except FileNotFoundError:
-            self.logger.info(f"Marker file not found: {marker_file_path}")
+            self.logger_gui.debug(f"Marker file not found: {marker_file_path}")
         except PermissionError:
             self.show_info("User Marker file currently open. Cannot log data!", icon='warning')
-            self.logger.warning(f"Permission denied while deleting: {marker_file_path}")
+            self.logger_gui.warning(f"Permission denied while deleting: {marker_file_path}")
 
         self.user_marker_list = []
         self.eud_marker_list = []
-        self.logger.info("Cleared all marker lists.")
+        self.logger_gui.info("Cleared all user markers from the map and marker list.")
 
-    def clear_tactical_markers(self):
+    def clear_tactical_markers(self) -> None:
         for obj_marker in self.obj_list:
             obj_marker.delete()
         for nai_marker in self.nai_list:
@@ -3206,8 +3230,9 @@ class App(customtkinter.CTk):
             # error message if file is currently open
             self.show_info("Tactical Marker file currently open. Cannot log data!",icon='warning')
         self.obj_list = []; self.nai_list = []
+        self.logger_gui.info("Cleared all tactical markers from the map and marker list.")
     
-    def clear_target_overlays(self):
+    def clear_target_overlays(self) -> None:
         for ewt_marker in self.ewt_marker_list:
             ewt_marker.delete()
         self.ewt_marker_list = []
@@ -3223,8 +3248,9 @@ class App(customtkinter.CTk):
         for fix in self.fix_list:
             fix.delete()
         self.fix_list = []
+        self.logger_gui.info(f"Cleared all target overlays from the map and tracker lists.")
 
-    def clear_entries(self):
+    def clear_entries(self) -> None:
         from tkinter import END
         self.sensor1_mgrs.delete(0,END)
         self.sensor1_lob.delete(0,END)
@@ -3238,6 +3264,7 @@ class App(customtkinter.CTk):
         self.frequency.delete(0,END)
         self.min_ERP.delete(0,END)
         self.max_ERP.delete(0,END)
+        self.logger_gui.info(f"Cleared all user input fields.")
         # self.batch_download_center_mgrs.delete(0,END)
         # self.batch_download_zoom_range.delete(0,END)
         # self.batch_download_radius.delete(0,END)
@@ -3271,25 +3298,29 @@ class App(customtkinter.CTk):
             # remove marker from marker list
             if msgBox_title == "TGT Data":
                 self.target_marker_list.remove(marker)
+                self.logger_gui.info(f"TGT Data Marker removed from the map and tracker list.")
             elif msgBox_title == "EWT Data":
                 self.ewt_marker_list.remove(marker)
+                self.logger_gui.info(f"EWT Data Marker removed from the map and tracker list.")
             elif msgBox_title == "Generic Marker":
                 self.user_marker_list.remove(marker)
                 filepath = os.path.join(self.log_directory,"current_user_markers.csv")
                 marker_num = int(str(marker.data).split('No. ')[-1].split(')')[0].strip())
                 remove_rows_from_marker_csv(filepath,"USER",marker_num)
+                self.logger_gui.info(f"Generic Marker (No. {marker_num}) removed from the map and tracker file.")
             elif msgBox_title == "OBJ Marker":
                 self.obj_list.remove(marker)
                 filepath = os.path.join(self.log_directory,"tactical_graphic_markers.csv")
                 marker_num = int(str(marker.data).split('No. ')[-1].split(')')[0].strip())
                 remove_rows_from_marker_csv(filepath,"OBJ",marker_num)
+                self.logger_gui.info(f"OBJ Marker removed from the map and tracker file.")
             elif msgBox_title == "NAI Marker":
                 self.nai_list.remove(marker)
                 filepath = os.path.join(self.log_directory,"tactical_graphic_markers.csv")
                 marker_num = int(str(marker.data).split('No. ')[-1].split(')')[0].strip())
                 remove_rows_from_marker_csv(filepath,"NAI",marker_num)
+                self.logger_gui.info(f"NAI Marker removed from the map and tracker file.")
             # delete marker from map
-            lat, lon = marker.position[0], marker.position[1]
             marker.delete()
             if len(self.user_marker_list) == len(self.path_list) == 0:
                 self._clear_user_markers()
@@ -3317,18 +3348,21 @@ class App(customtkinter.CTk):
             # remove polygon from polygon list
             if msgBox_title == "LOB":
                 self.lob_list.remove(polygon)
+                self.logger_gui.info(f"LOB Polygon removed from the map and tracker list.")
             elif msgBox_title == "CUT":
                 self.cut_list.remove(polygon)
+                self.logger_gui.info(f"CUT Polygon removed from the map and tracker list.")
             elif msgBox_title == "FIX":
                 self.fix_list.remove(polygon)
+                self.logger_gui.info(f"FIX Polygon removed from the map and tracker list.")
             # delete polygon from map
             polygon.delete()
 
-    def show_info(self,msg,box_title='Warning Message',icon='warning'):
+    def show_info(self,msg,box_title: str ='Warning Message',icon: str ='warning') -> None:
         from CTkMessagebox import CTkMessagebox
         CTkMessagebox(title=box_title, message=msg, icon=icon,option_1='Ackowledged')
 
-    def input_error(self,category,msg,single_lob_option=False,cut_option=False,ewt_bypass_option=False,EWT_num='') -> str:
+    def input_error(self,category: str,msg: str,single_lob_option: bool =False,cut_option: bool =False,ewt_bypass_option: bool =False,EWT_num: str ='') -> str:
         from CTkMessagebox import CTkMessagebox
         if not single_lob_option and not cut_option and not ewt_bypass_option:
             msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','Use Default'])
@@ -3365,15 +3399,17 @@ class App(customtkinter.CTk):
             self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=App.MAX_ZOOM)
         elif new_map == "Google Satellite":
             self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=App.MAX_ZOOM)
+        self.logger_gui.info(f"Map Server changed to: {new_map}")
 
-    def change_path_loss(self, path_loss_description: str):
+    def change_path_loss(self, path_loss_description: str) -> None:
         self.path_loss_coeff = App.PATH_LOSS_DICT.get(path_loss_description,4)
     
-    def get_pathloss_description_from_coeff(self,coeff):
+    def get_pathloss_description_from_coeff(self,coeff: float) -> dict[str,str]:
         reversed_dict = {str(value): str(key) for key, value in App.PATH_LOSS_DICT.items()}
         return reversed_dict.get(str(coeff).strip(),'Moderate Foliage')
     
-    def change_sensor(self,sensor_option):
+    def change_sensor(self,sensor_option: str) -> None:
+        """Change sensor parameters based on the selected sensor option."""
         if sensor_option == 'BEAST+':
             self.sensor1_receiver_gain_dBi = 0
             self.sensor2_receiver_gain_dBi = 0
@@ -3387,8 +3423,26 @@ class App(customtkinter.CTk):
             self.sensor2_error = 6
             self.sensor3_error = 6
 
+    def _log_ewt_input_values(self) -> None:
+        """Log the input values to the GUI logger."""
+        from coords import format_readable_mgrs
+        if self.sensor1_mgrs_val != None:
+            self.logger_targeting.info(f"EWT 1 Plotted at {format_readable_mgrs(self.sensor1_mgrs_val)}")
+            self.logger_targeting.info(f"Sensor 1 LOB: {self.sensor1_grid_azimuth_val} degrees ({self.option_sensor.get()})")
+            self.logger_targeting.info(f"Sensor 1 PWR Received: {self.sensor1_power_received_dBm_val} dBm")
+        if self.sensor2_mgrs_val != None:   
+            self.logger_targeting.info(f"EWT 2 Plotted at {format_readable_mgrs(self.sensor2_mgrs_val)}")
+            self.logger_targeting.info(f"Sensor 2 LOB: {self.sensor2_grid_azimuth_val} degrees ({self.option_sensor.get()})")
+            self.logger_targeting.info(f"Sensor 2 PWR Received: {self.sensor2_power_received_dBm_val} dBm")
+        if self.sensor3_mgrs_val != None:
+            self.logger_targeting.info(f"EWT 3 Plotted at {format_readable_mgrs(self.sensor3_mgrs_val)}")
+            self.logger_targeting.info(f"Sensor 3 LOB: {self.sensor3_grid_azimuth_val} degrees ({self.option_sensor.get()})")
+            self.logger_targeting.info(f"Sensor 3 PWR Received: {self.sensor3_power_received_dBm_val} dBm")
+        if self.frequency_MHz_val != None:
+            self.logger_targeting.info(f"Targeted Signal: {self.frequency_MHz_val} MHz transmitting between {self.min_wattage_val} and {self.max_wattage_val} W, through {self.get_pathloss_description_from_coeff(self.path_loss_coeff)}")
+
     def destroy(self):
-        self.logger.info("Application closing")
+        self.logger_gui.info("Application closing")
         LoggerManager.clear_cache()
         super().destroy()
 

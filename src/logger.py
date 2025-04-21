@@ -131,7 +131,6 @@ class LoggerManager:
                 temp_logger = logging.getLogger('logger_setup')
                 temp_logger.error(f"Failed to initialize logger {name}: {str(e)}")
                 raise
-
             return logger
 
     @classmethod
