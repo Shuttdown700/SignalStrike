@@ -81,7 +81,7 @@ class PositioningService:
                             if self.find_usb_device():
                                 return "usb", None, None
                             else:
-                                print("No USB GNSS device found.")
+                                print("No USB GNSS device found. Consider configuring a virtual COM port with u-center.")
                                 return None, None, None
         except Exception as e:
             print(f"Error checking sensors: {e}")
@@ -124,6 +124,9 @@ class PositioningService:
                 return False
             print(f"Found u-blox USB device: VID={hex(dev.idVendor)}, PID={hex(dev.idProduct)}")
             return True
+        except usb.core.NoBackendError:
+            print("Error: No USB backend available. Install libusb or WinUSB using Zadig.")
+            return False
         except Exception as e:
             print(f"Error finding USB device: {e}")
             return False
@@ -225,6 +228,9 @@ class PositioningService:
                     continue
             print("No valid GNSS data from USB within timeout.")
             return None
+        except usb.core.NoBackendError:
+            print("Error: No USB backend available. Install libusb or WinUSB using Zadig.")
+            return None
         except Exception as e:
             print(f"Error reading USB GNSS data: {e}")
             return None
@@ -275,7 +281,7 @@ class PositioningService:
 
     def get_log_filename(self):
         self.logs_dir.mkdir(parents=True, exist_ok=True)
-        date_str = datetime.now(UTC).strftime("%Y-%m-d")
+        date_str = datetime.now(UTC).strftime("%Y-%m-%d")
         return self.logs_dir / f'position_log_{date_str}.jsonl'
 
     def _log_to_file(self, entry):
