@@ -70,8 +70,13 @@ class PositioningService:
                         print(f"Associated COM port: {port}")
                         return "serial", port, 9600
                     else:
-                        print("No COM port associated; using Windows Location API.")
-                        return "sensor", None, None
+                        print("No COM port associated; attempting to use Windows Location API.")
+                        # Verify Location API availability
+                        if self.is_location_api_available():
+                            return "sensor", None, None
+                        else:
+                            print("Windows Location API is not available.")
+                            return None, None, None
         except Exception as e:
             print(f"Error checking sensors: {e}")
 
@@ -93,6 +98,15 @@ class PositioningService:
 
         print("GNSS serial port or sensor not found.")
         return None, None, None
+
+    def is_location_api_available(self):
+        """Check if Windows Location API is available."""
+        try:
+            win32com.client.Dispatch("LocationDisp.Geolocation")
+            return True
+        except Exception as e:
+            print(f"Location API check failed: {e}")
+            return False
 
     def get_com_port_from_registry(self, device_id):
         try:
@@ -120,7 +134,6 @@ class PositioningService:
                     longitude = location.Longitude
                     altitude = location.Altitude if hasattr(location, 'Altitude') else None
                     timestamp = location.Timestamp if hasattr(location, 'Timestamp') else datetime.now(UTC).strftime("%H%M%S")
-                    # Simulate NMEA-like data structure
                     gps_data = {
                         'utc': timestamp,
                         'lat': latitude,
