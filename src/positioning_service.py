@@ -60,13 +60,17 @@ class PositioningService:
         try:
             wmi = win32com.client.GetObject("winmgmts:")
             for sensor in wmi.InstancesOf("Win32_PnPEntity"):
-                if 'u-blox' in sensor.Name.lower() and 'GNSS' in sensor.Name:
-                    print(f"Found u-blox GNSS sensor: {sensor.Name}")
+                # Check if sensor.Name exists and is not None
+                sensor_name = sensor.Name if sensor.Name else ""
+                if sensor_name and 'u-blox' in sensor_name.lower() and 'gnss' in sensor_name.lower():
+                    print(f"Found u-blox GNSS sensor: {sensor_name}")
                     # Check if a COM port is associated
                     port = self.get_com_port_from_registry(sensor.DeviceID)
                     if port:
                         print(f"Associated COM port: {port}")
                         return port, 9600
+                    else:
+                        print("No COM port associated with GNSS sensor.")
         except Exception as e:
             print(f"Error checking sensors: {e}")
 
