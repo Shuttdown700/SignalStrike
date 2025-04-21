@@ -9,6 +9,8 @@ import mgrs
 import threading
 import winreg
 import win32com.client
+import usb.core
+import usb.util
 from coords import convert_coords_to_mgrs
 from utilities import read_json
 
@@ -70,13 +72,17 @@ class PositioningService:
                         print(f"Associated COM port: {port}")
                         return "serial", port, 9600
                     else:
-                        print("No COM port associated; attempting to use Windows Location API.")
+                        print("No COM port associated; checking Windows Location API.")
                         # Verify Location API availability
                         if self.is_location_api_available():
                             return "sensor", None, None
                         else:
-                            print("Windows Location API is not available.")
-                            return None, None, None
+                            print("Windows Location API unavailable; checking USB interface.")
+                            if self.find_usb_device():
+                                return "usb", None, None
+                            else:
+                                print("No USB GNSS device found.")
+                                return None, None, None
         except Exception as e:
             print(f"Error checking sensors: {e}")
 
@@ -96,7 +102,7 @@ class PositioningService:
                 except Exception as e:
                     continue
 
-        print("GNSS serial port or sensor not found.")
+        print("GNSS serial port, sensor, or USB device not found.")
         return None, None, None
 
     def is_location_api_available(self):
@@ -106,6 +112,20 @@ class PositioningService:
             return True
         except Exception as e:
             print(f"Location API check failed: {e}")
+            return False
+
+    def find_usb_device(self):
+        """Find u-blox USB device by VID:PID (u-blox VID is 0x1546)."""
+        try:
+            # u-blox Vendor ID
+            dev = usb.core.find(idVendor=0x1546)
+            if dev is None:
+                print("No u-blox USB device found.")
+                return False
+            print(f"Found u-blox USB device: VID={hex(dev.idVendor)}, PID={hex(dev.idProduct)}")
+            return True
+        except Exception as e:
+            print(f"Error finding USB device: {e}")
             return False
 
     def get_com_port_from_registry(self, device_id):
@@ -125,33 +145,88 @@ class PositioningService:
 
     def get_gnss_data_from_sensor(self, max_time_seconds=15):
         try:
-            import pylocation
-            locator = pylocation.Geolocator()
+            locator = win32com.client.Dispatch("LocationDisp.Geolocation")
             start_time = time.time()
             while time.time() - start_time < max_time_seconds:
-                position = locator.get_position()
-                if position:
-                    latitude = position.latitude
-                    longitude = position.longitude
-                    altitude = position.altitude if position.altitude else None
-                    timestamp = datetime.now(UTC).strftime("%H%M%S")
+                location = locator.GetLatLongReport()
+                if location.Status == 1:  # Valid report
+                    latitude = location.Latitude
+                    longitude = location.Longitude
+                    altitude = location.Altitude if hasattr(location, 'Altitude') else None
+                    timestamp = location.Timestamp if hasattr(location, 'Timestamp') else datetime.now(UTC).strftime("%H%M%S")
                     gps_data = {
                         'utc': timestamp,
                         'lat': latitude,
                         'lon': longitude,
                         'mgrs': convert_coords_to_mgrs([latitude, longitude]),
-                        'num_sats': None,
-                        'alt_m': altitude
+                        'num_sats': None,  # Windows API may not provide satellite count
+                        'alt_m': altitude if altitude else None
                     }
                     return gps_data
                 time.sleep(1)
             print("No valid GNSS data from sensor within timeout.")
             return None
-        except ImportError:
-            print("pylocation library not installed. Install with: pip install pylocation")
-            return None
         except Exception as e:
             print(f"Error reading GNSS sensor data: {e}")
+            return None
+
+    def get_gnss_data_from_usb(self, max_time_seconds=15):
+        """Placeholder for reading NMEA data from u-blox USB device."""
+        try:
+            dev = usb.core.find(idVendor=0x1546)
+            if dev is None:
+                print("No u-blox USB device found.")
+                return None
+            # Detach kernel driver if active
+            if dev.is_kernel_driver_active(0):
+                dev.detach_kernel_driver(0)
+            # Set configuration
+            dev.set_configuration()
+            # Find endpoint (assuming bulk or interrupt for NMEA data)
+            cfg = dev.get_active_configuration()
+            intf = cfg[(0, 0)]
+            endpoint = usb.util.find_descriptor(
+                intf,
+                custom_match=lambda e: usb.util.endpoint_direction(e.bEndpointAddress) == usb.util.ENDPOINT_IN
+            )
+            if endpoint is None:
+                print("No suitable USB endpoint found.")
+                return None
+            # Read data
+            start_time = time.time()
+            while time.time() - start_time < max_time_seconds:
+                try:
+                    data = dev.read(endpoint.bEndpointAddress, endpoint.wMaxPacketSize, timeout=1000)
+                    line = ''.join([chr(x) for x in data]).strip()
+                    if line.startswith('$GPGGA'):
+                        data = line.split(',')
+                        if len(data) >= 10 and data[2] and data[4]:
+                            utc = data[1]
+                            lat_DDDmm = data[2]
+                            lat_dir = data[3]
+                            lon_DDmm = data[4]
+                            lon_dir = data[5]
+                            lat, lon = self.coordinate_format_conversion(lat_DDDmm, lat_dir, lon_DDmm, lon_dir)
+                            if lat is None or lon is None:
+                                continue
+                            num_sats = data[7]
+                            alt = data[9]
+                            mgrs_coord = convert_coords_to_mgrs([lat, lon])
+                            gps_data = {
+                                'utc': utc,
+                                'lat': lat,
+                                'lon': lon,
+                                'mgrs': mgrs_coord,
+                                'num_sats': num_sats,
+                                'alt_m': alt
+                            }
+                            return gps_data
+                except usb.core.USBError:
+                    continue
+            print("No valid GNSS data from USB within timeout.")
+            return None
+        except Exception as e:
+            print(f"Error reading USB GNSS data: {e}")
             return None
 
     def generate_EUD_coordinate(self, max_time_seconds=15):
@@ -192,13 +267,15 @@ class PositioningService:
                 return None
         elif self.device_type == "sensor":
             return self.get_gnss_data_from_sensor(max_time_seconds)
+        elif self.device_type == "usb":
+            return self.get_gnss_data_from_usb(max_time_seconds)
         else:
             print("No GNSS device available.")
             return None
 
     def get_log_filename(self):
         self.logs_dir.mkdir(parents=True, exist_ok=True)
-        date_str = datetime.now(UTC).strftime("%Y-%m-%d")
+        date_str = datetime.now(UTC).strftime("%Y-%m-d")
         return self.logs_dir / f'position_log_{date_str}.jsonl'
 
     def _log_to_file(self, entry):
