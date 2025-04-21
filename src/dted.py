@@ -1,6 +1,6 @@
 import os
 import rasterio
-from coords import adjust_coordinate, get_distance_between_coords, get_bearing_between_coordinates
+from coords import adjust_coordinate, get_distance_between_coords, get_bearing_between_coordinates, convert_coords_to_mgrs, format_readable_mgrs
 from datetime import datetime
 
 def get_dted_file(lat: float, lon: float) -> str:
@@ -68,6 +68,7 @@ def get_elevation_profile(start: list, end: list, interpoint_distance_m: int = 3
             elevation = get_elevation([lat, lon])
             distance_km = get_distance_between_coords(start,[lat, lon],'km')
             elevation_data.append((lat,lon,int(elevation),distance_km))
+            print(f"Elevation at {lat}, {lon}: {elevation} m")
     except Exception as e:
         raise RuntimeError(f"Error reading elevation data: {e}")
     return elevation_data
@@ -95,10 +96,12 @@ def plot_elevation_profile(elevation_data: list[tuple[float, int]],sensor_coord:
     """Plots the elevation profile with visual enhancements."""
     import matplotlib.pyplot as plt
     import numpy as np
+    from utilities import generate_DTG
 
     # Extract elevation and distance data
     elevations = [e[2] for e in elevation_data]  # elevation (m)
     distances = [e[3] for e in elevation_data]   # distance (km)
+    print(elevations)
 
     # Convert to numpy for easier indexing
     distances = np.array(distances)
@@ -106,6 +109,12 @@ def plot_elevation_profile(elevation_data: list[tuple[float, int]],sensor_coord:
 
     # Compute distances
     target_distance = get_distance_between_coords(sensor_coord, target_coord, 'km')
+
+    # Generate DTG
+    dtg = generate_DTG()
+    date_str = datetime.now().strftime('%Y-%m-%d')
+    timestamp = datetime.now().strftime('%H%ML')
+    plot_title = f"LOB Target Elevation Profile | {date_str} at {timestamp}"
 
     # Create the plot
     fig, ax = plt.subplots()
@@ -115,28 +124,50 @@ def plot_elevation_profile(elevation_data: list[tuple[float, int]],sensor_coord:
     ax.plot(distances[0], elevations[0], 'bo', label="Sensor Position")
 
     # Plot red dot at target position
-    ax.plot(target_distance, get_elevation(target_coord), 'ro', label="Target")
+    target_elevation = get_elevation(target_coord)
+    formated_target_mgrs = format_readable_mgrs(convert_coords_to_mgrs(sensor_coord))
+    ax.plot(target_distance, get_elevation(target_coord), 'ro', label="Est. Target Location")
+
+    ax.annotate(
+        f"MGRS: {formated_target_mgrs}",  # Text to display
+        xy=(target_distance, target_elevation),  # Point to annotate (target position)
+        xytext=(10, 10),  # Offset in points from the target point
+        textcoords="offset points",
+        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="black", alpha=0.9),
+        arrowprops=dict(arrowstyle="->", connectionstyle="arc3"),
+        fontsize=9
+    )
+
+    # Set axis limits
+    x_range = max(distances) - min(distances)  # Range in km
+    y_range = max(elevations) + min(elevations)
+    y_center = (max(elevations) + min(elevations)) / 2  # Center y-axis on elevation data
+    y_min = max(0, min(elevations) - 100)  # Ensure y-axis does not go below 0
+    y_max = max(elevations) + 100 # Upper limit of y-axis
+    ax.set_ylim(y_min, y_max)  # Set y-axis limits
+    ax.set_xlim(min(distances), max(distances))  # Set x-axis limits
 
     # Fill below the elevation profile with light brown (terrain)
-    ax.fill_between(distances, elevations, min(elevations) - 50, color='#d2b48c', alpha=0.5)
+    ax.fill_between(distances, elevations, y_min, color='#d2b48c', alpha=0.5)
 
     # Fill above the elevation profile with light blue (sky)
-    ax.fill_between(distances, elevations, max(elevations) + 100, color='#add8e6', alpha=0.3)
+    ax.fill_between(distances, elevations, y_max, color='#add8e6', alpha=0.3)
 
     # Fill light red only above the line between near/far bounds
     in_target_zone = (distances >= nearside_target_distance_km) & (distances <= farside_target_distance_km)
     ax.fill_between(
         distances[in_target_zone],
         elevations[in_target_zone],
-        max(elevations) + 100,
+        y_max,
         color='lightcoral',
         alpha=0.3,
         label="Target Area of Error"
     )
+
     # Labels and title
-    ax.set_xlabel("Distance (km)")
-    ax.set_ylabel("Elevation (m)")
-    ax.set_title("Elevation Profile")
+    ax.set_xlabel("Distance (km) from Sensor")
+    ax.set_ylabel("Elevation (m) AMSL")
+    ax.set_title(plot_title)
     ax.legend(loc='upper left')
     plt.tight_layout()
     save_path = get_elevation_plot_filename()
@@ -146,6 +177,7 @@ def plot_elevation_profile(elevation_data: list[tuple[float, int]],sensor_coord:
 
 if __name__ == "__main__":
     # Example usage of the DTED functions
+    # JMRC: 32UPV9741058970
     sensor_coord = [49.24818881153634, 11.8154842917353]
     target_coord = [49.22891111693264, 11.84535337003443]
     nearside_target_distance_km = 2.5

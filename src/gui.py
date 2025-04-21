@@ -1069,6 +1069,7 @@ class App(customtkinter.CTk):
     def safe_plot_callback(self,elevation_data, sensor_coord, nearside_km, target_coord, farside_km):
         from dted import plot_elevation_profile
         plot_elevation_profile(elevation_data, sensor_coord, nearside_km, target_coord, farside_km)
+        self.logger_gui.info(f"Elevation Profile Plotted.")
 
     def plot_current_user_markers(self) -> None:
         from coords import convert_coords_to_mgrs, format_readable_mgrs
@@ -1880,7 +1881,9 @@ class App(customtkinter.CTk):
                     from CTkMessagebox import CTkMessagebox
                     msgBox = CTkMessagebox(title="2D Elevation Plot", message="Do you want to generate a 2D Elevation Plot", icon='info',options=['Yes','No'])
                     response = msgBox.get()
-                    if response == 'Yes': run_2D_elevation_plotter_threaded(self.sensor1_coord,self.sensor1_min_distance_km,self.sensor1_target_coord,self.sensor1_max_distance_km,callback=self.safe_plot_callback)
+                    if response == 'Yes': 
+                        run_2D_elevation_plotter_threaded(self.sensor1_coord,self.sensor1_min_distance_km,self.sensor1_target_coord,self.sensor1_max_distance_km,callback=self.safe_plot_callback)
+                        self.logger_gui.info(f"Attempting to create a 2D Elevation Plot for EWT 1 at {format_readable_mgrs(self.sensor1_mgrs_val)} with a LOB at bearing {int(self.sensor1_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor1_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor1_max_distance_m)}")
             else:
                 sensor1_target_mgrs = None
                 self.sensor1_lob_error_acres = None
@@ -1968,7 +1971,10 @@ class App(customtkinter.CTk):
                     from CTkMessagebox import CTkMessagebox
                     msgBox = CTkMessagebox(title="2D Elevation Plot", message="Do you want to generate a 2D Elevation Plot", icon='info',options=['Yes','No'])
                     response = msgBox.get()
-                    if response == 'Yes': run_2D_elevation_plotter_threaded(self.sensor2_coord,self.sensor2_min_distance_km,self.sensor2_target_coord,self.sensor2_max_distance_km,callback=self.safe_plot_callback)
+                    if response == 'Yes': 
+                        run_2D_elevation_plotter_threaded(self.sensor2_coord,self.sensor2_min_distance_km,self.sensor2_target_coord,self.sensor2_max_distance_km,callback=self.safe_plot_callback)
+                        self.logger_gui.info(f"Attempting to create a 2D Elevation Plot for EWT 2 at {format_readable_mgrs(self.sensor2_mgrs_val)} with a LOB at bearing {int(self.sensor2_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor2_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor2_max_distance_m)}")
+
             else:
                 sensor2_target_mgrs = None
                 self.sensor2_lob_error_acres = None
@@ -2056,7 +2062,9 @@ class App(customtkinter.CTk):
                     from CTkMessagebox import CTkMessagebox
                     msgBox = CTkMessagebox(title="2D Elevation Plot", message="Do you want to generate a 2D Elevation Plot", icon='info',options=['Yes','No'])
                     response = msgBox.get()
-                    if response == 'Yes': run_2D_elevation_plotter_threaded(self.sensor3_coord,self.sensor3_min_distance_km,self.sensor3_target_coord,self.sensor3_max_distance_km,callback=self.safe_plot_callback)
+                    if response == 'Yes': 
+                        run_2D_elevation_plotter_threaded(self.sensor3_coord,self.sensor3_min_distance_km,self.sensor3_target_coord,self.sensor3_max_distance_km,callback=self.safe_plot_callback)
+                        self.logger_gui.info(f"Attempting to create a 2D Elevation Plot for EWT 3 at {format_readable_mgrs(self.sensor3_mgrs_val)} with a LOB at bearing {int(self.sensor3_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor3_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor3_max_distance_m)}")
             else:
                 sensor3_target_mgrs = None
                 self.sensor3_lob_error_acres = None

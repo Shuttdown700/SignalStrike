@@ -9,8 +9,10 @@
     - button clicks
     - errors
     - dted profiles & their errors
+    - log when attempting a dted profile
     - add markers / measurements
     - remove markers / measurements
+    - log how far tarket is from the various EWTs
 
 - key events for targeting logs
     - user inputs
@@ -18,7 +20,7 @@
 
 
 
-
+- automatically check and download visual cpp build tools: https://visualstudio.microsoft.com/visual-cpp-build-tools/ (required to compile required libraries)
 
 - Scroll to chose which logged target data to re-plot / reload
 - add Zulu DTG logs files
