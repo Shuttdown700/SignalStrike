@@ -2,13 +2,7 @@
 
 import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-from utilities import import_libraries, read_json
-libraries = [['customtkinter'],['CTkMessagebox',['CTkMessagebox']],
-             ['numpy'],['os'],['PIL',['Image','ImageTK']],
-             ['sys'],['threading'],['tkinter',['END']],['tkintermapview',['TkinterMapView']],
-             ['urllib.request'],['shapely'],['timezonefinder']]
-import_libraries(libraries)
-
+from utilities import read_json
 import customtkinter
 import logging
 from logger import LoggerManager
