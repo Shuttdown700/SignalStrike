@@ -1,22 +1,12 @@
 --- JMRC Release Features ---
 
-- general logging features to track user activity
+- figure out gnss receiver issue, or charger issue
 
 --- ENHANCING EXISTING FEATURES ---
 
 [LOGGING FUNCTION]
 - key events for gui logs:
-    - button clicks
-    - errors
-    - dted profiles & their errors
-    - log when attempting a dted profile
-    - add markers / measurements
-    - remove markers / measurements
     - log how far tarket is from the various EWTs
-
-- key events for targeting logs
-    - user inputs
-    - calculate results (DTG, Target Class, Grid, Error)
 
 
 
@@ -50,7 +40,6 @@
 - remove hard-coded api key references
 - set a standard padx, pady in defaults dict
 - decorator to determine the time functions/processes take
- - remove hardcorded csv files in gui
 
 --- ADDING NEW FEATURES ---
 
