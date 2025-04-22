@@ -5,6 +5,7 @@ setlocal enabledelayedexpansion
 :: Check if Python is installed
 for /f "tokens=2 delims= " %%v in ('python --version 2^>^&1') do set PYTHON_VERSION=%%v
 
+:: this fails to assess if python is NOT installed
 if "%PYTHON_VERSION%"=="" (
     echo Python is not installed or not found in PATH. Please install Python and try again.
     exit /b 1

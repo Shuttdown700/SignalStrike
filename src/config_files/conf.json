@@ -3,6 +3,7 @@
     "MAP_SERVER_PORT": 1234,
     "MAP_DATABASE_NAME": "Terrain",
     "MAX_ZOOM": 18,
+    "INITIAL_ZOOM": 12,
     "DIR_RELATIVE_MAP_TILES": "map_tiles",
     "DIR_RELATIVE_LOGS": "logs",
     "DIR_RELATIVE_LOGS_EUD_POSITION": "logs/eud_position",
@@ -42,5 +43,6 @@
     "DEFAULT_INITIAL_LONGITUDE":-81.6090,
     "DEFAULT_MAP_SERVER_PATH":"/Terrain/{z}/{x}/{y}.png",
     "FILENAME_USER_MARKERS":"current_user_markers.csv",
-    "FILENAME_TACTICAL_GRAPHIC_MARKERS":"tactical_graphic_markers.csv"
+    "FILENAME_TACTICAL_GRAPHIC_MARKERS":"tactical_graphic_markers.csv",
+    "FILENAME_EWT_MARKERS":"ewt_markers.csv"
 }

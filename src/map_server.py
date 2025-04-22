@@ -96,7 +96,7 @@ class MapServer:
             category="map_server",
             level=logging.INFO
         )
-        self.logger.info(f"Initializing server at {host}:{port}, directory: {self.directory}")
+        self.logger.info(f"Initializing server at {host}:{port}, directory: ./{os.path.basename(os.path.normpath(self.directory))}")
 
     def append_tile_to_queue(self, map_name: str, tile: List[int]) -> None:
         """
@@ -140,7 +140,7 @@ class MapServer:
                 {'map_server': self}
             )
             httpd = HTTPServer(server_address, handler_class)
-            self.logger.info(f"Server running on {self.host}:{self.port}, serving files from: {self.directory}")
+            self.logger.info(f"Server running on {self.host}:{self.port}, serving files from: ./{os.path.basename(os.path.normpath(self.directory))}")
             httpd.serve_forever()
         
         except Exception as e:

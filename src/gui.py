@@ -61,7 +61,9 @@ class App(customtkinter.CTk):
         "Initial Longitude":conf["DEFAULT_INITIAL_LONGITUDE"],
         "Map Server File Path":conf["DEFAULT_MAP_SERVER_PATH"],
         "User Marker Filename":conf["FILENAME_USER_MARKERS"],
-        "Tactical Graphic Marker Filename":conf["FILENAME_TACTICAL_GRAPHIC_MARKERS"]
+        "Tactical Graphic Marker Filename":conf["FILENAME_TACTICAL_GRAPHIC_MARKERS"],
+        "EWT Marker Filename":conf["FILENAME_EWT_MARKERS"],
+        "Initial Map Zoom":conf["INITIAL_ZOOM"]
     }
     PATH_LOSS_DICT = {
         'Free Space':2,
@@ -1064,17 +1066,19 @@ class App(customtkinter.CTk):
             label="Plot NAI",
             command=self.plot_NAI,
             pass_coords=True)
-        self.plot_current_user_markers()
+        self.plot_current_markers()
 
     def safe_plot_callback(self,elevation_data, sensor_coord, nearside_km, target_coord, farside_km):
         from dted import plot_elevation_profile
         plot_elevation_profile(elevation_data, sensor_coord, nearside_km, target_coord, farside_km)
         self.logger_gui.info(f"Elevation Profile Plotted.")
 
-    def plot_current_user_markers(self) -> None:
+    def plot_current_markers(self) -> None:
+        from tkinter import END
         from coords import convert_coords_to_mgrs, format_readable_mgrs
         from utilities import read_csv
         user_marker_filepath = os.path.join(self.log_directory, App.DEFAULT_VALUES["User Marker Filename"])
+        initial_coord = []
         try:
             marker_data_list = read_csv(user_marker_filepath)
             marker_data_list = sorted(marker_data_list,key=lambda x: int(x["MARKER_NUM"]))
@@ -1082,7 +1086,8 @@ class App(customtkinter.CTk):
                 marker_coord = marker_data['LOC_LATLON']
                 marker_coord = [float(x) for x in marker_coord.split(', ')]
                 self.add_marker_event(marker_coord,True,True)
-                self.logger_gui.info(f"Loaded User Marker No. {marker_data['MARKER_NUM']} at {format_readable_mgrs(convert_coords_to_mgrs(marker_coord))}")   
+                self.logger_gui.info(f"Loaded User Marker No. {marker_data['MARKER_NUM']} at {format_readable_mgrs(convert_coords_to_mgrs(marker_coord))}")
+                initial_coord = marker_coord
         except FileNotFoundError:
             pass
         tactical_marker_filepath = os.path.join(self.log_directory, App.DEFAULT_VALUES["Tactical Graphic Marker Filename"])
@@ -1097,8 +1102,37 @@ class App(customtkinter.CTk):
                 elif marker_data['MARKER_TYPE'] == 'NAI':
                     self.plot_NAI(marker_coord,True)
                     self.logger_gui.info(f"Loaded NAI Marker at {format_readable_mgrs(convert_coords_to_mgrs(marker_coord))}")
+                initial_coord = marker_coord
         except FileNotFoundError:
             pass
+        ewt_marker_filepath = os.path.join(self.log_directory, App.DEFAULT_VALUES["EWT Marker Filename"])
+        try:
+            marker_data_list = read_csv(ewt_marker_filepath)
+            for marker_data in marker_data_list:
+                ewt_num = str(marker_data['MARKER_NUM'])
+                marker_coord = marker_data['LOC_LATLON']
+                marker_coord = [float(x) for x in marker_coord.split(', ')]
+                marker_mgrs = convert_coords_to_mgrs(marker_coord)
+                if ewt_num == '1':
+                    self.sensor1_mgrs.delete(0,END)
+                    self.sensor1_mgrs.insert(0,marker_mgrs)
+                elif ewt_num == '2':
+                    self.sensor2_mgrs.delete(0,END)
+                    self.sensor2_mgrs.insert(0,marker_mgrs)
+                elif ewt_num == '3':
+                    self.sensor3_mgrs.delete(0,END)
+                    self.sensor3_mgrs.insert(0,marker_mgrs)
+                else:
+                    self.logger_gui.warning(f"Invalid EWT number {ewt_num} in marker file.")
+                    continue
+                self.plot_EWT(marker_coord,ewt_num,True)
+                self.logger_gui.info(f"Loaded EWT {ewt_num} marker at {format_readable_mgrs(marker_mgrs)}")
+                initial_coord = marker_coord
+        except FileNotFoundError:
+            pass
+        if initial_coord != []:
+            self.map_widget.set_position(initial_coord[0],initial_coord[1])
+            self.map_widget.set_zoom(App.DEFAULT_VALUES["Initial Map Zoom"])
 
     def read_ewt_input_fields(self):
         """
@@ -1779,7 +1813,7 @@ class App(customtkinter.CTk):
                     # fallback if no .after() is found — will run in the thread (unsafe for GUI)
                     callback(elevation_data, sensor_coord, nearside_target_distance_km, target_coord, farside_target_distance_km)
             except Exception as e:
-                print(f"Error generating elevation profile: {e}")
+                self.logger_gui.error(f"Error generating elevation profile: {e}")
 
         def run_2D_elevation_plotter_threaded(sensor_coord, nearside_target_distance_km, target_coord, farside_target_distance_km, callback):
             thread = threading.Thread(
@@ -1800,20 +1834,10 @@ class App(customtkinter.CTk):
                 # set target grid label to include target classification
                 self.label_target_grid.configure(text=f'TARGET GRIDs {self.target_class}'.strip(),text_color='red')
             # assess if sensor 1 has a non-None grid
-            if self.sensor1_mgrs_val != None:
+            if self.sensor1_mgrs_val != None and (self.sensor1_grid_azimuth_val == None or self.sensor1_power_received_dBm_val == None):
                 self.sensor1_coord = convert_mgrs_to_coords(self.sensor1_mgrs_val)
                 # define and set sensor 1 marker on the map
-                ew_team1_marker = self.map_widget.set_marker(
-                    deg_x=self.sensor1_coord[0], 
-                    deg_y=self.sensor1_coord[1], 
-                    text="", 
-                    image_zoom_visibility=(10, float("inf")),
-                    marker_color_circle='white',
-                    text_color='black',
-                    icon=self.ew_team1_image,
-                    command=self.marker_click,
-                    data=f'EWT 1\n{format_readable_mgrs(self.sensor1_mgrs_val)}\nat {format_readable_DTG(generate_DTG())}')
-                self.append_object(ew_team1_marker,"EWT")
+                self.plot_EWT(self.sensor1_coord,1,False)
             # assess if sensor 1 has non-None values
             if self.sensor1_mgrs_val != None and self.sensor1_grid_azimuth_val != None and self.sensor1_power_received_dBm_val != None:
                 # calculate sensor 1 target coordinate
@@ -1825,18 +1849,7 @@ class App(customtkinter.CTk):
                 # define sensor 1 LOB description
                 sensor1_lob_description = f"EWT 1 at {format_readable_mgrs(self.sensor1_mgrs_val)} with a LOB at bearing {int(self.sensor1_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor1_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor1_max_distance_m)} with {self.sensor1_lob_error_acres:,.0f} acres of error"
                 # define and set sensor 1 marker on the map
-                ew_team1_marker = self.map_widget.set_marker(
-                    self.sensor1_coord[0], 
-                    self.sensor1_coord[1],
-                    text="",
-                    image_zoom_visibility=(10, float("inf")),
-                    marker_color_circle='white',
-                    text_color='black',
-                    icon=self.ew_team1_image,
-                    command=self.marker_click,
-                    data=f'EWT 1\n{format_readable_mgrs(self.sensor1_mgrs_val)}\nat {format_readable_DTG(generate_DTG())}')
-                # add sensor 1 marker to EWT marker list
-                self.append_object(ew_team1_marker,"EWT")
+                self.plot_EWT(self.sensor1_coord,1,False)
                 # define and set sensor 1 center line
                 sensor1_lob = self.map_widget.set_polygon(
                     position_list=[(self.sensor1_coord[0],self.sensor1_coord[1]),(s1lfmc[0],s1lfmc[1])],
@@ -1890,20 +1903,10 @@ class App(customtkinter.CTk):
                 self.sensor1_target_coord = None
                 self.sensor1_distance.configure(text="N/A",text_color='white')
             # assess if sensor 2 has a non-None grid
-            if self.sensor2_mgrs_val != None:
+            if self.sensor2_mgrs_val != None and (self.sensor2_grid_azimuth_val == None or self.sensor2_power_received_dBm_val == None):
                 # define and set sensor 2 marker on the map
                 self.sensor2_coord = convert_mgrs_to_coords(self.sensor2_mgrs_val)
-                ew_team2_marker = self.map_widget.set_marker(
-                    deg_x=self.sensor2_coord[0], 
-                    deg_y=self.sensor2_coord[1], 
-                    text="", 
-                    image_zoom_visibility=(10, float("inf")),
-                    marker_color_circle='white',
-                    text_color='black',
-                    icon=self.ew_team2_image,
-                    command=self.marker_click,
-                    data=f'EWT 2\n{format_readable_mgrs(self.sensor2_mgrs_val)}\nat {format_readable_DTG(generate_DTG())}')
-                self.append_object(ew_team2_marker,"EWT")
+                self.plot_EWT(self.sensor2_coord,2,False)
             # assess if sensor 2 has non-None values
             if self.sensor2_mgrs_val != None and self.sensor2_grid_azimuth_val != None and self.sensor2_power_received_dBm_val != None:
                 # calculate sensor 2 target coordinate
@@ -1915,18 +1918,7 @@ class App(customtkinter.CTk):
                 # define LOB 2 description
                 sensor2_lob_description = f"EWT 2 at {format_readable_mgrs(self.sensor2_mgrs_val)} with a LOB at bearing {int(self.sensor2_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor2_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor2_max_distance_m)} with {self.sensor2_lob_error_acres:,.0f} acres of error"
                 # define and set sensor 2 marker on the map
-                ew_team2_marker = self.map_widget.set_marker(
-                    deg_x=self.sensor2_coord[0], 
-                    deg_y=self.sensor2_coord[1], 
-                    text="", 
-                    image_zoom_visibility=(10, float("inf")),
-                    marker_color_circle='white',
-                    text_color='black',
-                    icon=self.ew_team2_image,
-                    command=self.marker_click,
-                    data=f'EWT 2\n{format_readable_mgrs(self.sensor2_mgrs_val)}\nat {format_readable_DTG(generate_DTG())}')
-                # add sensor 2 marker to EWT marker list
-                self.append_object(ew_team2_marker,"EWT")
+                self.plot_EWT(self.sensor2_coord,2,False)
                 # define and set sensor 2 LOB area
                 sensor2_lob = self.map_widget.set_polygon(
                     position_list=[(self.sensor2_coord[0],self.sensor2_coord[1]),(s2lfmc[0],s2lfmc[1])],
@@ -1981,20 +1973,10 @@ class App(customtkinter.CTk):
                 self.sensor2_target_coord = None
                 self.sensor2_distance.configure(text="N/A",text_color='white')
             # assess if sensor 3 has a non-None grid
-            if self.sensor3_mgrs_val != None:
+            if self.sensor3_mgrs_val != None and (self.sensor3_grid_azimuth_val == None or self.sensor3_power_received_dBm_val == None):
                 # define and set sensor 3 marker on the map
                 self.sensor3_coord = convert_mgrs_to_coords(self.sensor3_mgrs_val)
-                ew_team3_marker = self.map_widget.set_marker(
-                    deg_x=self.sensor3_coord[0], 
-                    deg_y=self.sensor3_coord[1], 
-                    text="", 
-                    image_zoom_visibility=(10, float("inf")),
-                    marker_color_circle='white',
-                    text_color='black',
-                    icon=self.ew_team3_image,
-                    command=self.marker_click,
-                    data=f'EWT 3\n{format_readable_mgrs(self.sensor3_mgrs_val)}\nat {format_readable_DTG(generate_DTG())}')
-                self.append_object(ew_team3_marker,"EWT")
+                self.plot_EWT(self.sensor3_coord,3,False)
             # assess if sensor 3 has non-None values
             if self.sensor3_mgrs_val != None and self.sensor3_grid_azimuth_val != None and self.sensor3_power_received_dBm_val != None:
                 # calculate sensor 3 target coordinate
@@ -2006,18 +1988,7 @@ class App(customtkinter.CTk):
                 # define sensor 3 LOB description
                 sensor3_lob_description = f"EWT 3 at {format_readable_mgrs(self.sensor3_mgrs_val)} with a LOB at bearing {int(self.sensor3_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor3_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor3_max_distance_m)} with {self.sensor3_lob_error_acres:,.0f} acres of error"
                 # define and plot sensor 3 marker on the map
-                ew_team3_marker = self.map_widget.set_marker(
-                    deg_x=self.sensor3_coord[0], 
-                    deg_y=self.sensor3_coord[1], 
-                    text="", 
-                    image_zoom_visibility=(10, float("inf")),
-                    marker_color_circle='white',
-                    text_color='black',
-                    icon=self.ew_team3_image,
-                    command=self.marker_click,
-                    data=f'EWT 3\n{format_readable_mgrs(self.sensor3_mgrs_val)}\nat {format_readable_DTG(generate_DTG())}')
-                # add sensor 3 marker to EWT marker list
-                self.append_object(ew_team3_marker,"EWT")
+                self.plot_EWT(self.sensor3_coord,3,False)
                 # define and set sensor 3 LOB area
                 sensor3_lob = self.map_widget.set_polygon(
                     position_list=[(self.sensor3_coord[0],self.sensor3_coord[1]),(s3lfmc[0],s3lfmc[1])],
@@ -2275,7 +2246,6 @@ class App(customtkinter.CTk):
                 for index_polygon, poly in enumerate(polygons):
                     # assess if the point is in the polygon
                     output = check_if_point_in_polygon(point,poly)
-                    # print("output ", output)
                     if output == 0 or output == False:
                         # set polygon boolean value to FALSE
                         in_polygon_bool = False
@@ -2285,10 +2255,8 @@ class App(customtkinter.CTk):
                 if in_polygon_bool:
                     # append point as a fix coordinate
                     fix_polygon.append(point)
-                    # print(f"YES: {point} is in the fix\n\n")
                 else:
                     pass
-                    # print(f"NO: {point} is not in the fixn\n")
                 in_polygon_bool = True
             if len(fix_polygon) == 0:
                 # plot cuts with the CUT target icon
@@ -2600,7 +2568,6 @@ class App(customtkinter.CTk):
                     row_data.append(self.target_error_val)
                 else:
                     row_data.append(self.target_mgrs)
-                    # print(self.target_coord)
                     if isinstance(self.target_coord,list):
                         row_data.append(', '.join([str(x) for x in self.target_coord]))
                     elif isinstance(self.target_coord,str):
@@ -2609,7 +2576,7 @@ class App(customtkinter.CTk):
             # if there is not target data or transmission data
             else:
                 # end function w/o logging
-                print(f"NoneType values detected in required log fields:\nFrequency: {self.frequency_MHz_val}\nMin Wattage: {self.min_wattage_val}\nMax Wattage: {self.max_wattage_val}\nPath-loss: {self.path_loss_coeff_val}\nTarget MGRS: {self.target_mgrs}\nTarget Coord: {self.target_coord}\nTarget Error: {self.target_error_val}")
+                self.logger_gui.warning("Missing required targeting and input data. No data logged.")
                 self.show_info("No target data. No data logged.",icon='warning')
                 return
         except AttributeError:
@@ -2696,7 +2663,7 @@ class App(customtkinter.CTk):
             for i in range(num_ewt_datapoints-diff): row_data.append('')
         if not ewt_bool:
             # end function w/o logging
-            print("There was no EWT data detected during log function.")
+            self.logger_gui.warning("No EWT data detected. No data logged.")
             self.show_info("No EWT data. No data logged.",icon='warning')
             return
         # append empty column for ACTUAL_TGT_MGRS to data row
@@ -2712,7 +2679,7 @@ class App(customtkinter.CTk):
         # if file permissions prevent log file saving
         except PermissionError:
             # error message if file is currently open
-            print("The desired log file is open during log function")
+            self.logger_gui.error(f"The desired {filename} log file is open during log function")
             self.show_info("Log file currently open. Cannot log data!",icon='warning')
             return
         # success pop-up
@@ -2884,6 +2851,30 @@ class App(customtkinter.CTk):
         # log the marker 
         if not bool_bypass_log: self.log_tactical_marker(new_marker,"NAI")
 
+    def plot_EWT(self,ewt_coord : list[float,float], ewt_num: int, bool_bypass_log = False):
+        from utilities import format_readable_DTG, generate_DTG
+        from coords import convert_coords_to_mgrs, format_readable_mgrs
+        ewt_mgrs = format_readable_mgrs(convert_coords_to_mgrs(ewt_coord))
+        ewt_num = str(ewt_num)
+        if ewt_num == '1':
+            image = self.ew_team1_image
+        elif ewt_num == '2':
+            image = self.ew_team2_image
+        elif ewt_num == '3':
+            image = self.ew_team3_image
+        ewt_marker = self.map_widget.set_marker(
+            deg_x=ewt_coord[0], 
+            deg_y=ewt_coord[1], 
+            text="", 
+            image_zoom_visibility=(10, float("inf")),
+            marker_color_circle='white',
+            text_color='black',
+            icon=image,
+            command=self.marker_click,
+            data=f'EWT {ewt_num}\n{ewt_mgrs}\nat {format_readable_DTG(generate_DTG())}')
+        self.append_object(ewt_marker,"EWT")
+        if not bool_bypass_log: self.log_ewt_marker(ewt_marker,ewt_num)
+
     def copy_mgrs_grid(self, coords: tuple[float,float]) -> None:
         """Function to copy MGRS coordinates to clipboard."""
         from coords import convert_coords_to_mgrs
@@ -3033,11 +3024,13 @@ class App(customtkinter.CTk):
 
     def increment_brightness_up(self):
         from utilities import adjust_brightness
-        adjust_brightness('increase')
+        new_brightness = adjust_brightness('increase')
+        self.logger_gui.info(f"Brightness increased to {new_brightness}%.")
 
     def increment_brightness_down(self):
         from utilities import adjust_brightness
-        adjust_brightness('decrease')
+        new_brightness = adjust_brightness('decrease')
+        self.logger_gui.info(f"Brightness decreased to {new_brightness}%.")
 
     def log_user_marker(self,marker):
         import datetime
@@ -3110,6 +3103,46 @@ class App(customtkinter.CTk):
             self.show_info("User Marker file currently open. Cannot log data!",icon='warning')
             return
 
+    def log_ewt_marker(self, marker, ewt_num):
+        from utilities import read_csv, write_csv
+        from coords import convert_coords_to_mgrs
+        import os
+
+        marker_coord = [marker.position[0], marker.position[1]]
+        marker_mgrs = convert_coords_to_mgrs(marker_coord)
+
+        # Ensure directory exists
+        if not os.path.exists(self.log_directory):
+            os.makedirs(self.log_directory)
+
+        filename = App.DEFAULT_VALUES["EWT Marker Filename"]
+        filepath = os.path.join(self.log_directory, filename)
+
+        # Load existing data
+        if os.path.isfile(filepath):
+            marker_data = read_csv(filepath)
+        else:
+            marker_data = []
+
+        marker_columns = ['MARKER_NUM', 'MARKER_TYPE', 'LOC_MGRS', 'LOC_LATLON', 'EWT_DATA']
+        new_marker_data = [ewt_num, 'EWT', marker_mgrs, ', '.join([str(x) for x in marker_coord]), marker.data]
+        new_row = dict(zip(marker_columns, new_marker_data))
+
+        # Remove any row with the same ewt_num or EWT_DATA
+        marker_data = [
+            row for row in marker_data
+            if row.get('MARKER_NUM') != ewt_num and row.get('EWT_DATA') != marker.data
+        ]
+
+        # Append the new entry
+        marker_data.append(new_row)
+
+        # Try to write the updated file
+        try:
+            write_csv(filepath, marker_data)
+        except PermissionError:
+            self.show_info("EWT Marker file currently open. Cannot log data!", icon='warning')
+
     def check_if_object_in_object_list(self,map_object,map_object_list):
         map_object_data = map_object.data
         object_data_list = [mo.data for mo in map_object_list]
@@ -3118,7 +3151,6 @@ class App(customtkinter.CTk):
             map_object.delete()
             return True
         else:
-            # print(f"allowed marker to object list: {object_data_list}")
             return False
 
     def append_object(self,map_object,map_object_list_name):
@@ -3177,13 +3209,13 @@ class App(customtkinter.CTk):
                 # append the FIX to the FIX list
                 self.fix_list.append(map_object)
 
-    def clear_measurements(self) -> None:
+    def clear_measurements(self, bool_bypass_log = False) -> None:
         for path in self.path_list:
             path.delete()
         self.path_list = []
-        self.logger_gui.info("Cleared all measurements from map and path list.")
+        if not bool_bypass_log: self.logger_gui.info("Cleared all measurements from map and path list.")
 
-    def _clear_user_markers(self) -> None:
+    def _clear_user_markers(self, bool_bypass_log = False) -> None:
         """Clear all user markers from the map and the marker list."""
         for user_marker in self.user_marker_list:
             user_marker.delete()
@@ -3204,14 +3236,14 @@ class App(customtkinter.CTk):
         except FileNotFoundError:
             self.logger_gui.debug(f"Marker file not found: {marker_file_path}")
         except PermissionError:
-            self.show_info("User Marker file currently open. Cannot log data!", icon='warning')
+            self.show_info("User Marker file currently open. Cannot clear data!", icon='warning')
             self.logger_gui.warning(f"Permission denied while deleting: {marker_file_path}")
 
         self.user_marker_list = []
         self.eud_marker_list = []
-        self.logger_gui.info("Cleared all user markers from the map and marker list.")
+        if not bool_bypass_log: self.logger_gui.info("Cleared all user markers from the map and marker list.")
 
-    def clear_tactical_markers(self) -> None:
+    def clear_tactical_markers(self,bool_bypass_log=False) -> None:
         for obj_marker in self.obj_list:
             obj_marker.delete()
         for nai_marker in self.nai_list:
@@ -3230,14 +3262,31 @@ class App(customtkinter.CTk):
         # if file permissions prevent marker file deleting
         except PermissionError:
             # error message if file is currently open
-            self.show_info("Tactical Marker file currently open. Cannot log data!",icon='warning')
+            self.show_info("Tactical Marker file currently open. Cannot clear data!",icon='warning')
         self.obj_list = []; self.nai_list = []
-        self.logger_gui.info("Cleared all tactical markers from the map and marker list.")
+        if not bool_bypass_log: self.logger_gui.info("Cleared all tactical markers from the map and marker list.")
     
     def clear_target_overlays(self) -> None:
         for ewt_marker in self.ewt_marker_list:
             ewt_marker.delete()
         self.ewt_marker_list = []
+        # assess if log directory exists
+        if not os.path.exists(self.log_directory):
+            # create log directory
+            os.makedirs(self.log_directory)
+        # define marker file name
+        filename = App.DEFAULT_VALUES["EWT Marker Filename"]
+        try:
+            os.remove(os.path.join(self.log_directory, filename))
+        # if file does not exist
+        except FileNotFoundError:
+            pass
+        # if file permissions prevent marker file deleting
+        except PermissionError:
+            # error message if file is currently open
+            self.show_info("EWT Marker file currently open. Cannot clear data!",icon='warning')
+        self.obj_list = []; self.nai_list = []
+        self.logger_gui.info("Cleared all EWT markers from the map and marker list.")
         for target in self.target_marker_list:
             target.delete()
         self.target_marker_list = []
@@ -3274,7 +3323,7 @@ class App(customtkinter.CTk):
         
     def marker_click(self,marker) -> None:
         from CTkMessagebox import CTkMessagebox
-        from map import remove_rows_from_marker_csv
+        from map import remove_rows_from_marker_csv, remove_ewt_from_marker_csv
         # generate message box based on marker category
         if "TGT" in marker.data:
             msgBox_title = "TGT Data"
@@ -3303,31 +3352,35 @@ class App(customtkinter.CTk):
                 self.logger_gui.info(f"TGT Data Marker removed from the map and tracker list.")
             elif msgBox_title == "EWT Data":
                 self.ewt_marker_list.remove(marker)
-                self.logger_gui.info(f"EWT Data Marker removed from the map and tracker list.")
+                filepath = os.path.join(self.log_directory,App.DEFAULT_VALUES["EWT Marker Filename"])
+                ewt_num = str(str(marker.data).split('\n')[0].split()[-1]).strip()
+                coord_string = ', '.join([str(marker.position[0]),str(marker.position[1])])
+                remove_ewt_from_marker_csv(filepath,ewt_num,coord_string)
+                self.logger_gui.info(f"EWT {ewt_num} marker removed from the map and tracker list.")
             elif msgBox_title == "Generic Marker":
                 self.user_marker_list.remove(marker)
-                filepath = os.path.join(self.log_directory,"current_user_markers.csv")
+                filepath = os.path.join(self.log_directory,App.DEFAULT_VALUES["User Marker Filename"])
                 marker_num = int(str(marker.data).split('No. ')[-1].split(')')[0].strip())
                 remove_rows_from_marker_csv(filepath,"USER",marker_num)
                 self.logger_gui.info(f"Generic Marker (No. {marker_num}) removed from the map and tracker file.")
             elif msgBox_title == "OBJ Marker":
                 self.obj_list.remove(marker)
-                filepath = os.path.join(self.log_directory,"tactical_graphic_markers.csv")
+                filepath = os.path.join(self.log_directory,App.DEFAULT_VALUES["Tactical Graphic Marker Filename"])
                 marker_num = int(str(marker.data).split('No. ')[-1].split(')')[0].strip())
                 remove_rows_from_marker_csv(filepath,"OBJ",marker_num)
                 self.logger_gui.info(f"OBJ Marker removed from the map and tracker file.")
             elif msgBox_title == "NAI Marker":
                 self.nai_list.remove(marker)
-                filepath = os.path.join(self.log_directory,"tactical_graphic_markers.csv")
+                filepath = os.path.join(self.log_directory,App.DEFAULT_VALUES["Tactical Graphic Marker Filename"])
                 marker_num = int(str(marker.data).split('No. ')[-1].split(')')[0].strip())
                 remove_rows_from_marker_csv(filepath,"NAI",marker_num)
                 self.logger_gui.info(f"NAI Marker removed from the map and tracker file.")
             # delete marker from map
             marker.delete()
             if len(self.user_marker_list) == len(self.path_list) == 0:
-                self._clear_user_markers()
+                self._clear_user_markers(bool_bypass_log=True)
             if len(self.obj_list) == len(self.nai_list) == 0:
-                self.clear_tactical_markers()
+                self.clear_tactical_markers(bool_bypass_log=True)
         
     def polygon_click(self,polygon) -> None:
         from CTkMessagebox import CTkMessagebox
@@ -3430,16 +3483,17 @@ class App(customtkinter.CTk):
         from coords import format_readable_mgrs
         if self.sensor1_mgrs_val != None:
             self.logger_targeting.info(f"EWT 1 Plotted at {format_readable_mgrs(self.sensor1_mgrs_val)}")
-            self.logger_targeting.info(f"Sensor 1 LOB: {self.sensor1_grid_azimuth_val} degrees ({self.option_sensor.get()})")
+            if self.sensor1_grid_azimuth_val != None: self.logger_targeting.info(f"Sensor 1 Grid Azimuth: {self.sensor1_grid_azimuth_val} degrees ({self.option_sensor.get()})")
+            if self.sensor1_power_received_dBm_val != None: self.logger_targeting.info(f"Sensor 1 PWR Received: {self.sensor1_power_received_dBm_val} dBm")
             self.logger_targeting.info(f"Sensor 1 PWR Received: {self.sensor1_power_received_dBm_val} dBm")
         if self.sensor2_mgrs_val != None:   
             self.logger_targeting.info(f"EWT 2 Plotted at {format_readable_mgrs(self.sensor2_mgrs_val)}")
-            self.logger_targeting.info(f"Sensor 2 LOB: {self.sensor2_grid_azimuth_val} degrees ({self.option_sensor.get()})")
-            self.logger_targeting.info(f"Sensor 2 PWR Received: {self.sensor2_power_received_dBm_val} dBm")
+            if self.sensor2_grid_azimuth_val != None: self.logger_targeting.info(f"Sensor 2 LOB: {self.sensor2_grid_azimuth_val} degrees ({self.option_sensor.get()})")
+            if self.sensor2_power_received_dBm_val != None: self.logger_targeting.info(f"Sensor 2 PWR Received: {self.sensor2_power_received_dBm_val} dBm")
         if self.sensor3_mgrs_val != None:
             self.logger_targeting.info(f"EWT 3 Plotted at {format_readable_mgrs(self.sensor3_mgrs_val)}")
-            self.logger_targeting.info(f"Sensor 3 LOB: {self.sensor3_grid_azimuth_val} degrees ({self.option_sensor.get()})")
-            self.logger_targeting.info(f"Sensor 3 PWR Received: {self.sensor3_power_received_dBm_val} dBm")
+            if self.sensor3_grid_azimuth_val != None: self.logger_targeting.info(f"Sensor 3 LOB: {self.sensor3_grid_azimuth_val} degrees ({self.option_sensor.get()})")
+            if self.sensor3_power_received_dBm_val != None: self.logger_targeting.info(f"Sensor 3 PWR Received: {self.sensor3_power_received_dBm_val} dBm")
         if self.frequency_MHz_val != None:
             self.logger_targeting.info(f"Targeted Signal: {self.frequency_MHz_val} MHz transmitting between {self.min_wattage_val} and {self.max_wattage_val} W, through {self.get_pathloss_description_from_coeff(self.path_loss_coeff)}")
 

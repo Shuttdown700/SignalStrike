@@ -73,6 +73,7 @@ def test_default_inputs_fix(app,default_inputs,expected_values):
     """Test default input in the GUI and their expected outputs"""
     
     # Insert default values into the entry fields
+    app.button_clear_entries.invoke()
     app.sensor1_mgrs.insert(0, default_inputs["default_sensor1_mgrs"])
     app.sensor1_Rpwr.insert(0, default_inputs["default_sensor1_Rpwr"])
     app.sensor1_lob.insert(0, default_inputs["default_sensor1_lob"])

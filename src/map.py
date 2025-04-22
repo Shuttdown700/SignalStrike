@@ -65,15 +65,38 @@ def remove_rows_from_marker_csv(file_path : str, marker_type_value : str, marker
             writer = csv.DictWriter(outfile, fieldnames=reader.fieldnames)
             writer.writeheader()
             writer.writerows(rows)
-        update_marker_num_with_row_number(file_path)
+        if marker_type_value != 'EWT': update_marker_num_with_row_number(file_path)
     except FileNotFoundError as e:
-        print(f"Error: {e}")
+        pass
     except PermissionError:
         print(f"Error: Permission denied while trying to read or write '{file_path}'.")
     except KeyError as e:
         print(f"Error: {e}. Please check the CSV file structure.")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
+
+def remove_ewt_from_marker_csv(file_path: str, ewt_num: str, ewt_coord: str) -> None:
+    import csv, os
+    if not os.path.isfile(file_path):
+        return  # File doesn't exist, nothing to do
+
+    updated_rows = []
+
+    # Read existing data
+    with open(file_path, mode='r', newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        fieldnames = reader.fieldnames
+        if not fieldnames:
+            return  # No headers, skip
+        for row in reader:
+            if not (row.get('MARKER_NUM') == ewt_num and row.get('LOC_LATLON') == ewt_coord):
+                updated_rows.append(row)
+
+    # Overwrite CSV with filtered rows
+    with open(file_path, mode='w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(updated_rows)
 
 def organize_polygon_coords(coord_list):
     def clockwiseangle_and_distance(point,origin,refvec):

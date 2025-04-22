@@ -1,147 +1,173 @@
-import datetime, os, time, ssl
-from utilities import check_internet_connection, read_csv, write_csv
+import datetime
+import os
+import time
+import ssl
+import urllib.request
+from logger import LoggerManager
+import logging
+from typing import Dict, List
+from utilities import check_internet_connection, read_csv, write_csv, read_json
 from colorama import init, Fore
 
 init(autoreset=True)
 
-# Define color constants
-RESET = Fore.RESET
-GREEN = Fore.GREEN
-YELLOW = Fore.YELLOW
-RED = Fore.RED
-
-def download_tile(tile,
-             output_dir="\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1])+'/map_tiles/',
-             tileurl="https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=8242f8cd508342868f3d7d29e472aca9",
-             bool_overwrite=False,
-             timeout_num=5,
-             interval_num=100):
-    import os, time, urllib, urllib.request
-    basepath = tileurl.split('?')[0].split("/")[-1]  # ?foo=bar&z={z}.ext
-    segments = basepath.split(".")
-    ext = "." + segments[-1] if len(segments) > 1 else ".png"
-    val_map = str(tile["Map"])
-    val_z = str(tile["Z"])
-    val_y = str(tile["Y"])
-    val_x = str(tile['X'])
-    # for tkintermapview, tile segment order is Z, X, Y !!! (must save in z/x/y.png format)
-    write_dir = os.path.join(output_dir, val_map, val_z, val_x)
-    write_filepath = os.path.join(write_dir, val_y) + ext
-
-    if os.path.exists(write_filepath) and not bool_overwrite:
-        # skip if already exists when not-overwrite mode
-        return
+class TileDownloader:
+    """A class to manage downloading map tiles dynamically from a queue."""
     
-    url = (
-        tileurl
-        .replace(r"{x}", val_x)
-        .replace(r"{y}", val_y)
-        .replace(r"{z}", val_z)
-    )
+    # Color constants
+    RESET = Fore.RESET
+    GREEN = Fore.GREEN
+    YELLOW = Fore.YELLOW
+    RED = Fore.RED
     
-    data = None
-    while True:
+    def __init__(self, config_path: str = "config_files/conf.json"):
+        """Initialize the TileDownloader with configuration."""
+        self.base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+        self.config = self._load_config(config_path)
+        self.queue_file = os.path.join(self.base_dir, self.config["DIR_RELATIVE_QUEUE"], "dynamic_tile_queue.csv")
+        self.output_dir = os.path.join(self.base_dir, self.config["DIR_RELATIVE_MAP_TILES"])
+        self.wait_interval_sec = 10
+        self.logger = LoggerManager.get_logger(
+                    name="tile_downloader",
+                    category="tile_downloader",
+                    level=logging.INFO
+                )
+        self._initialize_queue_file()
+    
+    def _load_config(self, config_path: str) -> Dict:
+        """Load configuration from JSON file."""
+        config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), config_path)
         try:
+            return read_json(config_file)
+        except Exception as e:
+            self.logger.error(f"Error loading config: {e}")
+            raise
+    
+    def _initialize_queue_file(self) -> None:
+        """Create queue file if it doesn't exist."""
+        if not os.path.isfile(self.queue_file):
+            with open(self.queue_file, mode='w', newline='') as file:
+                pass
+            self.logger.info(f"Created dynamic queue file.")
+    
+    def _determine_tile_url(self, map_name: str) -> str:
+        """Determine tile URL based on map name."""
+        map_urls = {
+            'Terrain': self.config["TERRAIN_TILE_URL"],
+            'ESRI': self.config["SATELLITE_TILE_URL"]
+        }
+        if map_name not in map_urls:
+            self.logger.error(f"Error: {map_name} is not a valid map type")
+            return ""
+        return map_urls[map_name]
+    
+    def _download_tile(self, tile: Dict, tile_url: str, bool_overwrite: bool = False, 
+                      timeout_num: int = 5, interval_num: int = 100) -> bool:
+        """Download a single tile and save it to the output directory."""
+        try:
+            basepath = tile_url.split('?')[0].split("/")[-1]
+            ext = "." + basepath.split(".")[-1] if "." in basepath else ".png"
+            val_map = str(tile["Map"])
+            val_z = str(tile["Z"])
+            val_x = str(tile["X"])
+            val_y = str(tile["Y"])
+            
+            write_dir = os.path.join(self.output_dir, val_map, val_z, val_x)
+            write_filepath = os.path.join(write_dir, val_y) + ext
+            
+            if os.path.exists(write_filepath) and not bool_overwrite:
+                return True
+            
+            url = tile_url.replace("{x}", val_x).replace("{y}", val_y).replace("{z}", val_z)
+            
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
-            data = urllib.request.urlopen(url, timeout=timeout_num, context=ctx)
-            # data = requests.get(url, verify=False)
-            break
+            
+            with urllib.request.urlopen(url, timeout=timeout_num, context=ctx) as data:
+                os.makedirs(write_dir, exist_ok=True)
+                with open(write_filepath, mode="wb") as f:
+                    f.write(data.read())
+            self.logger.info(f"Downloaded tile: {write_filepath.split(self.base_dir)[-1]}")
+            time.sleep(interval_num / 1000)
+            return True
+            
         except urllib.error.HTTPError as e:
-            print(f'HTTP Exception: {url.split("?")[0]}')
-            data = None
-            break
-            # raise Exception(str(e) + ":" + url)
+            self.logger.error(f"HTTP Error downloading .{write_filepath.split(self.base_dir)[-1]}: {e}")
+            return False
         except Exception as e:
-            if (
-                str(e.args)
-                == "(timeout('_ssl.c:1091: The handshake operation timed out'),)"
-            ):
-                print("timeout, retrying... :" + url)
-            else:
-                print(f'Exception: {e}')
-                data = None
-                break
-                # raise Exception(str(e) + ":" + url)
-    if data is not None:
-        os.makedirs(write_dir, exist_ok=True)
-        with open(write_filepath, mode="wb") as f:
-            f.write(data.read())
-        time.sleep(interval_num / 1000)
-
-def determine_tile_url(map_name : str,conf : dict) -> str:
-    # determine tile URL from map_name input
-    if map_name== 'Terrain':
-        tile_url = conf["TERRAIN_TILE_URL"]
-    elif map_name== 'ESRI':
-        tile_url = conf["SATELLITE_TILE_URL"]
-    else:
-        print(f"Error: {map_name} is not a valid local map")
-        tile_url = ""
-    return tile_url
-
-def main():
-    from utilities import read_json
-    conf = read_json(os.path.join(os.path.dirname(os.path.abspath(__file__)),"config_files","conf.json"))
-    queue_file_name = os.path.join("\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1]),conf["DIR_RELATIVE_QUEUE"],"dynamic_tile_queue.csv")
-    output_dir= os.path.join("\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1]),conf["DIR_RELATIVE_MAP_TILES"])
-    if not os.path.isfile(queue_file_name): 
-        with open(queue_file_name, mode='w', newline='') as file:
-            print("Creating dynamic queue file...\n")
-    wait_interval_sec = 10
-    time.sleep(2)
-    try:
+            if "timeout" in str(e).lower():
+                self.logger.error(f"Timeout downloading .{write_filepath.split(self.base_dir)[-1]}: {e}")
+                return False
+            self.logger.error(f"Error downloading .{write_filepath.split(self.base_dir)[-1]}: {e}")
+            return False
+    
+    def _process_queue(self) -> List[Dict]:
+        """Process all tiles in the queue and return downloaded tiles."""
+        downloaded_tiles = []
+        try:
+            tile_queue = read_csv(self.queue_file)
+        except Exception as e:
+            self.logger.error(f"Error reading queue file: {e}")
+            return downloaded_tiles
+        
+        for tile in tile_queue:
+            map_name = tile["Map"]
+            tile_url = self._determine_tile_url(map_name)
+            if tile_url and self._download_tile(tile, tile_url):
+                downloaded_tiles.append(tile)
+        
+        return downloaded_tiles
+    
+    def _update_queue(self, downloaded_tiles: List[Dict]) -> None:
+        """Update the queue file by removing downloaded tiles."""
+        try:
+            tile_queue = read_csv(self.queue_file)
+            updated_queue = [tile for tile in tile_queue if tile not in downloaded_tiles]
+            write_csv(self.queue_file, updated_queue)
+        except Exception as e:
+            self.logger.error(f"Error updating queue file: {e}")
+    
+    def run(self) -> None:
+        """Main service loop to continuously process the tile queue."""
+        self.logger.info("Starting Dynamic Tile Download Service.")
+        time.sleep(2)
         while True:
-            downloaded_tile_list = []
-            t1 = datetime.datetime.today()
             try:
-                tile_queue = read_csv(queue_file_name)
+                t1 = datetime.datetime.now()
+                
+                if not check_internet_connection():
+                    time.sleep(5)
+                    if not check_internet_connection():
+                        self.logger.warning("No internet connection. Terminating service.")
+                        break
+                
+                downloaded_tiles = self._process_queue()
+                
+                if not downloaded_tiles and not read_csv(self.queue_file):
+                    pass
+                    # print(f"{self.YELLOW}Dynamic download queue is empty.{self.RESET}")
+                
+                self._update_queue(downloaded_tiles)
+                
+                t2 = datetime.datetime.now()
+                t_delta = (t2 - t1).total_seconds()
+                
+                if t_delta < self.wait_interval_sec:
+                    wait_time = self.wait_interval_sec - t_delta
+                    time.sleep(min(wait_time, 10))
+                else:
+                    time.sleep(1)
+                    
             except Exception as e:
-                print(f'Error reading batch queue file: {e}',end='\n')
+                self.logger.error(f"Exception in main loop: {e}")
                 time.sleep(5)
                 continue
-            if not check_internet_connection():
-                time.sleep(5)
-                if not check_internet_connection(): print('No public internet connection... terminating service'); break
-            if len(tile_queue) > 0:
-                # print(tile_queue)
-                for tile in tile_queue:
-                    map_name = tile["Map"]
-                    tile_url = determine_tile_url(map_name,conf)
-                    download_tile(tile,output_dir,tile_url)
-                    print(f"Downloading: {tile['Map']}/{tile['Z']}/{tile['X']}/{tile['Y']}.png")
-                    downloaded_tile_list.append(tile)
-                tile_queue = read_csv(queue_file_name)
-                tile_queue_updated = []
-                for tile in tile_queue:
-                    if tile in downloaded_tile_list:
-                        continue
-                    else:
-                        tile_queue_updated.append(tile)
-                write_csv(queue_file_name,tile_queue_updated)
-            else:
-                print('Dynamic download queue is empty.\n')
-            t2 = datetime.datetime.today()
-            t_delta = t1 - t2
-            if t_delta.total_seconds() < wait_interval_sec:
-                print(f'Waiting: {wait_interval_sec - t_delta.total_seconds():,.2f} seconds...',end='\n')
-                time.sleep(min(wait_interval_sec - t_delta.total_seconds(),10))
-            else:
-                time.sleep(1)
-    except Exception as e:
-        print(f'Exception detected: {e}\nRestarting Service')
-        main()
+
+def main():
+    """Entry point for the tile downloader service."""
+    downloader = TileDownloader()
+    downloader.run()
 
 if __name__ == "__main__":
-    print('Starting Dynamic Tile Download Service:\n')
     main()
-
-time.sleep(5)
-
-"""
-The output dir and the map remote sources needs to reflect the specific map selected
-- need to pass map name in queue
-- need to set config values for URLs & relative file paths
-
-"""

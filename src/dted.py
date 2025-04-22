@@ -68,7 +68,6 @@ def get_elevation_profile(start: list, end: list, interpoint_distance_m: int = 3
             elevation = get_elevation([lat, lon])
             distance_km = get_distance_between_coords(start,[lat, lon],'km')
             elevation_data.append((lat,lon,int(elevation),distance_km))
-            print(f"Elevation at {lat}, {lon}: {elevation} m")
     except Exception as e:
         raise RuntimeError(f"Error reading elevation data: {e}")
     return elevation_data
@@ -101,7 +100,6 @@ def plot_elevation_profile(elevation_data: list[tuple[float, int]],sensor_coord:
     # Extract elevation and distance data
     elevations = [e[2] for e in elevation_data]  # elevation (m)
     distances = [e[3] for e in elevation_data]   # distance (km)
-    print(elevations)
 
     # Convert to numpy for easier indexing
     distances = np.array(distances)
@@ -125,7 +123,7 @@ def plot_elevation_profile(elevation_data: list[tuple[float, int]],sensor_coord:
 
     # Plot red dot at target position
     target_elevation = get_elevation(target_coord)
-    formated_target_mgrs = format_readable_mgrs(convert_coords_to_mgrs(sensor_coord))
+    formated_target_mgrs = format_readable_mgrs(convert_coords_to_mgrs(target_coord))
     ax.plot(target_distance, get_elevation(target_coord), 'ro', label="Est. Target Location")
 
     ax.annotate(
@@ -184,5 +182,4 @@ if __name__ == "__main__":
     farside_target_distance_km = 3.5
     farside_coord = generate_coordinates_of_interest(sensor_coord, target_coord, farside_target_distance_km)
     elevation_data = get_elevation_profile(sensor_coord, farside_coord, interpoint_distance_m=30)
-    # print(f"Elevation profile between {sensor_coord} and {farside_coord}: {elevation_data}")
     plot_elevation_profile(elevation_data,sensor_coord,nearside_target_distance_km,target_coord,farside_target_distance_km)
