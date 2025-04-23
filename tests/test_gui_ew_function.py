@@ -48,6 +48,10 @@ def expected_values():
 def app():
     """Initialize the CustomTkinter app for testing in the main thread."""
     app_instance = App()
+    app_instance.button_clear_markers.invoke()
+    app_instance.button_clear_tactical_graphics.invoke()
+    app_instance.button_clear_measurements.invoke()
+    app_instance.button_clear_entries.invoke()
     app_instance.update_idletasks()  # Process UI events
     app_instance.update()  # Ensure widgets are rendered
     yield app_instance

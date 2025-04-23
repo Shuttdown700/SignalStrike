@@ -23,13 +23,13 @@ class PositioningService:
         self.logs_dir = Path(os.path.join(os.path.dirname(self.src_dir), conf["DIR_RELATIVE_LOGS_EUD_POSITION"]))
         self.interval = interval
         self.latest_position = None
-        self.device_type, self.port, self.baudrate = self.find_gnss_port()
         self.mgrs_converter = mgrs.MGRS()
-        self._stop_event = threading.Event()
         self.logger = LoggerManager.get_logger(
                     name="eud_position",
                     category="app",
                     level=logging.INFO)
+        self.device_type, self.port, self.baudrate = self.find_gnss_port()
+        self._stop_event = threading.Event()
 
     def coordinate_format_conversion(self, lat: str, lat_dir, lon, lon_dir):
         try:
