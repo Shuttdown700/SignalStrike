@@ -51,7 +51,11 @@ def app():
     app_instance.update_idletasks()  # Process UI events
     app_instance.update()  # Ensure widgets are rendered
     yield app_instance
-    app_instance.destroy()  # Ensure cleanup
+    app_instance.button_clear_markers.invoke()
+    app_instance.button_clear_tactical_graphics.invoke()
+    app_instance.button_clear_measurements.invoke()
+    app_instance.button_clear_entries.invoke()
+    app_instance.destroy()
 
 def test_attribute_existence(app):
     # Check if the EWT user inputs are present in the GUI
@@ -74,6 +78,8 @@ def test_default_inputs_fix(app,default_inputs,expected_values):
     
     # Insert default values into the entry fields
     app.button_clear_entries.invoke()
+    app.update_idletasks()
+
     app.sensor1_mgrs.insert(0, default_inputs["default_sensor1_mgrs"])
     app.sensor1_Rpwr.insert(0, default_inputs["default_sensor1_Rpwr"])
     app.sensor1_lob.insert(0, default_inputs["default_sensor1_lob"])
@@ -106,6 +112,4 @@ def test_default_inputs_fix(app,default_inputs,expected_values):
     assert app.target_class == expected_values["Fix"]["expected_target_class"], f"Target class is {app.target_class} instead of {expected_values["Fix"]["expected_target_class"]}."
     assert app.target_coord == expected_values["Fix"]["expected_target_coord"], f"Target coordinate is {app.target_coord} instead of {expected_values["Fix"]["expected_target_coord"]}."
     assert app.target_mgrs == expected_values["Fix"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["Fix"]["expected_target_mgrs"]}."
-
-
 

@@ -12,6 +12,8 @@ import win32com.client
 import usb.core
 import usb.util
 from coords import convert_coords_to_mgrs
+from logger import LoggerManager
+import logging
 from utilities import read_json
 
 class PositioningService:
@@ -24,8 +26,12 @@ class PositioningService:
         self.device_type, self.port, self.baudrate = self.find_gnss_port()
         self.mgrs_converter = mgrs.MGRS()
         self._stop_event = threading.Event()
+        self.logger = LoggerManager.get_logger(
+                    name="eud_position",
+                    category="app",
+                    level=logging.INFO)
 
-    def coordinate_format_conversion(self, lat, lat_dir, lon, lon_dir):
+    def coordinate_format_conversion(self, lat: str, lat_dir, lon, lon_dir):
         try:
             lat = str(lat)
             lon = str(lon)
@@ -42,21 +48,21 @@ class PositioningService:
             if lon_dir == 'W':
                 lon_new = f"-{float(lon_new)}"
         except Exception as e:
-            print(f"Coordinate conversion error: {e}")
-            print('Inputs:', lat, lat_dir, lon, lon_dir)
+            self.logger.error(f"Coordinate conversion error: {e}")
+            self.logger.debug(f"Original coordinates: {lat}, {lat_dir}, {lon}, {lon_dir}")
             return None, None
         return float(lat_new), float(lon_new)
 
     def find_gnss_port(self):
         # Step 1: List all COM ports
         ports = serial.tools.list_ports.comports()
-        print(f"All available ports: {[p.device for p in ports]}")
+        self.logger.info(f"Available ports: {[p.device for p in ports]}")
 
         # Step 2: Try to identify u-blox by port description
         for port_info in ports:
             port = port_info.device
             if 'u-blox' in port_info.description.lower():
-                print(f"Likely GNSS device detected by name: {port} | {port_info.description}")
+                self.logger.info(f"Found u-blox GNSS device: {port} | {port_info.description}")
                 return "serial", port, 9600
 
         # Step 3: Check for u-blox GNSS sensor in Windows Device Manager
@@ -65,23 +71,22 @@ class PositioningService:
             for sensor in wmi.InstancesOf("Win32_PnPEntity"):
                 sensor_name = sensor.Name if sensor.Name else ""
                 if sensor_name and 'u-blox' in sensor_name.lower() and 'gnss' in sensor_name.lower():
-                    print(f"Found u-blox GNSS sensor: {sensor_name}")
+                    self.logger.info(f"Found u-blox GNSS sensor: {sensor_name}")
                     # Check if a COM port is associated
                     port = self.get_com_port_from_registry(sensor.DeviceID)
                     if port:
-                        print(f"Associated COM port: {port}")
+                        self.logger.info(f"Associated COM port: {port}")
                         return "serial", port, 9600
                     else:
-                        print("No COM port associated; checking Windows Location API.")
-                        # Verify Location API availability
+                        self.logger.warning("No COM port associated with u-blox GNSS sensor.")
                         if self.is_location_api_available():
                             return "sensor", None, None
                         else:
-                            print("Windows Location API unavailable; checking USB interface.")
+                            self.logger.warning("Windows Location API unavailable; checking USB interface.")
                             if self.find_usb_device():
                                 return "usb", None, None
                             else:
-                                print("No USB GNSS device found. Consider configuring a virtual COM port with u-center.")
+                                self.logger.warning("No USB GNSS device found.")
                                 return None, None, None
         except Exception as e:
             print(f"Error checking sensors: {e}")
@@ -101,8 +106,7 @@ class PositioningService:
                                 return "serial", port, baudrate
                 except Exception as e:
                     continue
-
-        print("GNSS serial port, sensor, or USB device not found.")
+        self.logger.warning("No GNSS device found.")
         return None, None, None
 
     def is_location_api_available(self):
@@ -111,24 +115,23 @@ class PositioningService:
             win32com.client.Dispatch("LocationDisp.Geolocation")
             return True
         except Exception as e:
-            print(f"Location API check failed: {e}")
+            self.logger.warning(f"Location API not available: {e}")
             return False
 
     def find_usb_device(self):
         """Find u-blox USB device by VID:PID (u-blox VID is 0x1546)."""
         try:
-            # u-blox Vendor ID
-            dev = usb.core.find(idVendor=0x1546)
+            dev = usb.core.find(idVendor=0x1546) # u-blox Vendor ID
             if dev is None:
-                print("No u-blox USB device found.")
+                self.logger.warning("No u-blox USB device found.")
                 return False
-            print(f"Found u-blox USB device: VID={hex(dev.idVendor)}, PID={hex(dev.idProduct)}")
+            self.logger.info(f"Found u-blox USB device: VID={hex(dev.idVendor)}, PID={hex(dev.idProduct)}")
             return True
         except usb.core.NoBackendError:
-            print("Error: No USB backend available. Install libusb or WinUSB using Zadig.")
+            self.logger.error("No USB backend available. Install libusb or WinUSB using Zadig.")
             return False
         except Exception as e:
-            print(f"Error finding USB device: {e}")
+            self.logger.error(f"Error finding USB device: {e}")
             return False
 
     def get_com_port_from_registry(self, device_id):
@@ -143,7 +146,7 @@ class PositioningService:
             winreg.CloseKey(subkey)
             winreg.CloseKey(key)
         except Exception as e:
-            print(f"Registry check failed: {e}")
+            self.logger.error(f"Error accessing registry for COM port: {e}")
         return None
 
     def get_gnss_data_from_sensor(self, max_time_seconds=15):
@@ -167,10 +170,10 @@ class PositioningService:
                     }
                     return gps_data
                 time.sleep(1)
-            print("No valid GNSS data from sensor within timeout.")
+            self.logger.warning("No valid GNSS data from sensor within timeout.")  
             return None
         except Exception as e:
-            print(f"Error reading GNSS sensor data: {e}")
+            self.logger.error(f"Error reading GNSS sensor data: {e}")
             return None
 
     def get_gnss_data_from_usb(self, max_time_seconds=15):
@@ -178,7 +181,7 @@ class PositioningService:
         try:
             dev = usb.core.find(idVendor=0x1546)
             if dev is None:
-                print("No u-blox USB device found.")
+                self.logger.warning("No u-blox USB device found.")
                 return None
             # Detach kernel driver if active
             if dev.is_kernel_driver_active(0):
@@ -193,7 +196,7 @@ class PositioningService:
                 custom_match=lambda e: usb.util.endpoint_direction(e.bEndpointAddress) == usb.util.ENDPOINT_IN
             )
             if endpoint is None:
-                print("No suitable USB endpoint found.")
+                self.logger.error("No suitable USB endpoint found.")
                 return None
             # Read data
             start_time = time.time()
@@ -225,14 +228,16 @@ class PositioningService:
                             }
                             return gps_data
                 except usb.core.USBError:
+                    self.logger.error("USB read error. Device may be disconnected.")
                     continue
             print("No valid GNSS data from USB within timeout.")
-            return None
+            self.logger.warning("No valid GNSS data from USB within timeout.")
+            return
         except usb.core.NoBackendError:
-            print("Error: No USB backend available. Install libusb or WinUSB using Zadig.")
+            self.logger.error("No USB backend available. Install libusb or WinUSB using Zadig.")
             return None
         except Exception as e:
-            print(f"Error reading USB GNSS data: {e}")
+            self.logger.error(f"Error reading USB GNSS data: {e}")
             return None
 
     def generate_EUD_coordinate(self, max_time_seconds=15):
@@ -269,28 +274,31 @@ class PositioningService:
                                 }
                                 return gps_data
             except Exception as e:
-                print(f"Error reading GNSS serial data: {e}")
-                return None
+                self.logger.error(f"Error reading GNSS serial data: {e}")
+                return
         elif self.device_type == "sensor":
             return self.get_gnss_data_from_sensor(max_time_seconds)
         elif self.device_type == "usb":
             return self.get_gnss_data_from_usb(max_time_seconds)
         else:
-            print("No GNSS device available.")
-            return None
+            self.logger.warning("No GNSS device type detected.")
+            return 
 
     def get_log_filename(self):
         self.logs_dir.mkdir(parents=True, exist_ok=True)
         date_str = datetime.now(UTC).strftime("%Y-%m-%d")
         return self.logs_dir / f'position_log_{date_str}.jsonl'
 
-    def _log_to_file(self, entry):
+    def _log_position_to_file(self):
+        from coords import format_readable_mgrs
         try:
             filename = self.get_log_filename()
             with open(filename, 'a') as f:
-                f.write(json.dumps(entry) + '\n')
+                f.write(json.dumps(self.latest_position) + '\n')
+            self.logger.info(f"Logged position: {format_readable_mgrs(self.latest_position['data']['mgrs'])}")
         except Exception as e:
             print(f"Failed to write to log file: {e}")
+            self.logger.error(f"Failed to write to log file: {e}")
 
     def poll_location(self):
         while not self._stop_event.is_set():
@@ -302,7 +310,7 @@ class PositioningService:
                     'data': position
                 }
                 self.latest_position = entry
-                self._log_to_file(entry)
+                self._log_position_to_file(entry)
             self._stop_event.wait(self.interval)
 
     def start(self):

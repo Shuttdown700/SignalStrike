@@ -10,7 +10,8 @@ from utilities import read_csv, write_csv
 
 class MapRequestHandler(BaseHTTPRequestHandler):
     """HTTP request handler for map tile server with logging."""
-    
+    def log_message(self, format, *args):
+        pass
     map_server: Optional['MapServer'] = None  # Class-level attribute to hold MapServer instance
 
     def do_GET(self) -> None:
