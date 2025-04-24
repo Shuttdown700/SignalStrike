@@ -38,3 +38,4 @@ echo All dependencies in requirements.txt have been updated.
 
 rem Wait for 5 seconds using timeout
 timeout /t 20
+echo.

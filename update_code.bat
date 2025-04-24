@@ -22,6 +22,7 @@ echo.
 echo Code base was updated successfully!
 
 rem Wait for 5 seconds using timeout
-timeout /t 5 > nul
+timeout /t 5
+echo.
 
 rem --- End of Script ---

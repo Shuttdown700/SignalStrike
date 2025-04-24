@@ -97,5 +97,6 @@ if %errorlevel% neq 0 (
 )
 
 timeout /t 20
+echo.
 
 exit /b 0
