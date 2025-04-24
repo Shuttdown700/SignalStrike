@@ -2,25 +2,51 @@
 :: Stop execution if any command fails
 setlocal enabledelayedexpansion
 
-:: Check if Python is installed
-for /f "tokens=2 delims= " %%v in ('python --version 2^>^&1') do set PYTHON_VERSION=%%v
+:: Attempt to get Python version
+for /f "delims=" %%v in ('python -c "import sys; print(sys.version.split()[0])" 2^>nul') do set PYTHON_VERSION=%%v
 
-:: this fails to assess if python is NOT installed
-if "%PYTHON_VERSION%"=="" (
-    echo Python is not installed or not found in PATH. Please install Python and try again.
+:: Check if variable was set
+if not defined PYTHON_VERSION (
+    echo.
+    echo Python is not installed or not found in PATH. Please install Python 3.x and try again.
+    echo.
+    timeout /t 20
     exit /b 1
-) else (
-    echo Python is installed. Version: %PYTHON_VERSION%
 )
+
+:: Split the version number
+for /f "tokens=1,2,3 delims=." %%a in ("%PYTHON_VERSION%") do (
+    set MAJOR=%%a
+    set MINOR=%%b
+    set PATCH=%%c
+)
+
+:: Check if Python version is >= 3.0
+set /a MAJOR_CHECK=%MAJOR%
+if %MAJOR_CHECK% LSS 3 (
+    echo.
+    echo Python version %PYTHON_VERSION% is too old. Please install Python 3.0 or higher.
+    echo.
+    timeout /t 20
+    exit /b 1
+)
+
+echo.
+echo Python is installed. Version: %PYTHON_VERSION%
 
 :: Check if venv already exists
 if exist venv\Scripts\activate (
+    echo.
     echo Virtual environment already exists. Skipping creation.
+    echo.
 ) else (
     :: Create a virtual environment named "venv"
     python -m venv venv
     if %errorlevel% neq 0 (
+        echo.
         echo Failed to create virtual environment.
+        echo.
+        timeout /t 20
         exit /b %errorlevel%
     )
 )
@@ -32,6 +58,7 @@ cd venv\Scripts
 call activate
 if %errorlevel% neq 0 (
     echo Failed to activate virtual environment.
+    timeout /t 20
     exit /b %errorlevel%
 )
 
@@ -39,6 +66,7 @@ if %errorlevel% neq 0 (
 python -m pip install --upgrade pip
 if %errorlevel% neq 0 (
     echo Failed to upgrade pip.
+    timeout /t 20
     exit /b %errorlevel%
 )
 
@@ -50,12 +78,14 @@ if exist requirements.txt (
     python -m pip install -r requirements.txt
     if %errorlevel% neq 0 (
         echo Failed to install required modules.
+        timeout /t 20
         exit /b %errorlevel%
     )
 ) else (
     echo requirements.txt not found. Skipping module installation.
 )
 
+echo.
 echo Virtual environment setup complete!
 echo.
 
@@ -66,6 +96,6 @@ if %errorlevel% neq 0 (
     exit /b %errorlevel%
 )
 
-timeout /t 5 > nul
+timeout /t 20
 
 exit /b 0

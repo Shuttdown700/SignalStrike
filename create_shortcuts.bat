@@ -26,7 +26,9 @@ for %%F in (map_download.bat launch.bat update_code.bat update_requirements.bat)
     )
 )
 
+echo.
 echo Shortcuts created successfully!
+echo.
 exit /b
 
 :: Function to create a shortcut using PowerShell
@@ -39,6 +41,8 @@ if not exist "%SHORTCUT%" (
     echo Creating shortcut: %SHORTCUT%
     powershell -Command "$WshShell = New-Object -ComObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%SHORTCUT%'); $Shortcut.TargetPath = '%TARGET%'; $Shortcut.WorkingDirectory = '%CURR_DIR%'; if ('%ICON%' -ne '') { $Shortcut.IconLocation = '%ICON%' }; $Shortcut.Save()"
 ) else (
+    echo.
     echo Shortcut %SHORTCUT% already exists.
+    echo.
 )
 exit /b
