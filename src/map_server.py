@@ -92,6 +92,7 @@ class MapServer:
         self.directory = Path(directory).resolve()
         # Set queue_file relative to map_server.py in ./queue_files
         self.queue_file = Path(__file__).parent / "queue_files" / queue_file
+
         self.logger = LoggerManager.get_logger(
             name="map_server",
             category="map_server",

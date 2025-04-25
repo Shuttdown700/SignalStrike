@@ -1,166 +1,210 @@
+import argparse
+import json
 import os
+import time
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+from typing import Dict, Optional, Tuple, Union
 
-from utilities import import_libraries
-import_libraries([["tiletanic"],["argparse"],["urllib.request"],["json"],
-                  ["concurrent.futures",["ThreadPoolExecutor"]],["shapely"],
-                  ["pyproj",["Transformer"]]])
+import shapely
+import shapely.geometry
+import shapely.ops
+import tiletanic
+from pyproj import Transformer
 
-def get_args():
-    import argparse
-    parser = argparse.ArgumentParser(description="xyz-tile download tool")
-    parser.add_argument("tileurl", help=r"xyz-tile url in {z}/{x}/{y} template")
-    parser.add_argument("output_dir", help="output dir")
+
+def parse_arguments() -> Dict[str, Union[str, Tuple[float, ...], int, bool]]:
+    """Parse and validate command-line arguments for the XYZ tile downloader.
+
+    Returns:
+        Dictionary containing validated arguments.
+
+    Raises:
+        ValueError: If neither extent nor geojson is provided.
+    """
+    parser = argparse.ArgumentParser(description="XYZ tile download tool")
+    parser.add_argument("tile_url", help="XYZ tile URL in {z}/{x}/{y} template")
+    parser.add_argument("output_dir", help="Output directory for downloaded tiles")
     parser.add_argument(
         "--extent",
-        help="min_lon min_lat max_lon max_lat, whitespace delimited",
+        help="Geographic extent: min_lon min_lat max_lon max_lat (whitespace delimited)",
         nargs=4,
+        type=float,
     )
     parser.add_argument(
         "--geojson",
-        help="path to geojson file of Feature or FeatureCollection",
+        help="Path to GeoJSON file (Feature or FeatureCollection)",
     )
-    parser.add_argument("--minzoom", default="0", help="default to 0")
-    parser.add_argument("--maxzoom", default="16", help="default to 16")
+    parser.add_argument(
+        "--minzoom",
+        default=0,
+        type=int,
+        help="Minimum zoom level (default: 0)",
+    )
+    parser.add_argument(
+        "--maxzoom",
+        default=16,
+        type=int,
+        help="Maximum zoom level (default: 16)",
+    )
     parser.add_argument(
         "--interval",
-        default="100",
-        help="time taken after each-request, set as miliseconds in interger, default to 300",
+        default=100,
+        type=int,
+        help="Delay between requests in milliseconds (default: 100)",
     )
     parser.add_argument(
-        "--overwrite", help="overwrite existing files", action="store_true"
+        "--overwrite",
+        action="store_true",
+        help="Overwrite existing files",
     )
     parser.add_argument(
         "--timeout",
-        default="5",
-        help="wait response until this value, set as seconds in integer, default to 5",
+        default=5,
+        type=int,
+        help="Request timeout in seconds (default: 5)",
     )
-    parser.add_argument("--parallel", default="1", help="num of parallel requests")
-    parser.add_argument("--tms", help="if set, parse z/x/y as TMS", action="store_true")
+    parser.add_argument(
+        "--parallel",
+        default=1,
+        type=int,
+        help="Number of parallel requests (default: 1)",
+    )
+    parser.add_argument(
+        "--tms",
+        action="store_true",
+        help="Parse z/x/y as TMS (Tile Map Service)",
+    )
+
     args = parser.parse_args()
 
+    if args.extent is None and args.geojson is None:
+        raise ValueError("Either --extent or --geojson must be provided")
+
     verified_args = {
-        "tileurl": args.tileurl,
+        "tile_url": args.tile_url,
         "output_dir": args.output_dir,
-        "extent": None,
-        "geojson": None,
-        "minzoom": int(args.minzoom),
-        "maxzoom": int(args.maxzoom),
-        "interval": int(args.interval),
+        "extent": tuple(args.extent) if args.extent else None,
+        "geojson": args.geojson,
+        "minzoom": args.minzoom,
+        "maxzoom": args.maxzoom,
+        "interval": args.interval,
         "overwrite": args.overwrite,
-        "timeout": int(args.timeout),
-        "parallel": int(args.parallel),
+        "timeout": args.timeout,
+        "parallel": args.parallel,
         "tms": args.tms,
     }
-
-    if args.extent is None and args.geojson is None:
-        raise Exception("extent or geojson must be input")
-
-    if args.extent is not None:
-        verified_args["extent"] = tuple(map(float, args.extent))
-
-    if args.geojson is not None:
-        verified_args["geojson"] = args.geojson
 
     return verified_args
 
 
-def main():
-    import urllib.request, json, shapely, tiletanic
-    from concurrent.futures import ThreadPoolExecutor
-    from pyproj import Transformer
-    args = get_args()
-    num_tiles = 0
-    if args["extent"] is not None:
-        geometry = shapely.geometry.shape(
-            {
-                "type": "Polygon",
-                "coordinates": [
-                    [
-                        (args["extent"][0], args["extent"][1]),
-                        (args["extent"][2], args["extent"][1]),
-                        (args["extent"][2], args["extent"][3]),
-                        (args["extent"][0], args["extent"][3]),
-                        (args["extent"][0], args["extent"][1]),
-                    ],
-                ],
-            }
-        )
-    elif args["geojson"] is not None:
-        with open(args["geojson"], mode="r") as f:
-            geojson = json.load(f)
-        if geojson.get("features") is None:
-            geometry = shapely.geometry.shape(geojson["geometry"])
-        else:
+def get_geometry(args: Dict) -> shapely.geometry.base.BaseGeometry:
+    """Convert extent or GeoJSON input to a Shapely geometry.
+
+    Args:
+        args: Dictionary of parsed arguments.
+
+    Returns:
+        Shapely geometry object.
+
+    Raises:
+        FileNotFoundError: If GeoJSON file doesn't exist.
+        ValueError: If GeoJSON content is invalid.
+    """
+    if args["extent"]:
+        min_lon, min_lat, max_lon, max_lat = args["extent"]
+        geometry = shapely.geometry.Polygon([
+            (min_lon, min_lat),
+            (max_lon, min_lat),
+            (max_lon, max_lat),
+            (min_lon, max_lat),
+            (min_lon, min_lat),
+        ])
+    else:
+        try:
+            with open(args["geojson"], "r") as f:
+                geojson = json.load(f)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"GeoJSON file not found: {args['geojson']}")
+
+        if "features" in geojson:
             geometries = [
-                shapely.geometry.shape(g)
-                for g in list(map(lambda f: f["geometry"], geojson["features"]))
+                shapely.geometry.shape(feature["geometry"])
+                for feature in geojson["features"]
             ]
             geometry = shapely.ops.unary_union(geometries)
+        else:
+            geometry = shapely.geometry.shape(geojson["geometry"])
 
-    # tiletanic accept only EPSG:3857 shape, convert
+    return geometry
+
+
+def download_tile(tile: Tuple[int, int, int], args: Dict) -> None:
+    """Download a single tile and save it to the output directory.
+
+    Args:
+        tile: Tuple of (x, y, zoom) coordinates.
+        args: Dictionary of parsed arguments.
+    """
+    tile_x, tile_y, zoom = tile
+    base_path = args["tile_url"].split("?")[0].split("/")[-1]
+    extension = f".{base_path.split('.')[-1]}" if "." in base_path else ".png"
+
+    write_dir = os.path.join(args["output_dir"], str(zoom), str(tile_x))
+    write_filepath = os.path.join(write_dir, f"{tile_y}{extension}")
+
+    if os.path.exists(write_filepath) and not args["overwrite"]:
+        print(f"Skipping: {zoom}/{tile_x}/{tile_y}{extension} already exists")
+        return
+
+    url = args["tile_url"].format(x=tile_x, y=tile_y, z=zoom)
+
+    try:
+        with urllib.request.urlopen(url, timeout=args["timeout"]) as response:
+            print(f"Downloading: {zoom}/{tile_x}/{tile_y}{extension}")
+            os.makedirs(write_dir, exist_ok=True)
+            with open(write_filepath, "wb") as f:
+                f.write(response.read())
+        time.sleep(args["interval"] / 1000)
+    except urllib.error.HTTPError as e:
+        print(f"HTTP Error: {e} for URL: {url}")
+    except Exception as e:
+        if "timeout" in str(e).lower():
+            print(f"Timeout, retrying: {url}")
+        else:
+            print(f"Error: {e} for URL: {url}")
+
+
+def main() -> None:
+    """Main function to download XYZ tiles based on provided arguments."""
+    args = parse_arguments()
+    num_tiles = 0
+
+    # Get geometry and transform to EPSG:3857
+    geometry = get_geometry(args)
     transformer = Transformer.from_crs(4326, 3857, always_xy=True)
     geom_3857 = shapely.ops.transform(transformer.transform, geometry)
 
-    def download(tile):
-        import time
-        basepath = args["tileurl"].split('?')[0].split("/")[-1]
-        segments = basepath.split(".")
-        ext = "." + segments[-1] if len(segments) > 1 else ".png"
-
-        write_dir = os.path.join(args["output_dir"], str(tile[2]), str(tile[0]))
-        write_filepath = os.path.join(write_dir, str(tile[1]) + ext)
-
-        if os.path.exists(write_filepath) and not args["overwrite"]:
-            # skip if already exists when not-overwrite mode
-            print(f'Bypassing: {tile[2]}/{tile[0]}/{tile[1]}.png already exisits')
-            return
-
-        url = (
-            args["tileurl"]
-            .replace(r"{x}", str(tile[0]))
-            .replace(r"{y}", str(tile[1]))
-            .replace(r"{z}", str(tile[2]))
-        )
-        
-        data = None
-        while True:
-            try:
-                data = urllib.request.urlopen(url, timeout=args["timeout"])
-                break
-            except urllib.error.HTTPError as e:
-                raise Exception(str(e) + ":" + url)
-            except Exception as e:
-                if (
-                    str(e.args)
-                    == "(timeout('_ssl.c:1091: The handshake operation timed out'),)"
-                ):
-                    print("timeout, retrying... :" + url)
-                else:
-                    raise Exception(str(e) + ":" + url)
-        if data is not None:
-            print(f'Downloading {tile[2]}/{tile[0]}/{tile[1]}.png')
-            os.makedirs(write_dir, exist_ok=True)
-            with open(write_filepath, mode="wb") as f:
-                f.write(data.read())
-            time.sleep(args["interval"] / 1000)
-
-    tilescheme = (
-        tiletanic.tileschemes.WebMercatorBL()
-        if args["tms"]
+    # Set up tile scheme
+    tile_scheme = (
+        tiletanic.tileschemes.WebMercatorBL() if args["tms"]
         else tiletanic.tileschemes.WebMercator()
     )
 
+    # Download tiles
     with ThreadPoolExecutor(max_workers=args["parallel"]) as executor:
         for zoom in range(args["minzoom"], args["maxzoom"] + 1):
-            generator = tiletanic.tilecover.cover_geometry(tilescheme, geom_3857, zoom)
-            for tile in generator:
-                future = executor.submit(download, tile)
+            tile_generator = tiletanic.tilecover.cover_geometry(
+                tile_scheme, geom_3857, zoom
+            )
+            for tile in tile_generator:
+                future = executor.submit(download_tile, tile, args)
                 num_tiles += 1
-                if future.exception() is not None:
-                    print(future.exception())
-                    # bar()
+                if future.exception():
+                    print(f"Error downloading tile: {future.exception()}")
 
-    print(f"Download Finished: {num_tiles:,} tiles downloaded")
+    print(f"Download completed: {num_tiles:,} tiles downloaded")
+
 
 if __name__ == "__main__":
     main()
