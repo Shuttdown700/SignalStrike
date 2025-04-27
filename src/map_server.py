@@ -10,7 +10,8 @@ from utilities import read_csv, write_csv
 
 class MapRequestHandler(BaseHTTPRequestHandler):
     """HTTP request handler for map tile server with logging."""
-    
+    def log_message(self, format, *args):
+        pass
     map_server: Optional['MapServer'] = None  # Class-level attribute to hold MapServer instance
 
     def do_GET(self) -> None:
@@ -91,6 +92,7 @@ class MapServer:
         self.directory = Path(directory).resolve()
         # Set queue_file relative to map_server.py in ./queue_files
         self.queue_file = Path(__file__).parent / "queue_files" / queue_file
+
         self.logger = LoggerManager.get_logger(
             name="map_server",
             category="map_server",

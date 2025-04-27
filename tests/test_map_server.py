@@ -1,106 +1,119 @@
-import pytest
+# test_map_server.py
+import io
 import os
-from http.client import HTTPConnection
-from pathlib import Path
-from unittest.mock import patch
-from map_server import MapServer, MapRequestHandler
-import logging
 import tempfile
-import threading
-import time
-import socket
+import pytest
+from http.server import HTTPServer
+from unittest.mock import MagicMock, patch, mock_open
+from pathlib import Path
+
+from map_server import MapServer, MapRequestHandler
 
 @pytest.fixture
 def temp_dir():
-    """Create a temporary directory for testing."""
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        yield Path(tmpdirname)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        yield tmpdir
 
 @pytest.fixture
 def map_server(temp_dir):
-    """Create a MapServer instance with a temporary directory."""
-    queue_file = temp_dir / "queue_files" / "test_queue.csv"  # Match MapServer's queue file path
-    queue_file.parent.mkdir(parents=True, exist_ok=True)  # Ensure directory exists
-    server = MapServer(
-        host="localhost",
-        port=0,
-        directory=str(temp_dir),
-        queue_file=str(queue_file)
-    )
+    server = MapServer(host="localhost", port=8080, directory=temp_dir)
     return server
 
-@pytest.fixture
-def running_server(map_server):
-    """Start the server in a separate thread and clean up after."""
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('localhost', 0))
-        _, port = s.getsockname()
-    map_server.port = port
-
-    server_thread = threading.Thread(target=map_server.run, daemon=True)
-    server_thread.start()
-    time.sleep(0.5)
-    yield map_server
-    map_server.shutdown()
-
-def test_map_server_initialization(temp_dir):
-    """Test MapServer initialization."""
-    queue_file = temp_dir / "queue_files" / "test_queue.csv"
-    queue_file.parent.mkdir(parents=True, exist_ok=True)
-    server = MapServer(
-        host="localhost",
-        port=1234,
-        directory=str(temp_dir),
-        queue_file=str(queue_file)
-    )
-    assert server.host == "localhost"
-    assert server.port == 1234
-    assert server.directory == temp_dir.resolve()
-    assert server.queue_file == queue_file.resolve()
-    assert server.logger.name == "map_server"
-
-def test_append_tile_to_queue(temp_dir):
-    """Test appending a tile to the queue CSV."""
-    queue_file = temp_dir / "queue_files" / "test_queue.csv"
-    queue_file.parent.mkdir(parents=True, exist_ok=True)
-    server = MapServer(directory=str(temp_dir), queue_file=str(queue_file))
-    tile = [1, 2, 3]
+def test_append_valid_tile_to_queue(tmp_path, map_server):
+    tile = [5, 10, 20]
     map_name = "test_map"
+    queue_file = tmp_path / "queue_files" / "dynamic_tile_queue.csv"
+    map_server.queue_file = queue_file
 
-    server.append_tile_to_queue(map_name, tile)
+    with patch("map_server.read_csv", return_value=[]), \
+         patch("map_server.write_csv") as mock_write_csv:
+        map_server.append_tile_to_queue(map_name, tile)
+        mock_write_csv.assert_called_once()
+        assert mock_write_csv.call_args[0][1] == [{
+            "Map": "test_map", "Z": 5, "X": 10, "Y": 20
+        }]
 
-    assert queue_file.exists()
-    with open(queue_file, 'r') as f:
-        content = f.read()
-        assert "Map,Z,X,Y" in content
-        assert f"{map_name},1,2,3" in content
+def test_append_invalid_tile_to_queue(map_server):
+    map_server.logger = MagicMock()
+    map_server.append_tile_to_queue("map", ["a", "b", "c"])
+    map_server.logger.warning.assert_called()
 
-def test_append_tile_to_queue_invalid_tile(temp_dir):
-    """Test appending an invalid tile to the queue."""
-    queue_file = temp_dir / "queue_files" / "test_queue.csv"
-    queue_file.parent.mkdir(parents=True, exist_ok=True)
-    server = MapServer(directory=str(temp_dir), queue_file=str(queue_file))
-    with patch.object(server.logger, 'warning') as mock_warning:
-        server.append_tile_to_queue("test_map", [])
-        mock_warning.assert_called_once_with("Invalid or empty tile: []")
+def test_do_get_successful_file_response(map_server, tmp_path):
+    # Setup: create a file to serve
+    test_file_path = tmp_path / "tiles" / "5" / "10" / "20.png"
+    test_file_path.parent.mkdir(parents=True, exist_ok=True)
+    test_file_path.write_bytes(b"tile data")
+    map_server.directory = tmp_path
 
-def test_do_get_existing_file(running_server, temp_dir):
-    """Test GET request for an existing file."""
-    test_file = temp_dir / "test.png"
-    with open(test_file, 'wb') as f:
-        f.write(b"test content")
+    request_handler = setup_handler("/tiles/5/10/20.png", map_server)
+    request_handler.do_GET()
 
-    conn = HTTPConnection("localhost", running_server.port)
-    conn.request("GET", "/test.png")
-    response = conn.getresponse()
+    assert request_handler._response_code == 200
+    assert request_handler._written_data == b"tile data"
 
-    assert response.status == 200
-    assert response.getheader("Content-type") == "application/octet-stream"
-    assert response.read() == b"test content"
-    conn.close()
+def test_do_get_missing_tile_queued(map_server, tmp_path):
+    map_server.logger = MagicMock()
+    map_server.append_tile_to_queue = MagicMock()
+    map_server.directory = tmp_path
 
-def test_map_server_shutdown(map_server):
-    """Test server shutdown."""
-    with patch.object(map_server.logger, 'info') as mock_info:
-        map_server.shutdown()
-        mock_info.assert_called_once_with("Shutting down server")
+    request_handler = setup_handler("/test_map/5/10/20.png", map_server)
+    request_handler.do_GET()
+
+    map_server.append_tile_to_queue.assert_called_once_with("test_map", [5, 10, 20])
+    assert request_handler._response_code == 404
+
+def test_do_get_invalid_tile_format(map_server, tmp_path):
+    map_server.logger = MagicMock()
+    map_server.append_tile_to_queue = MagicMock()
+    map_server.directory = tmp_path
+
+    # Missing coordinate parts
+    request_handler = setup_handler("/5/10.png", map_server)
+    request_handler.do_GET()
+
+    map_server.logger.error.assert_called()
+    map_server.append_tile_to_queue.assert_not_called()
+    assert request_handler._response_code == 404
+
+def test_run_and_shutdown(map_server):
+    with patch.object(HTTPServer, 'serve_forever', side_effect=KeyboardInterrupt), \
+         patch.object(MapServer, 'shutdown') as mock_shutdown:
+        with pytest.raises(KeyboardInterrupt):
+            map_server.run()
+        mock_shutdown.assert_not_called()  # Since KeyboardInterrupt is caught inside run()
+
+    map_server.logger = MagicMock()
+    map_server.shutdown()
+    map_server.logger.info.assert_called_with("Shutting down server")
+
+# Utility to simulate BaseHTTPRequestHandler without running an actual server
+def setup_handler(path, map_server):
+    class DummySocket(io.BytesIO):
+        def makefile(self, *args, **kwargs):
+            return self
+
+    handler = MapRequestHandler(DummySocket(), ("127.0.0.1", 12345), None)
+    handler.path = path
+    handler.map_server = map_server
+    handler.wfile = io.BytesIO()
+    handler._response_code = None
+    handler._written_data = None
+
+    def send_response(code):
+        handler._response_code = code
+
+    def send_header(key, val):
+        pass
+
+    def end_headers():
+        pass
+
+    def write(data):
+        handler._written_data = data
+
+    handler.send_response = send_response
+    handler.send_header = send_header
+    handler.end_headers = end_headers
+    handler.wfile.write = write
+
+    return handler

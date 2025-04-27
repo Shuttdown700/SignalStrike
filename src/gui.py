@@ -884,7 +884,7 @@ class App(customtkinter.CTk):
             pady=12,
             sticky="e")
         # define clear tactical graphics button attributes
-        self.botton_clear_tactical_graphics = customtkinter.CTkButton(
+        self.button_clear_tactical_graphics = customtkinter.CTkButton(
             master=self.frame_right,
             text="Clear Tactical Graphics",
             fg_color="red",
@@ -892,7 +892,7 @@ class App(customtkinter.CTk):
             text_color="white",
             command=self.clear_tactical_markers)
         # assign clear tactical graphics button grid position
-        self.botton_clear_tactical_graphics.grid(
+        self.button_clear_tactical_graphics.grid(
             row=0,
             rowspan=1,
             column=1, 
@@ -901,7 +901,7 @@ class App(customtkinter.CTk):
             pady=12,
             sticky="ew")   
         # define clear LOBs button attributes
-        self.button_clear_LOBs = customtkinter.CTkButton(
+        self.button_clear_target_overlays = customtkinter.CTkButton(
             master=self.frame_right,
             text="Clear TGT Graphics",
             fg_color="red",
@@ -909,7 +909,7 @@ class App(customtkinter.CTk):
             text_color="white",
             command=self.clear_target_overlays)
         # assign clear LOBs button grid position
-        self.button_clear_LOBs.grid(
+        self.button_clear_target_overlays.grid(
             row=0, 
             rowspan=1,
             column=2, 

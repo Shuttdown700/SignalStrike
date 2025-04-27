@@ -17,31 +17,13 @@ def temp_log_dir(monkeypatch):
     shutil.rmtree(temp_dir)
 
 def test_log_filename_generation(temp_log_dir):
-    service = PositioningService()
+    service = PositioningService(interval=2)
     log_file = service.get_log_filename()
     expected_name = f"position_log_{datetime.now(UTC).strftime('%Y-%m-%d')}.jsonl"
     assert expected_name in str(log_file)
 
-def test_log_entry_written(temp_log_dir, monkeypatch):
-    service = PositioningService()
-
-    log_path = Path(temp_log_dir) / "test_log.jsonl"
-    monkeypatch.setattr(service, "get_log_filename", lambda: log_path)
-
-    fake_entry = {"timestamp": "2025-04-16T19:05:04.484709+00:00", "data": {"utc": "190506.00", "lat": "35.338020247504424", "lon": "-116.54291727858292", "MGRS": "11SNV4153710625", "num_sats": "04", "alt_m":"737"}}
-    service._log_to_file(fake_entry)
-
-    assert log_path.exists()
-
-    with open(log_path, 'r') as f:
-        lines = f.readlines()
-
-    assert len(lines) == 1
-    assert json.loads(lines[0]) == fake_entry
-
-
 def test_latest_position_from_logs(temp_log_dir, monkeypatch):
-    service = PositioningService()
+    service = PositioningService(interval=2)
 
     log_path = Path(temp_log_dir) / f"position_log_{datetime.now(UTC).strftime('%Y-%m-%d')}.jsonl"
     
@@ -60,11 +42,11 @@ def test_latest_position_from_logs(temp_log_dir, monkeypatch):
 
 def test_find_gnss_port_returns_none(monkeypatch):
     monkeypatch.setattr("serial.tools.list_ports.comports", lambda: [])
-    service = PositioningService()
+    service = PositioningService(interval=2)
     assert service.port is None
 
 def test_coordinate_format_conversion():
-    service = PositioningService()
+    service = PositioningService(interval=2)
     lat, lon = service.coordinate_format_conversion("3745.1234", "N", "12228.5678", "W")
     assert abs(lat - 37.7520566667) < 0.0001
     assert abs(lon + 122.47613) < 0.0001

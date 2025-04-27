@@ -29,4 +29,6 @@ IF ERRORLEVEL 1 ECHO Failed to start EW Targeting App.
 
 ECHO All services started.
 ENDLOCAL
+timeout /t 10
+echo.
 EXIT /B 0

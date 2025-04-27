@@ -19,4 +19,6 @@ IF ERRORLEVEL 1 (
 
 ECHO [INFO] Map Tile Downloader started successfully.
 ENDLOCAL
+timeout /t 100
+echo.
 EXIT /B 0
