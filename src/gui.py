@@ -1791,7 +1791,10 @@ class App(customtkinter.CTk):
                 self.target_coord = f'{" | ".join(target_coord_list)}'
             self.logger_targeting.info(f'{self.target_class} {"Targets" if len(target_grid_list) > 1 else "Target"} at {self.target_mgrs} with an error of {self.target_error_val:,.0f} acres')
         else:
-            self.logger_targeting.info(f'{self.target_class} Target at {self.target_mgrs} with an error of {self.target_error_val:,.0f} acres')
+            self.logger_targeting.info(f'{self.target_class} Target at {format_readable_mgrs(self.target_mgrs)} with an error of {self.target_error_val:,.0f} acres')
+        if self.sensor1_distance_val != None: self.logger_targeting.info(f'Sensor 1 distance to target: {self.generate_sensor_distance_text(self.sensor1_distance_val)}')
+        if self.sensor2_distance_val != None: self.logger_targeting.info(f'Sensor 2 distance to target: {self.generate_sensor_distance_text(self.sensor2_distance_val)}')
+        if self.sensor3_distance_val != None: self.logger_targeting.info(f'Sensor 3 distance to target: {self.generate_sensor_distance_text(self.sensor3_distance_val)}')
 
     def ewt_input_processor(self,*args) -> None:
         from utilities import format_readable_DTG, generate_DTG
@@ -2357,6 +2360,7 @@ class App(customtkinter.CTk):
         self.sensor3_distance.configure(text='')
         self.target_error.configure(text='')
         self.target_class = ''; self.target_coord = None; self.target_mgrs = None
+        self.sensor1_distance_val = None; self.sensor2_distance_val = None; self.sensor3_distance_val = None
         sensor1_lob_near_middle_coord = None; sensor2_lob_near_middle_coord = None; sensor3_lob_near_middle_coord = None
         sensor1_lob_far_middle_coord = None; sensor2_lob_far_middle_coord = None; sensor3_lob_far_middle_coord = None
         # read the user input fields
@@ -3485,7 +3489,6 @@ class App(customtkinter.CTk):
             self.logger_targeting.info(f"EWT 1 Plotted at {format_readable_mgrs(self.sensor1_mgrs_val)}")
             if self.sensor1_grid_azimuth_val != None: self.logger_targeting.info(f"Sensor 1 Grid Azimuth: {self.sensor1_grid_azimuth_val} degrees ({self.option_sensor.get()})")
             if self.sensor1_power_received_dBm_val != None: self.logger_targeting.info(f"Sensor 1 PWR Received: {self.sensor1_power_received_dBm_val} dBm")
-            self.logger_targeting.info(f"Sensor 1 PWR Received: {self.sensor1_power_received_dBm_val} dBm")
         if self.sensor2_mgrs_val != None:   
             self.logger_targeting.info(f"EWT 2 Plotted at {format_readable_mgrs(self.sensor2_mgrs_val)}")
             if self.sensor2_grid_azimuth_val != None: self.logger_targeting.info(f"Sensor 2 LOB: {self.sensor2_grid_azimuth_val} degrees ({self.option_sensor.get()})")
