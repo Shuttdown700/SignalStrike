@@ -4,6 +4,7 @@ import threading
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Optional, Callable
+from colorama import init, Fore, Style
 
 class LoggerManager:
     """Thread-safe logger manager with caching, rotation, and GUI notification support."""
@@ -25,14 +26,12 @@ class LoggerManager:
         Raises:
             OSError: If directory creation fails.
         """
-        # Use absolute path based on script's directory
         base_path = Path(__file__).parent.parent / "logs" / base_subdir
         date_str = datetime.now().strftime("%Y-%m-%d")
         log_path = base_path / date_str
         try:
             log_path.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            # Use a temporary logger to report the error
             temp_logger = logging.getLogger('logger_setup')
             temp_logger.error(f"Failed to create log directory {log_path}: {str(e)}")
             raise
@@ -75,12 +74,40 @@ class LoggerManager:
             if cache_key in cls._logger_cache:
                 return cls._logger_cache[cache_key]
 
+            # Initialize colorama for cross-platform colored output
+            init(autoreset=True)
+
             logger = logging.getLogger(name)
             if logger.handlers:
                 logger.handlers.clear()
 
             logger.setLevel(level)
-            formatter = logging.Formatter(
+            # Formatter for file handler (no colors)
+            file_formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S'
+            )
+
+            # Custom formatter for stream handler with colored level only
+            class ColoredFormatter(logging.Formatter):
+                LEVEL_COLORS = {
+                    logging.DEBUG: Fore.CYAN,
+                    logging.INFO: Fore.GREEN,
+                    logging.WARNING: Fore.YELLOW,
+                    logging.ERROR: Fore.RED,
+                    logging.CRITICAL: Fore.RED + Style.BRIGHT,
+                }
+
+                def format(self, record):
+                    level_color = self.LEVEL_COLORS.get(record.levelno, Fore.WHITE)
+                    # Format the levelname with color
+                    colored_level = f"{level_color}{record.levelname}{Style.RESET_ALL}"
+                    # Replace the levelname in the format string with the colored version
+                    message = super().format(record)
+                    message = message.replace(record.levelname, colored_level, 1)
+                    return message
+
+            stream_formatter = ColoredFormatter(
                 '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                 datefmt='%Y-%m-%d %H:%M:%S'
             )
@@ -89,7 +116,6 @@ class LoggerManager:
                 log_path = cls.get_log_path(category)
                 log_file = log_path / f"{name}.log"
                 
-                # Log the file path for debugging
                 temp_logger = logging.getLogger('logger_setup')
                 temp_logger.debug(f"Setting up file handler for: {log_file}")
                 
@@ -100,13 +126,13 @@ class LoggerManager:
                     backupCount=backup_count,
                     encoding='utf-8'
                 )
-                file_handler.setFormatter(formatter)
+                file_handler.setFormatter(file_formatter)
                 file_handler.setLevel(level)
                 logger.addHandler(file_handler)
 
-                # Stream handler
+                # Stream handler with colored output
                 stream_handler = logging.StreamHandler()
-                stream_handler.setFormatter(formatter)
+                stream_handler.setFormatter(stream_formatter)
                 stream_handler.setLevel(level)
                 logger.addHandler(stream_handler)
 
