@@ -203,7 +203,7 @@ def main() -> None:
                 if future.exception():
                     print(f"Error downloading tile: {future.exception()}")
 
-    print(f"Download completed: {num_tiles:,} tiles downloaded")
+    print(f"Download completed: {num_tiles:,} tiles")
 
 
 if __name__ == "__main__":

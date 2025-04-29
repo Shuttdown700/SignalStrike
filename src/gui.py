@@ -258,7 +258,7 @@ class App(customtkinter.CTk):
             padx=(0,0), 
             pady=(0,0))
         # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.sensor1_mgrs.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor1_mgrs))
+        self.sensor1_mgrs.bind("<Button-3>", lambda cTk_obj: self._paste_from_clipboard(self.sensor1_mgrs))
         # bind EWT function to RETURN keystroke in Sensor 1 MGRS input field
         self.sensor1_mgrs.bind("<Return>", self.ewt_input_processor)
         # define sensor 1 LOB label
@@ -288,7 +288,7 @@ class App(customtkinter.CTk):
             padx=(0,0), 
             pady=(0,0))
         # bind LOB entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.sensor1_lob.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor1_lob))
+        self.sensor1_lob.bind("<Button-3>", lambda cTk_obj: self._paste_from_clipboard(self.sensor1_lob))
         # bind EWT function to RETURN keystroke in Sensor 1 LOB input field
         self.sensor1_lob.bind("<Return>", self.ewt_input_processor)
         # define sensor 1 received power label attributes
@@ -318,7 +318,7 @@ class App(customtkinter.CTk):
             padx=(0,0), 
             pady=(0,0))
         # bind power entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.sensor1_Rpwr.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor1_Rpwr))
+        self.sensor1_Rpwr.bind("<Button-3>", lambda cTk_obj: self._paste_from_clipboard(self.sensor1_Rpwr))
         # bind EWT function to RETURN keystroke in Sensor 1 Rpwr input field
         self.sensor1_Rpwr.bind("<Return>", self.ewt_input_processor)
         # define sensor 2 mgrs label attributes
@@ -348,7 +348,7 @@ class App(customtkinter.CTk):
             padx=(0,0), 
             pady=(0,0))
         # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.sensor2_mgrs.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor2_mgrs))
+        self.sensor2_mgrs.bind("<Button-3>", lambda cTk_obj: self._paste_from_clipboard(self.sensor2_mgrs))
         # bind EWT function to RETURN keystroke in Sensor 2 MGRS input field
         self.sensor2_mgrs.bind("<Return>", self.ewt_input_processor)
         # define sensor 2 LOB label attributes
@@ -378,7 +378,7 @@ class App(customtkinter.CTk):
             padx=(0,0), 
             pady=(0,0))
         # bind LOB entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.sensor2_lob.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor2_lob))
+        self.sensor2_lob.bind("<Button-3>", lambda cTk_obj: self._paste_from_clipboard(self.sensor2_lob))
         # bind EWT function to RETURN keystroke in Sensor 2 LOB input field
         self.sensor2_lob.bind("<Return>", self.ewt_input_processor)
         # define sensor 2 received power attributes
@@ -408,7 +408,7 @@ class App(customtkinter.CTk):
             padx=(0,0), 
             pady=(0,0))
         # bind Rpwr entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.sensor2_Rpwr.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor2_Rpwr))
+        self.sensor2_Rpwr.bind("<Button-3>", lambda cTk_obj: self._paste_from_clipboard(self.sensor2_Rpwr))
         # bind EWT function to RETURN keystroke in Sensor 2 Rpwr input field
         self.sensor2_Rpwr.bind("<Return>", self.ewt_input_processor)
         # define sensor 3 mgrs label attributes
@@ -438,7 +438,7 @@ class App(customtkinter.CTk):
             padx=(0,0), 
             pady=(0,0))
         # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.sensor3_mgrs.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor3_mgrs))
+        self.sensor3_mgrs.bind("<Button-3>", lambda cTk_obj: self._paste_from_clipboard(self.sensor3_mgrs))
         # bind EWT function to RETURN keystroke in Sensor 3 MGRS input field
         self.sensor3_mgrs.bind("<Return>", self.ewt_input_processor)
         # define sensor 3 LOB label attributes
@@ -468,7 +468,7 @@ class App(customtkinter.CTk):
             padx=(0,0), 
             pady=(0,0))
         # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.sensor3_lob.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor3_lob))
+        self.sensor3_lob.bind("<Button-3>", lambda cTk_obj: self._paste_from_clipboard(self.sensor3_lob))
         # bind EWT function to RETURN keystroke in Sensor 3 LOB input field
         self.sensor3_lob.bind("<Return>", self.ewt_input_processor)
         # define sensor 3 received power label attributes
@@ -498,7 +498,7 @@ class App(customtkinter.CTk):
             padx=(0,0), 
             pady=(0,0))
         # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.sensor3_Rpwr.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.sensor3_Rpwr))
+        self.sensor3_Rpwr.bind("<Button-3>", lambda cTk_obj: self._paste_from_clipboard(self.sensor3_Rpwr))
         # bind EWT function to RETURN keystroke in Sensor 3 Rpwr input field
         self.sensor3_Rpwr.bind("<Return>", self.ewt_input_processor)
         # define target frequency label attributes
@@ -528,7 +528,7 @@ class App(customtkinter.CTk):
             padx=(0,), 
             pady=(0,0))
         # bind freq entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.frequency.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.frequency))
+        self.frequency.bind("<Button-3>", lambda cTk_obj: self._paste_from_clipboard(self.frequency))
         # bind EWT function to RETURN keystroke in Frequency input field
         self.frequency.bind("<Return>", self.ewt_input_processor)
         # define min ERP label attributes
@@ -558,7 +558,7 @@ class App(customtkinter.CTk):
             padx=(0,0), 
             pady=(0,0))
         # bind ERP entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.min_ERP.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.min_ERP))
+        self.min_ERP.bind("<Button-3>", lambda cTk_obj: self._paste_from_clipboard(self.min_ERP))
         # bind EWT function to RETURN keystroke in Min ERP input field
         self.min_ERP.bind("<Return>", self.ewt_input_processor)
         # define max ERP label attributes
@@ -588,7 +588,7 @@ class App(customtkinter.CTk):
             padx=(0,0), 
             pady=(0,0))
         # bind ERP entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.max_ERP.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.max_ERP))
+        self.max_ERP.bind("<Button-3>", lambda cTk_obj: self._paste_from_clipboard(self.max_ERP))
         # bind EWT function to RETURN keystroke in Max ERP input field
         self.max_ERP.bind("<Return>", self.ewt_input_processor)
         # define path-loss coefficient label attributes
@@ -924,7 +924,7 @@ class App(customtkinter.CTk):
             fg_color="red",
             hover_color="black",
             text_color="white",
-            command=self._clear_user_markers)
+            command=self.clear_user_markers)
         # assign clear markers button grid position
         self.button_clear_markers.grid(
             row=0, 
@@ -982,7 +982,7 @@ class App(customtkinter.CTk):
         # bind mgrs entry RETURN keystroke to search function
         self.search_mgrs.bind("<Return>", self.search_event)
         # bind mgrs entry "Right Click" to copy (if selection exists) / paste function (otherwise)
-        self.search_mgrs.bind("<Button-3>", lambda cTk_obj: self.paste_from_clipboard(self.search_mgrs))
+        self.search_mgrs.bind("<Button-3>", lambda cTk_obj: self._paste_from_clipboard(self.search_mgrs))
         # define search button attributes
         self.button_search = customtkinter.CTkButton(
             master=self.frame_right,
@@ -1046,7 +1046,7 @@ class App(customtkinter.CTk):
         # set map widget default server
         self.map_option_menu.set("Local Terrain Map")
         # set default path-loss coefficient
-        self.option_path_loss_coeff.set('Moderate Foliage')
+        self.option_path_loss_coeff.set('Dense Foliage')
         # set default sensor
         self.option_sensor.set('BEAST+')
         # define right-click attributes
@@ -1066,12 +1066,11 @@ class App(customtkinter.CTk):
             label="Plot NAI",
             command=self.plot_NAI,
             pass_coords=True)
+        self.map_widget.add_right_click_menu_command(
+            label="Plot EWT",
+            command=self.right_click_plot_EWT,
+            pass_coords=True)
         self.plot_current_markers()
-
-    def safe_plot_callback(self,elevation_data, sensor_coord, nearside_km, target_coord, farside_km):
-        from dted import plot_elevation_profile
-        plot_elevation_profile(elevation_data, sensor_coord, nearside_km, target_coord, farside_km)
-        self.logger_gui.info(f"Elevation Profile Plotted.")
 
     def plot_current_markers(self) -> None:
         from tkinter import END
@@ -1164,7 +1163,7 @@ class App(customtkinter.CTk):
                 pass
             else:
                 # if MGRS is invalid, give user the option to re-input, bypass EWT, or use default value
-                choice = self.input_error(category='Sensor 1 Grid',msg=f'Invalid Input {self.sensor1_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
+                choice = self._input_error(category='Sensor 1 Grid',msg=f'Invalid Input {self.sensor1_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # assess if user wishes to use the default value or end function
@@ -1211,7 +1210,7 @@ class App(customtkinter.CTk):
             # exception handling for ValueError
             except ValueError:
                 # give user option to re-input value, bypass EWT, or use the default Sensor 1 LOB value
-                choice = self.input_error(category='Sensor 1 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
+                choice = self._input_error(category='Sensor 1 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if user chooses to use the default Sensor 1 LOB value
@@ -1249,7 +1248,7 @@ class App(customtkinter.CTk):
             # exception for ValueError
             except ValueError:
                 # give user option to re-input value, bypass EWT, or use the default Sensor 1 PWR received value
-                choice = self.input_error(category='Sensor 1 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
+                choice = self._input_error(category='Sensor 1 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if user chooses to use the default Sensor 1 PWR Received value
@@ -1287,7 +1286,7 @@ class App(customtkinter.CTk):
                     pass
                 else:
                     # if MGRS is invalid, give user the option to re-input, bypass EWT, or use default value
-                    choice = self.input_error(category='Sensor 2 Grid',msg=f'Invalid Input {self.sensor2_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='2')
+                    choice = self._input_error(category='Sensor 2 Grid',msg=f'Invalid Input {self.sensor2_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='2')
                     # end function if user x's out of the pop-up window
                     if choice is None: return
                     # if user chooses to use default Sensor 2 MGRS value
@@ -1357,7 +1356,7 @@ class App(customtkinter.CTk):
             # exception for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
-                choice = self.input_error(category='Sensor 2 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='2')
+                choice = self._input_error(category='Sensor 2 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='2')
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if users chooses to utilize the default Sensor 2 LOB value
@@ -1416,7 +1415,7 @@ class App(customtkinter.CTk):
             # exception handling for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
-                choice = self.input_error(category='Sensor 2 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='2')
+                choice = self._input_error(category='Sensor 2 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='2')
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if user chooses to utilize the default Sensor 2 LOB value
@@ -1472,7 +1471,7 @@ class App(customtkinter.CTk):
                     pass
                 else:
                     # if MGRS is invalid, give user the option to re-input, bypass EWT, or use default value
-                    choice = self.input_error(category='Sensor 3 Grid',msg=f'Invalid Input {self.sensor3_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='3')
+                    choice = self._input_error(category='Sensor 3 Grid',msg=f'Invalid Input {self.sensor3_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='3')
                     # end function if user x's out of the pop-up window
                     if choice is None: return
                     # if user chooses to use default Sensor 3 MGRS value
@@ -1549,7 +1548,7 @@ class App(customtkinter.CTk):
             # exception for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
-                choice = self.input_error(category='Sensor 3 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='3')
+                choice = self._input_error(category='Sensor 3 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='3')
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if users chooses to utilize the default Sensor 3 LOB value
@@ -1609,7 +1608,7 @@ class App(customtkinter.CTk):
             # exception handling for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
-                choice = self.input_error(category='Sensor 3 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='3')
+                choice = self._input_error(category='Sensor 3 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='3')
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if user chooses to utilize the default Sensor 3 LOB value
@@ -1656,7 +1655,7 @@ class App(customtkinter.CTk):
             self.sensor3_lob.delete(0,END)
             self.sensor3_Rpwr.delete(0,END)
         if bypass_ewt1_bool and bypass_ewt2_bool and bypass_ewt3_bool:
-            self.show_info("No EWT data entered.",icon='warning')
+            self._show_info("No EWT data entered.",icon='warning')
             return
         # try to read the input frequency
         try:
@@ -1669,7 +1668,7 @@ class App(customtkinter.CTk):
         # exception handling for ValueError
         except ValueError:
             # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
-            choice = self.input_error(category='Frequency',msg='Invalid Input')
+            choice = self._input_error(category='Frequency',msg='Invalid Input')
             # end function if user x's out of the pop-up window
             if choice is None: return
             # if user chooses to use the default frequency value
@@ -1695,7 +1694,7 @@ class App(customtkinter.CTk):
         # exception handling for ValueError
         except ValueError:
             # if ValueError occurs, give user the option to re-input or use default value
-            choice = self.input_error(category='Minimum ERP',msg='Invalid Input')
+            choice = self._input_error(category='Minimum ERP',msg='Invalid Input')
             # end function if user x's out of the pop-up window
             if choice is None: return
             # if user chooses to utilize the default Min ERP value
@@ -1721,7 +1720,7 @@ class App(customtkinter.CTk):
         # exception handling for ValueError
         except ValueError:
             # if ValueError occurs, give user the option to re-input or use default value
-            choice = self.input_error(category='Maximum ERP',msg='Invalid Input')
+            choice = self._input_error(category='Maximum ERP',msg='Invalid Input')
             # end function if user x's out of the pop-up window
             if choice is None: return
             # if user chooses to use the default Max ERP value
@@ -1743,7 +1742,7 @@ class App(customtkinter.CTk):
         # exception handling for ValueError
         except ValueError:
             # if ValueError occurs, give user the option to re-input or use default value
-            choice = self.input_error(category='Path-Loss Coefficient',msg='Invalid Input')
+            choice = self._input_error(category='Path-Loss Coefficient',msg='Invalid Input')
             # end function if user x's out of the pop-up window
             if choice is None: return
             # if user chooses to use the default path-loss coefficient
@@ -1792,9 +1791,9 @@ class App(customtkinter.CTk):
             self.logger_targeting.info(f'{self.target_class} {"Targets" if len(target_grid_list) > 1 else "Target"} at {self.target_mgrs} with an error of {self.target_error_val:,.0f} acres')
         else:
             self.logger_targeting.info(f'{self.target_class} Target at {format_readable_mgrs(self.target_mgrs)} with an error of {self.target_error_val:,.0f} acres')
-        if self.sensor1_distance_val != None: self.logger_targeting.info(f'Sensor 1 distance to target: {self.generate_sensor_distance_text(self.sensor1_distance_val)}')
-        if self.sensor2_distance_val != None: self.logger_targeting.info(f'Sensor 2 distance to target: {self.generate_sensor_distance_text(self.sensor2_distance_val)}')
-        if self.sensor3_distance_val != None: self.logger_targeting.info(f'Sensor 3 distance to target: {self.generate_sensor_distance_text(self.sensor3_distance_val)}')
+        if self.sensor1_distance_val != None: self.logger_targeting.info(f'Sensor 1 distance to target: {self._generate_sensor_distance_text(self.sensor1_distance_val)}')
+        if self.sensor2_distance_val != None: self.logger_targeting.info(f'Sensor 2 distance to target: {self._generate_sensor_distance_text(self.sensor2_distance_val)}')
+        if self.sensor3_distance_val != None: self.logger_targeting.info(f'Sensor 3 distance to target: {self._generate_sensor_distance_text(self.sensor3_distance_val)}')
 
     def ewt_input_processor(self,*args) -> None:
         from utilities import format_readable_DTG, generate_DTG
@@ -1850,7 +1849,7 @@ class App(customtkinter.CTk):
                 # calculate sensor 1 LOB error (in acres)
                 self.sensor1_lob_error_acres = get_polygon_area(self.sensor1_lob_polygon)
                 # define sensor 1 LOB description
-                sensor1_lob_description = f"EWT 1 at {format_readable_mgrs(self.sensor1_mgrs_val)} with a LOB at bearing {int(self.sensor1_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor1_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor1_max_distance_m)} with {self.sensor1_lob_error_acres:,.0f} acres of error"
+                sensor1_lob_description = f"EWT 1 at {format_readable_mgrs(self.sensor1_mgrs_val)} with a LOB at bearing {int(self.sensor1_grid_azimuth_val)}° between {self._generate_sensor_distance_text(self.sensor1_min_distance_m)} and {self._generate_sensor_distance_text(self.sensor1_max_distance_m)} with {self.sensor1_lob_error_acres:,.0f} acres of error"
                 # define and set sensor 1 marker on the map
                 self.plot_EWT(self.sensor1_coord,1,False)
                 # define and set sensor 1 center line
@@ -1862,7 +1861,7 @@ class App(customtkinter.CTk):
                     command=self.polygon_click,
                     data="LOB Line\n"+sensor1_lob_description)
                 # add sensor 1 LOB center-line to polygon list
-                self.append_object(sensor1_lob,"LOB")
+                self._append_object(sensor1_lob,"LOB")
                 # define and set sensor 1 LOB area
                 sensor1_lob_area = self.map_widget.set_polygon(
                     position_list=self.sensor1_lob_polygon,
@@ -1872,7 +1871,7 @@ class App(customtkinter.CTk):
                     command=self.polygon_click,
                     data="LOB Area\n"+sensor1_lob_description)
                 # add sensor 1 LOB area to polygon list
-                self.append_object(sensor1_lob_area,"LOB")
+                self._append_object(sensor1_lob_area,"LOB")
                 if plot_ewt1_lob_tgt_bool:
                     # define and set sensor 1 target marker
                     target1_marker = self.map_widget.set_marker(
@@ -1885,11 +1884,11 @@ class App(customtkinter.CTk):
                         command=self.marker_click,
                         data=f'TGT (LOB)\nEWT 1\n{format_readable_mgrs(sensor1_target_mgrs)}\nat {format_readable_DTG(generate_DTG())}')
                     # add sensor 1 target marker to target marker list
-                    self.append_object(target1_marker,"TGT")
+                    self._append_object(target1_marker,"TGT")
                 # calculate sensor 1 distance to target 1
                 self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.sensor1_target_coord))
                 # generate sensor 1 distance from target text     
-                dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
+                dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val)
                 # set sensor 1 distance field
                 self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
                 # generate a 2D elevation plot
@@ -1898,8 +1897,8 @@ class App(customtkinter.CTk):
                     msgBox = CTkMessagebox(title="2D Elevation Plot", message="Do you want to generate a 2D Elevation Plot", icon='info',options=['Yes','No'])
                     response = msgBox.get()
                     if response == 'Yes': 
-                        run_2D_elevation_plotter_threaded(self.sensor1_coord,self.sensor1_min_distance_km,self.sensor1_target_coord,self.sensor1_max_distance_km,callback=self.safe_plot_callback)
-                        self.logger_gui.info(f"Attempting to create a 2D Elevation Plot for EWT 1 at {format_readable_mgrs(self.sensor1_mgrs_val)} with a LOB at bearing {int(self.sensor1_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor1_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor1_max_distance_m)}")
+                        run_2D_elevation_plotter_threaded(self.sensor1_coord,self.sensor1_min_distance_km,self.sensor1_target_coord,self.sensor1_max_distance_km,callback=self._safe_plot_callback)
+                        self.logger_gui.info(f"Attempting to create a 2D Elevation Plot for EWT 1 at {format_readable_mgrs(self.sensor1_mgrs_val)} with a LOB at bearing {int(self.sensor1_grid_azimuth_val)}° between {self._generate_sensor_distance_text(self.sensor1_min_distance_m)} and {self._generate_sensor_distance_text(self.sensor1_max_distance_m)}")
             else:
                 sensor1_target_mgrs = None
                 self.sensor1_lob_error_acres = None
@@ -1919,7 +1918,7 @@ class App(customtkinter.CTk):
                 # calculate LOB 2 sensor error (in acres)
                 self.sensor2_lob_error_acres = get_polygon_area(self.sensor2_lob_polygon)
                 # define LOB 2 description
-                sensor2_lob_description = f"EWT 2 at {format_readable_mgrs(self.sensor2_mgrs_val)} with a LOB at bearing {int(self.sensor2_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor2_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor2_max_distance_m)} with {self.sensor2_lob_error_acres:,.0f} acres of error"
+                sensor2_lob_description = f"EWT 2 at {format_readable_mgrs(self.sensor2_mgrs_val)} with a LOB at bearing {int(self.sensor2_grid_azimuth_val)}° between {self._generate_sensor_distance_text(self.sensor2_min_distance_m)} and {self._generate_sensor_distance_text(self.sensor2_max_distance_m)} with {self.sensor2_lob_error_acres:,.0f} acres of error"
                 # define and set sensor 2 marker on the map
                 self.plot_EWT(self.sensor2_coord,2,False)
                 # define and set sensor 2 LOB area
@@ -1931,7 +1930,7 @@ class App(customtkinter.CTk):
                     command=self.polygon_click,
                     data="LOB Line\n"+sensor2_lob_description)
                 # add sensor 2 LOB area to polygon list
-                self.append_object(sensor2_lob,"LOB")
+                self._append_object(sensor2_lob,"LOB")
                 # define and set sensor 2 LOB area
                 sensor2_lob_area = self.map_widget.set_polygon(
                     position_list=self.sensor2_lob_polygon,
@@ -1941,7 +1940,7 @@ class App(customtkinter.CTk):
                     command=self.polygon_click,
                     data="LOB Area\n"+sensor2_lob_description)
                 # add LOB area to polygon list
-                self.append_object(sensor2_lob_area,"LOB")
+                self._append_object(sensor2_lob_area,"LOB")
                 if plot_ewt2_lob_tgt_bool:
                     # define and set sensor 2 target marker
                     target2_marker = self.map_widget.set_marker(
@@ -1954,11 +1953,11 @@ class App(customtkinter.CTk):
                         command=self.marker_click,
                         data=f'TGT (LOB)\nEWT 2\n{format_readable_mgrs(sensor2_target_mgrs)}\nat {format_readable_DTG(generate_DTG())}')
                     # add sensor 2 target marker to tarket marker list
-                    self.append_object(target2_marker,"TGT")
+                    self._append_object(target2_marker,"TGT")
                 # calculate sensor 1 distance to target 2
                 self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.sensor2_target_coord))
                 # generate sensor 2 distance from target text       
-                dist_sensor2_text = self.generate_sensor_distance_text(self.sensor2_distance_val)
+                dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val)
                 # set sensor 2 distance field
                 self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
                 # generate a 2D elevation plot
@@ -1967,8 +1966,8 @@ class App(customtkinter.CTk):
                     msgBox = CTkMessagebox(title="2D Elevation Plot", message="Do you want to generate a 2D Elevation Plot", icon='info',options=['Yes','No'])
                     response = msgBox.get()
                     if response == 'Yes': 
-                        run_2D_elevation_plotter_threaded(self.sensor2_coord,self.sensor2_min_distance_km,self.sensor2_target_coord,self.sensor2_max_distance_km,callback=self.safe_plot_callback)
-                        self.logger_gui.info(f"Attempting to create a 2D Elevation Plot for EWT 2 at {format_readable_mgrs(self.sensor2_mgrs_val)} with a LOB at bearing {int(self.sensor2_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor2_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor2_max_distance_m)}")
+                        run_2D_elevation_plotter_threaded(self.sensor2_coord,self.sensor2_min_distance_km,self.sensor2_target_coord,self.sensor2_max_distance_km,callback=self._safe_plot_callback)
+                        self.logger_gui.info(f"Attempting to create a 2D Elevation Plot for EWT 2 at {format_readable_mgrs(self.sensor2_mgrs_val)} with a LOB at bearing {int(self.sensor2_grid_azimuth_val)}° between {self._generate_sensor_distance_text(self.sensor2_min_distance_m)} and {self._generate_sensor_distance_text(self.sensor2_max_distance_m)}")
 
             else:
                 sensor2_target_mgrs = None
@@ -1989,7 +1988,7 @@ class App(customtkinter.CTk):
                 # calculate LOB 3 sensor error (in acres)
                 self.sensor3_lob_error_acres = get_polygon_area(self.sensor3_lob_polygon)
                 # define sensor 3 LOB description
-                sensor3_lob_description = f"EWT 3 at {format_readable_mgrs(self.sensor3_mgrs_val)} with a LOB at bearing {int(self.sensor3_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor3_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor3_max_distance_m)} with {self.sensor3_lob_error_acres:,.0f} acres of error"
+                sensor3_lob_description = f"EWT 3 at {format_readable_mgrs(self.sensor3_mgrs_val)} with a LOB at bearing {int(self.sensor3_grid_azimuth_val)}° between {self._generate_sensor_distance_text(self.sensor3_min_distance_m)} and {self._generate_sensor_distance_text(self.sensor3_max_distance_m)} with {self.sensor3_lob_error_acres:,.0f} acres of error"
                 # define and plot sensor 3 marker on the map
                 self.plot_EWT(self.sensor3_coord,3,False)
                 # define and set sensor 3 LOB area
@@ -2001,7 +2000,7 @@ class App(customtkinter.CTk):
                     command=self.polygon_click,
                     data="LOB Line\n"+sensor3_lob_description)
                 # add sensor 2 LOB area to polygon list
-                self.append_object(sensor3_lob,"LOB")
+                self._append_object(sensor3_lob,"LOB")
                 # define and set sensor 2 LOB area
                 sensor3_lob_area = self.map_widget.set_polygon(
                     position_list=self.sensor3_lob_polygon,
@@ -2011,7 +2010,7 @@ class App(customtkinter.CTk):
                     command=self.polygon_click,
                     data="LOB Area\n"+sensor3_lob_description)
                 # add LOB area to polygon list
-                self.append_object(sensor3_lob_area,"LOB")
+                self._append_object(sensor3_lob_area,"LOB")
                 if plot_ewt3_lob_tgt_bool:
                     # define and set sensor 3 target marker
                     target3_marker = self.map_widget.set_marker(
@@ -2024,11 +2023,11 @@ class App(customtkinter.CTk):
                         command=self.marker_click,
                         data=f'TGT (LOB)\nEWT 3\n{format_readable_mgrs(sensor3_target_mgrs)}\nat {format_readable_DTG(generate_DTG())}')
                     # add sensor 3 target marker to target marker list
-                    self.append_object(target3_marker,"TGT")
+                    self._append_object(target3_marker,"TGT")
                 # calculate sensor 3 distance to target 3
                 self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.sensor3_target_coord))
                 # generate sensor 3 distance from target text       
-                dist_sensor3_text = self.generate_sensor_distance_text(self.sensor3_distance_val)
+                dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val)
                 # set sensor 3 distance field
                 self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
                 # generate a 2D elevation plot
@@ -2037,8 +2036,8 @@ class App(customtkinter.CTk):
                     msgBox = CTkMessagebox(title="2D Elevation Plot", message="Do you want to generate a 2D Elevation Plot", icon='info',options=['Yes','No'])
                     response = msgBox.get()
                     if response == 'Yes': 
-                        run_2D_elevation_plotter_threaded(self.sensor3_coord,self.sensor3_min_distance_km,self.sensor3_target_coord,self.sensor3_max_distance_km,callback=self.safe_plot_callback)
-                        self.logger_gui.info(f"Attempting to create a 2D Elevation Plot for EWT 3 at {format_readable_mgrs(self.sensor3_mgrs_val)} with a LOB at bearing {int(self.sensor3_grid_azimuth_val)}° between {self.generate_sensor_distance_text(self.sensor3_min_distance_m)} and {self.generate_sensor_distance_text(self.sensor3_max_distance_m)}")
+                        run_2D_elevation_plotter_threaded(self.sensor3_coord,self.sensor3_min_distance_km,self.sensor3_target_coord,self.sensor3_max_distance_km,callback=self._safe_plot_callback)
+                        self.logger_gui.info(f"Attempting to create a 2D Elevation Plot for EWT 3 at {format_readable_mgrs(self.sensor3_mgrs_val)} with a LOB at bearing {int(self.sensor3_grid_azimuth_val)}° between {self._generate_sensor_distance_text(self.sensor3_min_distance_m)} and {self._generate_sensor_distance_text(self.sensor3_max_distance_m)}")
             else:
                 sensor3_target_mgrs = None
                 self.sensor3_lob_error_acres = None
@@ -2048,31 +2047,31 @@ class App(customtkinter.CTk):
             if self.sensor1_distance._text == "N/A" and self.sensor1_coord != None:
                 if self.sensor2_target_coord != None:
                     self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.sensor2_target_coord))
-                    dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
+                    dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val)
                     self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
                 if self.sensor3_target_coord != None:
                     self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.sensor3_target_coord))
-                    dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
+                    dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val)
                     self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
             # calculate distance from EWT 2 to other EWT targets
             if self.sensor2_distance._text == "N/A" and self.sensor2_coord != None:
                 if self.sensor1_target_coord != None:
                     self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.sensor1_target_coord))
-                    dist_sensor2_text = self.generate_sensor_distance_text(self.sensor2_distance_val)
+                    dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val)
                     self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
                 if self.sensor3_target_coord != None:
                     self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.sensor3_target_coord))
-                    dist_sensor2_text = self.generate_sensor_distance_text(self.sensor2_distance_val)
+                    dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val)
                     self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
             # calculate distance from EWT 3 to other EWT targets
             if self.sensor3_distance._text == "N/A" and self.sensor3_coord != None:
                 if self.sensor2_target_coord != None:
                     self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.sensor2_target_coord))
-                    dist_sensor3_text = self.generate_sensor_distance_text(self.sensor3_distance_val)
+                    dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val)
                     self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
                 if self.sensor1_target_coord != None:
                     self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.sensor1_target_coord))
-                    dist_sensor3_text = self.generate_sensor_distance_text(self.sensor3_distance_val)
+                    dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val)
                     self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
     
         def plot_cut(l1c,l1r,l1l,l2c,l2r,l2l,multi_cut_bool=False,plot_cut_tgts=True):
@@ -2116,7 +2115,7 @@ class App(customtkinter.CTk):
                 command=self.polygon_click,
                 data=cut_description)
             # add CUT polygon to the polygon list
-            self.append_object(cut_area,"CUT")
+            self._append_object(cut_area,"CUT")
             # calculate distance from sensor 1 and CUT intersection (in meters)
             if self.sensor1_mgrs_val != None: self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
             # calculate distance from sensor 2 and CUT intersection (in meters)
@@ -2135,11 +2134,11 @@ class App(customtkinter.CTk):
                     command=self.marker_click,
                     data=f'TGT (CUT)\n{format_readable_mgrs(self.target_mgrs)}\nat {format_readable_DTG(generate_DTG())}')
                 # add CUT marker to target marker list
-                self.append_object(cut_target_marker,"TGT")
+                self._append_object(cut_target_marker,"TGT")
             # generate sensor 1 distance from target text     
             if self.sensor1_mgrs_val != None: 
                 # generate sensor 1 distance from target text
-                dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
+                dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val)
                 # set sensor 1 distance field
                 if self.sensor1_distance.cget("text") != '' and multi_cut_bool:
                     if self.sensor1_distance.cget("text") > dist_sensor1_text:
@@ -2148,7 +2147,7 @@ class App(customtkinter.CTk):
                     self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
             if self.sensor2_mgrs_val != None: 
                 # generate sensor 2 distance from target text
-                dist_sensor2_text = self.generate_sensor_distance_text(self.sensor2_distance_val)
+                dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val)
                 # set sensor 2 distance field
                 if self.sensor2_distance.cget("text") != '' and multi_cut_bool:
                     if self.sensor2_distance.cget("text") > dist_sensor2_text:
@@ -2157,7 +2156,7 @@ class App(customtkinter.CTk):
                     self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
             if self.sensor3_mgrs_val != None:
                 # generate sensor 3 distance from target text
-                dist_sensor3_text = self.generate_sensor_distance_text(self.sensor3_distance_val)
+                dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val)
                 # set sensor 3 distance field
                 if self.sensor3_distance.cget("text") != '' and multi_cut_bool:
                     if self.sensor3_distance.cget("text") > dist_sensor3_text:
@@ -2168,15 +2167,15 @@ class App(customtkinter.CTk):
             # set EWT distance of EWTs without target data
             if self.sensor1_distance._text == "N/A" and self.sensor1_coord != None:
                 self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
-                dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
+                dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val)
                 self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
             if self.sensor2_distance._text == "N/A" and self.sensor2_coord != None:
                 self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.target_coord))
-                dist_sensor2_text = self.generate_sensor_distance_text(self.sensor2_distance_val)
+                dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val)
                 self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
             if self.sensor3_distance._text == "N/A" and self.sensor3_coord != None:
                 self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.target_coord))
-                dist_sensor3_text = self.generate_sensor_distance_text(self.sensor3_distance_val)
+                dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val)
                 self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
             # set target grid field with CUT center MGRS
             if multi_cut_bool: self.target_grid.configure(text="MULTIPLE CUTS")
@@ -2307,17 +2306,17 @@ class App(customtkinter.CTk):
                 command=self.marker_click,
                 data=f'TGT {self.target_class}\n{format_readable_mgrs(self.target_mgrs)}\nat {format_readable_DTG(generate_DTG())}')
             # add FIX marker to target marker list
-            self.append_object(fix_target_marker,"TGT")
+            self._append_object(fix_target_marker,"TGT")
             # generate sensor 1 distance from target text     
-            dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
+            dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val)
             # set sensor 1 distance field
             self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
             # generate sensor 2 distance from target text       
-            dist_sensor2_text = self.generate_sensor_distance_text(self.sensor2_distance_val)
+            dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val)
             # set sensor 2 distance field
             self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
             # set target grid field with CUT center MGRS
-            dist_sensor3_text = self.generate_sensor_distance_text(self.sensor3_distance_val)
+            dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val)
             # set sensor 2 distance field
             self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
             # set target grid field with CUT center MGRS
@@ -2338,19 +2337,19 @@ class App(customtkinter.CTk):
                 border_width=App.DEFAULT_VALUES['Border Width'],
                 command=self.polygon_click,
                 data=fix_description)
-            self.append_object(fix_area,"FIX")
+            self._append_object(fix_area,"FIX")
             # set EWT distance of EWTs without target data
             if self.sensor1_distance._text == "N/A" and self.sensor1_coord != None:
                 self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
-                dist_sensor1_text = self.generate_sensor_distance_text(self.sensor1_distance_val)
+                dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val)
                 self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
             if self.sensor2_distance._text == "N/A" and self.sensor2_coord != None:
                 self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.target_coord))
-                dist_sensor2_text = self.generate_sensor_distance_text(self.sensor2_distance_val)
+                dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val)
                 self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
             if self.sensor3_distance._text == "N/A" and self.sensor3_coord != None:
                 self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.target_coord))
-                dist_sensor3_text = self.generate_sensor_distance_text(self.sensor3_distance_val)
+                dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val)
                 self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
         # reset fields to defaults
         self.label_target_grid.configure(text='')
@@ -2510,20 +2509,7 @@ class App(customtkinter.CTk):
         else:
             self.logger_gui.error(f"Unexpected situation with EWTs: {self.sensor1_mgrs_val}, {self.sensor2_mgrs_val}, {self.sensor3_mgrs_val}")
         self.set_target_field()
-    
-    def generate_sensor_distance_text(self,distance : float) -> str:
-        """Generate sensor distance string w/ adjusted units of measurement."""
-        # set default unit of measurement
-        distance_unit = 'm'
-        # if distance is greater than 1000m
-        if distance >= 1000:
-            # convert meters to km
-            distance /= 1000
-            # change unit of measurement to km
-            distance_unit = 'km'
-        # return distance string
-        return f'{distance:,.2f}{distance_unit}'
-    
+      
     def log_target_data(self) -> None:
         from utilities import generate_DTG
         from coords import convert_coords_to_mgrs
@@ -2581,11 +2567,11 @@ class App(customtkinter.CTk):
             else:
                 # end function w/o logging
                 self.logger_gui.warning("Missing required targeting and input data. No data logged.")
-                self.show_info("No target data. No data logged.",icon='warning')
+                self._show_info("No target data. No data logged.",icon='warning')
                 return
         except AttributeError:
             # end function w/o logging
-            self.show_info("Missing required data. No data logged.",icon='warning')
+            self._show_info("Missing required data. No data logged.",icon='warning')
             return
         # if sensor 1 has data in the input fields
         if self.sensor1_grid_azimuth_val != None:
@@ -2668,7 +2654,7 @@ class App(customtkinter.CTk):
         if not ewt_bool:
             # end function w/o logging
             self.logger_gui.warning("No EWT data detected. No data logged.")
-            self.show_info("No EWT data. No data logged.",icon='warning')
+            self._show_info("No EWT data. No data logged.",icon='warning')
             return
         # append empty column for ACTUAL_TGT_MGRS to data row
         row_data.append('')
@@ -2684,10 +2670,10 @@ class App(customtkinter.CTk):
         except PermissionError:
             # error message if file is currently open
             self.logger_gui.error(f"The desired {filename} log file is open during log function")
-            self.show_info("Log file currently open. Cannot log data!",icon='warning')
+            self._show_info("Log file currently open. Cannot log data!",icon='warning')
             return
         # success pop-up
-        self.show_info("Data successfully logged!!!",box_title='Successful Log',icon='info') 
+        self._show_info("Data successfully logged!!!",box_title='Successful Log',icon='info') 
     
     def reload_last_log(self) -> None:
         from utilities import read_csv
@@ -2706,14 +2692,14 @@ class App(customtkinter.CTk):
         # read last log
         recent_file = get_most_recently_modified_file(self.log_directory)
         if recent_file is None:
-            self.show_info("No log files detected.",icon='warning')
+            self._show_info("No log files detected.",icon='warning')
             return            
         log_data = read_csv(os.path.join(self.log_directory, recent_file))
         last_log_entry = log_data[-1]
         try:
             last_log_entry['EWT_1_MGRS']
         except KeyError:
-            self.show_info("No data is most recent log file.",icon='warning')
+            self._show_info("No data is most recent log file.",icon='warning')
             return
         # clear current entries
         self.clear_entries()
@@ -2762,7 +2748,7 @@ class App(customtkinter.CTk):
                                                 command=self.marker_click,
                                                 data=marker_data)
         # append marker object to marker list
-        self.append_object(new_marker,"USER")
+        self._append_object(new_marker,"USER")
         self.logger_gui.info(f"User marker (No. {marker_num}) plotted at {marker_mgrs}")
         # log the marker 
         if not bool_bypass_log: self.log_user_marker(new_marker)
@@ -2783,7 +2769,7 @@ class App(customtkinter.CTk):
             # determine distance between last two user markers
             distance = get_distance_between_coords(sequencial_coord_list[0],sequencial_coord_list[1])
             # generate distance text
-            distance_text = self.generate_sensor_distance_text(distance)
+            distance_text = self._generate_sensor_distance_text(distance)
             # plot line between last two user markers
             dist_line = self.map_widget.set_polygon([(sequencial_coord_list[0][0],sequencial_coord_list[0][1]),
                             (sequencial_coord_list[1][0],sequencial_coord_list[1][1])],outline_color="black")
@@ -2824,7 +2810,7 @@ class App(customtkinter.CTk):
                                                 command=self.marker_click,
                                                 data=marker_data)
         # append marker object to marker list
-        self.append_object(new_marker,"OBJ")
+        self._append_object(new_marker,"OBJ")
         # log the marker 
         if not bool_bypass_log: self.log_tactical_marker(new_marker,"OBJ")
 
@@ -2851,7 +2837,7 @@ class App(customtkinter.CTk):
                                                 command=self.marker_click,
                                                 data=marker_data)
         # append marker object to marker list
-        self.append_object(new_marker,"NAI")
+        self._append_object(new_marker,"NAI")
         # log the marker 
         if not bool_bypass_log: self.log_tactical_marker(new_marker,"NAI")
 
@@ -2876,8 +2862,30 @@ class App(customtkinter.CTk):
             icon=image,
             command=self.marker_click,
             data=f'EWT {ewt_num}\n{ewt_mgrs}\nat {format_readable_DTG(generate_DTG())}')
-        self.append_object(ewt_marker,"EWT")
+        self._append_object(ewt_marker,"EWT")
         if not bool_bypass_log: self.log_ewt_marker(ewt_marker,ewt_num)
+
+    def right_click_plot_EWT(self,coord: list[float,float]) -> None:
+        """Function to plot EWT marker on right-click."""
+        from CTkMessagebox import CTkMessagebox
+        from coords import convert_coords_to_mgrs, format_readable_mgrs
+        coord = list(coord)
+        msgBox = CTkMessagebox(title="Plotting EWT", message="Which EWT is to be plotted?", icon='info',options=['EWT 1','EWT 2','EWT 3'])
+        print(coord)
+        mgrs = convert_coords_to_mgrs(coord)
+        mgrs_readable = format_readable_mgrs(mgrs)
+        if msgBox.get() == "EWT 1":
+            self.plot_EWT(coord,1)
+            self.sensor1_mgrs.insert(0,mgrs)
+            self.logger_gui.info(f"EWT 1 plotted at {mgrs_readable} via right-click")
+        elif msgBox.get() == "EWT 2":
+            self.plot_EWT(coord,2)
+            self.sensor2_mgrs.insert(0,mgrs)
+            self.logger_gui.info(f"EWT 2 plotted at {mgrs_readable} via right-click")
+        elif msgBox.get() == "EWT 3":
+            self.plot_EWT(coord,3)
+            self.sensor3_mgrs.insert(0,mgrs)
+            self.logger_gui.info(f"EWT 3 plotted at {mgrs_readable} via right-click")
 
     def copy_mgrs_grid(self, coords: tuple[float,float]) -> None:
         """Function to copy MGRS coordinates to clipboard."""
@@ -2892,7 +2900,7 @@ class App(customtkinter.CTk):
         copy2clip(mgrs)
         # copy-to-clipboard pop-up
         msg = f'"{mgrs}" copied to clipboard'
-        self.show_info(msg,box_title="Selection Copied",icon="info")
+        self._show_info(msg,box_title="Selection Copied",icon="info")
 
     def copy_selection(self,entry_object) -> None:
         try:
@@ -2909,31 +2917,15 @@ class App(customtkinter.CTk):
             msg = f'"{selected_text[0]}" copied to clipboard'
         elif isinstance(selected_text,str):
             msg = f'"{selected_text}" copied to clipboard'
-        self.show_info(msg,box_title="Selection Copied",icon="info")
+        self._show_info(msg,box_title="Selection Copied",icon="info")
     
-    def paste_from_clipboard(self,entry_object) -> None:
-        try:
-            selected_text = entry_object.selection_get().split()
-            if len(selected_text) > 0:
-                self.clipboard_clear()
-                self.clipboard_append(selected_text)
-                if isinstance(selected_text,list):
-                    msg = f'"{selected_text[0]}" copied to clipboard'
-                elif isinstance(selected_text,str):
-                    msg = f'"{selected_text}" copied to clipboard'
-                self.show_info(msg,box_title="Selection Copied",icon="info")
-            else:
-                entry_object.insert('end', self.selection_get(selection='CLIPBOARD'))
-        except TclError:
-            entry_object.insert('end', self.selection_get(selection='CLIPBOARD'))
-
     def search_event(self, event=None):
         from tkinter import END
         from coords import convert_mgrs_to_coords, check_mgrs_input, correct_mgrs_input, check_coord_input, correct_coord_input
         try:
             search_mgrs = self.search_mgrs.get()
         except ValueError:
-            self.show_info("Error loading Search MGRS",icon='warning')
+            self._show_info("Error loading Search MGRS",icon='warning')
             return
         if check_mgrs_input(search_mgrs):
             search_mgrs = correct_mgrs_input(search_mgrs)
@@ -2947,7 +2939,7 @@ class App(customtkinter.CTk):
             self.map_widget.set_position(search_coord[0],search_coord[1])
             self.add_marker_event(search_coord)
         else:
-            self.show_info("Invalid MGRS input!",icon='warning')
+            self._show_info("Invalid MGRS input!",icon='warning')
             return
 
     def get_latest_logged_position(self):
@@ -2995,7 +2987,7 @@ class App(customtkinter.CTk):
             try:
                 latest_position = self.get_latest_logged_position()
                 if latest_position is None:
-                    self.show_info('No positioning data available.', icon='warning')
+                    self._show_info('No positioning data available.', icon='warning')
                     self.logger_positioning.warning(f"No positioning data available.")
                     return
                 lat, lon, acc = latest_position
@@ -3004,7 +2996,7 @@ class App(customtkinter.CTk):
                 return
             if lat is None or lon is None:
                 self.logger_positioning.warning("No GPS data available. Cannot read GPS receiver.")
-                self.show_info("Cannot read GPS receiver",icon='warning')
+                self._show_info("Cannot read GPS receiver",icon='warning')
                 return
         else:
             lat = coord[0]; lon = coord[1]
@@ -3018,7 +3010,7 @@ class App(customtkinter.CTk):
                                                 image_zoom_visibility=(10, float("inf")),
                                                 command=self.marker_click,
                                                 data=eud_marker_data)
-        self.append_object(eud_marker,"EUD")
+        self._append_object(eud_marker,"EUD")
         self.logger_positioning.info(f"Plotted EUD position at {mgrs_formated} ({lat}, {lon}).")
         msgBox = CTkMessagebox(title="EUD Position Plotted", message='Do you want to adjust the map view to the most updated EUD location?', icon='info',options=['Yes','No'])
         response = msgBox.get()
@@ -3069,7 +3061,7 @@ class App(customtkinter.CTk):
         # if file permissions prevent log file saving
         except PermissionError:
             # error message if file is currently open
-            self.show_info("User Marker file currently open. Cannot log data!",icon='warning')
+            self._show_info("User Marker file currently open. Cannot log data!",icon='warning')
             return
 
     def log_tactical_marker(self,marker,marker_type):
@@ -3104,7 +3096,7 @@ class App(customtkinter.CTk):
         # if file permissions prevent log file saving
         except PermissionError:
             # error message if file is currently open
-            self.show_info("User Marker file currently open. Cannot log data!",icon='warning')
+            self._show_info("User Marker file currently open. Cannot log data!",icon='warning')
             return
 
     def log_ewt_marker(self, marker, ewt_num):
@@ -3145,73 +3137,7 @@ class App(customtkinter.CTk):
         try:
             write_csv(filepath, marker_data)
         except PermissionError:
-            self.show_info("EWT Marker file currently open. Cannot log data!", icon='warning')
-
-    def check_if_object_in_object_list(self,map_object,map_object_list):
-        map_object_data = map_object.data
-        object_data_list = [mo.data for mo in map_object_list]
-        if map_object_data in object_data_list:
-            # delete redudant map object
-            map_object.delete()
-            return True
-        else:
-            return False
-
-    def append_object(self,map_object,map_object_list_name):
-        # check if map object is a EWT marker
-        if map_object_list_name.upper() == 'EWT':
-            # check if EWT marker already exists in the EWT marker list
-            if not self.check_if_object_in_object_list(map_object,self.ewt_marker_list):
-                # append the EWT marker to the EWT marker list
-                self.ewt_marker_list.append(map_object)
-        # check if map object is a target marker
-        elif map_object_list_name.upper() == 'TGT':
-            # check if target marker already exists in the target marker list
-            if not self.check_if_object_in_object_list(map_object,self.target_marker_list):
-                # append the target marker to the target marker list
-                self.target_marker_list.append(map_object)
-        # check if map object is a USER marker
-        if map_object_list_name.upper() == 'USER':
-            # check if EWT marker already exists in the EWT marker list
-            if not self.check_if_object_in_object_list(map_object,self.user_marker_list):
-                # append the EWT marker to the EWT marker list
-                self.user_marker_list.append(map_object)
-        # check if map object is an OBJ
-        elif map_object_list_name.upper() == 'OBJ':
-            # check if OBJ already exists in the OBJ list
-            if not self.check_if_object_in_object_list(map_object,self.obj_list):
-                # append the OBJ to the OBJ list
-                self.obj_list.append(map_object)
-        # check if map object is an NAI
-        elif map_object_list_name.upper() == 'NAI':
-            # check if NAI already exists in the NAI list
-            if not self.check_if_object_in_object_list(map_object,self.nai_list):
-                # append the NAI to the NAI list
-                self.nai_list.append(map_object)
-        # check if map object is a EUD marker
-        if map_object_list_name.upper() == 'EUD':
-            # check if EWT marker already exists in the EWT marker list
-            if not self.check_if_object_in_object_list(map_object,self.eud_marker_list):
-                # append the EWT marker to the EWT marker list
-                self.eud_marker_list.append(map_object)        
-        # check if map object is a LOB
-        elif map_object_list_name.upper() == 'LOB':
-            # check if LOB already exists in the LOB list
-            if not self.check_if_object_in_object_list(map_object,self.lob_list):
-                # append the LOB to the LOB list
-                self.lob_list.append(map_object)
-        # check if map object is a CUT
-        elif map_object_list_name.upper() == 'CUT':
-            # check if CUT already exists in the CUT list
-            if not self.check_if_object_in_object_list(map_object,self.cut_list):
-                # append the CUT to the CUT list
-                self.cut_list.append(map_object)
-        # check if map object is a FIX
-        elif map_object_list_name.upper() == 'FIX':
-            # check if FIX already exists in the FIX list
-            if not self.check_if_object_in_object_list(map_object,self.fix_list):
-                # append the FIX to the FIX list
-                self.fix_list.append(map_object)
+            self._show_info("EWT Marker file currently open. Cannot log data!", icon='warning')
 
     def clear_measurements(self, bool_bypass_log = False) -> None:
         for path in self.path_list:
@@ -3219,7 +3145,7 @@ class App(customtkinter.CTk):
         self.path_list = []
         if not bool_bypass_log: self.logger_gui.info("Cleared all measurements from map and path list.")
 
-    def _clear_user_markers(self, bool_bypass_log = False) -> None:
+    def clear_user_markers(self, bool_bypass_log = False) -> None:
         """Clear all user markers from the map and the marker list."""
         for user_marker in self.user_marker_list:
             user_marker.delete()
@@ -3240,7 +3166,7 @@ class App(customtkinter.CTk):
         except FileNotFoundError:
             self.logger_gui.debug(f"Marker file not found: {marker_file_path}")
         except PermissionError:
-            self.show_info("User Marker file currently open. Cannot clear data!", icon='warning')
+            self._show_info("User Marker file currently open. Cannot clear data!", icon='warning')
             self.logger_gui.warning(f"Permission denied while deleting: {marker_file_path}")
 
         self.user_marker_list = []
@@ -3266,7 +3192,7 @@ class App(customtkinter.CTk):
         # if file permissions prevent marker file deleting
         except PermissionError:
             # error message if file is currently open
-            self.show_info("Tactical Marker file currently open. Cannot clear data!",icon='warning')
+            self._show_info("Tactical Marker file currently open. Cannot clear data!",icon='warning')
         self.obj_list = []; self.nai_list = []
         if not bool_bypass_log: self.logger_gui.info("Cleared all tactical markers from the map and marker list.")
     
@@ -3288,7 +3214,7 @@ class App(customtkinter.CTk):
         # if file permissions prevent marker file deleting
         except PermissionError:
             # error message if file is currently open
-            self.show_info("EWT Marker file currently open. Cannot clear data!",icon='warning')
+            self._show_info("EWT Marker file currently open. Cannot clear data!",icon='warning')
         self.obj_list = []; self.nai_list = []
         self.logger_gui.info("Cleared all EWT markers from the map and marker list.")
         for target in self.target_marker_list:
@@ -3382,7 +3308,7 @@ class App(customtkinter.CTk):
             # delete marker from map
             marker.delete()
             if len(self.user_marker_list) == len(self.path_list) == 0:
-                self._clear_user_markers(bool_bypass_log=True)
+                self.clear_user_markers(bool_bypass_log=True)
             if len(self.obj_list) == len(self.nai_list) == 0:
                 self.clear_tactical_markers(bool_bypass_log=True)
         
@@ -3416,35 +3342,6 @@ class App(customtkinter.CTk):
                 self.logger_gui.info(f"FIX Polygon removed from the map and tracker list.")
             # delete polygon from map
             polygon.delete()
-
-    def show_info(self,msg,box_title: str ='Warning Message',icon: str ='warning') -> None:
-        from CTkMessagebox import CTkMessagebox
-        CTkMessagebox(title=box_title, message=msg, icon=icon,option_1='Ackowledged')
-
-    def input_error(self,category: str,msg: str,single_lob_option: bool =False,cut_option: bool =False,ewt_bypass_option: bool =False,EWT_num: str ='') -> str:
-        from CTkMessagebox import CTkMessagebox
-        if not single_lob_option and not cut_option and not ewt_bypass_option:
-            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','Use Default'])
-        if not single_lob_option and not cut_option and ewt_bypass_option:
-            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input',f'Bypass EWT {EWT_num}'.strip(),'Use Default'])
-        elif single_lob_option and not cut_option:
-            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','LOB',f'Bypass EWT {EWT_num}'.strip(),'Use Default'])            
-        elif cut_option:
-            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','LOB/CUT',f'Bypass EWT {EWT_num}'.strip(),'Use Default'])
-        response = msgBox.get()
-        if response is None: return None
-        if response == 'Re-input':
-            return 'Re-input'
-        elif "Bypass" in response:
-            return 'Bypass'
-        elif response == 'Use Default':
-            return 'Default'
-        elif response == 'LOB':
-            return 'SL'
-        elif response == 'LOB/CUT':
-            return 'LOB/CUT'
-        else:
-            return None
 
     def change_map(self, new_map: str) -> None:
         map_server_url = f'http://localhost:{App.MAP_SERVER_PORT}'
@@ -3482,6 +3379,110 @@ class App(customtkinter.CTk):
             self.sensor2_error = 6
             self.sensor3_error = 6
 
+    def _append_object(self,map_object,map_object_list_name):
+        # check if map object is a EWT marker
+        if map_object_list_name.upper() == 'EWT':
+            # check if EWT marker already exists in the EWT marker list
+            if not self._check_if_object_in_object_list(map_object,self.ewt_marker_list):
+                # append the EWT marker to the EWT marker list
+                self.ewt_marker_list.append(map_object)
+        # check if map object is a target marker
+        elif map_object_list_name.upper() == 'TGT':
+            # check if target marker already exists in the target marker list
+            if not self._check_if_object_in_object_list(map_object,self.target_marker_list):
+                # append the target marker to the target marker list
+                self.target_marker_list.append(map_object)
+        # check if map object is a USER marker
+        if map_object_list_name.upper() == 'USER':
+            # check if EWT marker already exists in the EWT marker list
+            if not self._check_if_object_in_object_list(map_object,self.user_marker_list):
+                # append the EWT marker to the EWT marker list
+                self.user_marker_list.append(map_object)
+        # check if map object is an OBJ
+        elif map_object_list_name.upper() == 'OBJ':
+            # check if OBJ already exists in the OBJ list
+            if not self._check_if_object_in_object_list(map_object,self.obj_list):
+                # append the OBJ to the OBJ list
+                self.obj_list.append(map_object)
+        # check if map object is an NAI
+        elif map_object_list_name.upper() == 'NAI':
+            # check if NAI already exists in the NAI list
+            if not self._check_if_object_in_object_list(map_object,self.nai_list):
+                # append the NAI to the NAI list
+                self.nai_list.append(map_object)
+        # check if map object is a EUD marker
+        if map_object_list_name.upper() == 'EUD':
+            # check if EWT marker already exists in the EWT marker list
+            if not self._check_if_object_in_object_list(map_object,self.eud_marker_list):
+                # append the EWT marker to the EWT marker list
+                self.eud_marker_list.append(map_object)        
+        # check if map object is a LOB
+        elif map_object_list_name.upper() == 'LOB':
+            # check if LOB already exists in the LOB list
+            if not self._check_if_object_in_object_list(map_object,self.lob_list):
+                # append the LOB to the LOB list
+                self.lob_list.append(map_object)
+        # check if map object is a CUT
+        elif map_object_list_name.upper() == 'CUT':
+            # check if CUT already exists in the CUT list
+            if not self._check_if_object_in_object_list(map_object,self.cut_list):
+                # append the CUT to the CUT list
+                self.cut_list.append(map_object)
+        # check if map object is a FIX
+        elif map_object_list_name.upper() == 'FIX':
+            # check if FIX already exists in the FIX list
+            if not self._check_if_object_in_object_list(map_object,self.fix_list):
+                # append the FIX to the FIX list
+                self.fix_list.append(map_object)
+
+    def _check_if_object_in_object_list(self,map_object,map_object_list):
+        map_object_data = map_object.data
+        object_data_list = [mo.data for mo in map_object_list]
+        if map_object_data in object_data_list:
+            # delete redudant map object
+            map_object.delete()
+            return True
+        else:
+            return False
+
+    def _generate_sensor_distance_text(self,distance : float) -> str:
+        """Generate sensor distance string w/ adjusted units of measurement."""
+        # set default unit of measurement
+        distance_unit = 'm'
+        # if distance is greater than 1000m
+        if distance >= 1000:
+            # convert meters to km
+            distance /= 1000
+            # change unit of measurement to km
+            distance_unit = 'km'
+        # return distance string
+        return f'{distance:,.2f}{distance_unit}'
+
+    def _input_error(self,category: str,msg: str,single_lob_option: bool =False,cut_option: bool =False,ewt_bypass_option: bool =False,EWT_num: str ='') -> str:
+        from CTkMessagebox import CTkMessagebox
+        if not single_lob_option and not cut_option and not ewt_bypass_option:
+            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','Use Default'])
+        if not single_lob_option and not cut_option and ewt_bypass_option:
+            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input',f'Bypass EWT {EWT_num}'.strip(),'Use Default'])
+        elif single_lob_option and not cut_option:
+            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','LOB',f'Bypass EWT {EWT_num}'.strip(),'Use Default'])            
+        elif cut_option:
+            msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','LOB/CUT',f'Bypass EWT {EWT_num}'.strip(),'Use Default'])
+        response = msgBox.get()
+        if response is None: return None
+        if response == 'Re-input':
+            return 'Re-input'
+        elif "Bypass" in response:
+            return 'Bypass'
+        elif response == 'Use Default':
+            return 'Default'
+        elif response == 'LOB':
+            return 'SL'
+        elif response == 'LOB/CUT':
+            return 'LOB/CUT'
+        else:
+            return None
+
     def _log_ewt_input_values(self) -> None:
         """Log the input values to the GUI logger."""
         from coords import format_readable_mgrs
@@ -3499,6 +3500,31 @@ class App(customtkinter.CTk):
             if self.sensor3_power_received_dBm_val != None: self.logger_targeting.info(f"Sensor 3 PWR Received: {self.sensor3_power_received_dBm_val} dBm")
         if self.frequency_MHz_val != None:
             self.logger_targeting.info(f"Targeted Signal: {self.frequency_MHz_val} MHz transmitting between {self.min_wattage_val} and {self.max_wattage_val} W, through {self.get_pathloss_description_from_coeff(self.path_loss_coeff)}")
+
+    def _paste_from_clipboard(self,entry_object) -> None:
+        try:
+            selected_text = entry_object.selection_get().split()
+            if len(selected_text) > 0:
+                self.clipboard_clear()
+                self.clipboard_append(selected_text)
+                if isinstance(selected_text,list):
+                    msg = f'"{selected_text[0]}" copied to clipboard'
+                elif isinstance(selected_text,str):
+                    msg = f'"{selected_text}" copied to clipboard'
+                self._show_info(msg,box_title="Selection Copied",icon="info")
+            else:
+                entry_object.insert('end', self.selection_get(selection='CLIPBOARD'))
+        except TclError:
+            entry_object.insert('end', self.selection_get(selection='CLIPBOARD'))
+
+    def _safe_plot_callback(self,elevation_data, sensor_coord, nearside_km, target_coord, farside_km):
+        from dted import plot_elevation_profile
+        plot_elevation_profile(elevation_data, sensor_coord, nearside_km, target_coord, farside_km)
+        self.logger_gui.info(f"Elevation Profile Plotted.")
+
+    def _show_info(self,msg,box_title: str ='Warning Message',icon: str ='warning') -> None:
+        from CTkMessagebox import CTkMessagebox
+        CTkMessagebox(title=box_title, message=msg, icon=icon,option_1='Ackowledged')
 
     def destroy(self):
         self.logger_gui.info("Application closing")
