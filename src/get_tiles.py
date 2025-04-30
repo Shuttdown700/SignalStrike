@@ -6,6 +6,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, Optional, Tuple, Union
 
+from colorama import init, Fore, Style
 import shapely
 import shapely.geometry
 import shapely.ops
@@ -161,18 +162,18 @@ def download_tile(tile: Tuple[int, int, int], args: Dict) -> None:
 
     try:
         with urllib.request.urlopen(url, timeout=args["timeout"]) as response:
-            print(f"Downloading: {zoom}/{tile_x}/{tile_y}{extension}")
+            print(f"{Fore.GREEN}{Style.BRIGHT}Downloading{Style.RESET_ALL}: {zoom}/{tile_x}/{tile_y}{extension}")
             os.makedirs(write_dir, exist_ok=True)
             with open(write_filepath, "wb") as f:
                 f.write(response.read())
         time.sleep(args["interval"] / 1000)
     except urllib.error.HTTPError as e:
-        print(f"HTTP Error: {e} for URL: {url}")
+        print(f"{Fore.RED}{Style.BRIGHT}HTTP Error{Style.RESET_ALL}: {e} for URL: {url}")
     except Exception as e:
         if "timeout" in str(e).lower():
-            print(f"Timeout, retrying: {url}")
+            print(f"{Fore.YELLOW}{Style.BRIGHT}Timeout, retrying{Style.RESET_ALL}: {url}")
         else:
-            print(f"Error: {e} for URL: {url}")
+            print(f"{Fore.RED}{Style.BRIGHT}Error{Style.RESET_ALL}: {e} for URL: {url}")
 
 
 def main() -> None:
@@ -201,9 +202,9 @@ def main() -> None:
                 future = executor.submit(download_tile, tile, args)
                 num_tiles += 1
                 if future.exception():
-                    print(f"Error downloading tile: {future.exception()}")
+                    print(f"{Fore.RED}{Style.BRIGHT}Error downloading tile{Style.RESET_ALL}: {future.exception()}")
 
-    print(f"Download completed: {num_tiles:,} tiles")
+    print(f"{Fore.GREEN}{Style.BRIGHT}Download completed{Style.RESET_ALL}: {num_tiles:,} tiles")
 
 
 if __name__ == "__main__":

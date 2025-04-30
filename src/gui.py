@@ -177,6 +177,7 @@ class App(customtkinter.CTk):
         self.target_mgrs = None
         # define default target emitter
         self.bypass_input_errors = False
+        self.bypass_elevation_plot_prompt =  False
 
         # ============ create two CTkFrames ============
 
@@ -1833,8 +1834,9 @@ class App(customtkinter.CTk):
             sensor3_target_mgrs = convert_coords_to_mgrs(self.sensor3_target_coord)
             nl = "\n"
             # set target grid field
-            target_grid_list = [f'{format_readable_mgrs(x)}' for x in [sensor1_target_mgrs,sensor2_target_mgrs,sensor3_target_mgrs] if x != None]
-            self.target_grid.configure(text=f'{nl.join(target_grid_list)}',text_color='yellow')
+            target_grid_list = [f'{x}' for x in [sensor1_target_mgrs,sensor2_target_mgrs,sensor3_target_mgrs] if x != None]
+            target_grid_list_formatted = [f'{format_readable_mgrs(x)}' for x in [sensor1_target_mgrs,sensor2_target_mgrs,sensor3_target_mgrs] if x != None]
+            self.target_grid.configure(text=f'{nl.join(target_grid_list_formatted)}',text_color='yellow')
             # set target error field
             target_error_list = [x for x in [self.sensor1_lob_error_acres,self.sensor2_lob_error_acres,self.sensor3_lob_error_acres] if x != None]
             self.target_error.configure(text=f'{max(target_error_list):,.0f} acres',text_color='white')
@@ -1852,7 +1854,7 @@ class App(customtkinter.CTk):
                 target_coord_list = [[str(x[0]),str(x[1])] for x in target_coord_list]
                 target_coord_list = [f'{", ".join(x)}' for x in target_coord_list]
                 self.target_coord = f'{" | ".join(target_coord_list)}'
-            self.logger_targeting.info(f'{self.target_class} {"Targets" if len(target_grid_list) > 1 else "Target"} at {self.target_mgrs} with an error of {self.target_error_val:,.0f} acres')
+            self.logger_targeting.info(f'{self.target_class} {"Targets" if len(target_grid_list_formatted) > 1 else "Target"} at {self.target_mgrs} with an error of {self.target_error_val:,.0f} acres')
         else:
             self.logger_targeting.info(f'{self.target_class} Target at {format_readable_mgrs(self.target_mgrs)} with an error of {self.target_error_val:,.0f} acres')
         if self.sensor1_distance_val != None: self.logger_targeting.info(f'Sensor 1 distance to target: {self._generate_sensor_distance_text(self.sensor1_distance_val)}')
@@ -1898,7 +1900,7 @@ class App(customtkinter.CTk):
                 # set target class
                 self.target_class = f'({num_lobs} {"LOB" if num_lobs == 1 else "LOBs"})'
                 # set target grid label to include target classification
-                self.label_target_grid.configure(text=f'TARGET GRIDs {self.target_class}'.strip(),text_color='red')
+                self.label_target_grid.configure(text=f'{"TARGET GRID" if num_lobs == 1 else "TARGET GRIDs"} {self.target_class}'.strip(),text_color='red')
             # assess if sensor 1 has a non-None grid
             if self.sensor1_mgrs_val != None and (self.sensor1_grid_azimuth_val == None or self.sensor1_power_received_dBm_val == None):
                 self.sensor1_coord = convert_mgrs_to_coords(self.sensor1_mgrs_val)
@@ -1956,7 +1958,7 @@ class App(customtkinter.CTk):
                 # set sensor 1 distance field
                 self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
                 # generate a 2D elevation plot
-                if self.target_class == '(1 LOB)':
+                if self.target_class == '(1 LOB)' and not self.bypass_elevation_plot_prompt:
                     from CTkMessagebox import CTkMessagebox
                     msgBox = CTkMessagebox(title="2D Elevation Plot", message="Do you want to generate a 2D Elevation Plot", icon='info',options=['Yes','No'])
                     response = msgBox.get()
@@ -2025,7 +2027,7 @@ class App(customtkinter.CTk):
                 # set sensor 2 distance field
                 self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
                 # generate a 2D elevation plot
-                if self.target_class == '(1 LOB)':
+                if self.target_class == '(1 LOB)' and not self.bypass_elevation_plot_prompt:
                     from CTkMessagebox import CTkMessagebox
                     msgBox = CTkMessagebox(title="2D Elevation Plot", message="Do you want to generate a 2D Elevation Plot", icon='info',options=['Yes','No'])
                     response = msgBox.get()
@@ -2095,7 +2097,7 @@ class App(customtkinter.CTk):
                 # set sensor 3 distance field
                 self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
                 # generate a 2D elevation plot
-                if self.target_class == '(1 LOB)':
+                if self.target_class == '(1 LOB)' and not self.bypass_elevation_plot_prompt:
                     from CTkMessagebox import CTkMessagebox
                     msgBox = CTkMessagebox(title="2D Elevation Plot", message="Do you want to generate a 2D Elevation Plot", icon='info',options=['Yes','No'])
                     response = msgBox.get()
