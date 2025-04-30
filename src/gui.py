@@ -73,6 +73,8 @@ class App(customtkinter.CTk):
         'Dense Foliage':4.5,
         'Jungle Foliage':5        
     }
+    # read the target preset config file
+    conf_target_presets = read_json(os.path.join(os.path.dirname(os.path.abspath(__file__)),"config_files","target_presets.json"))
 
     def __init__(self, *args, **kwargs):
         """
@@ -532,13 +534,42 @@ class App(customtkinter.CTk):
         # bind EWT function to RETURN keystroke in Frequency input field
         self.frequency.bind("<Return>", self.ewt_input_processor)
         # define min ERP label attributes
+        # define preset target emitter label attributes
+        self.label_target_emitter_preset = customtkinter.CTkLabel(
+            master=self.frame_left, 
+            text="Target Emitter:", 
+            text_color='white')
+        # assign preset target emitter label grid position
+        self.label_target_emitter_preset.grid(
+            row=self.frequency.grid_info()["row"]+1,
+            rowspan=1,
+            column=0,
+            columnspan=1, 
+            padx=(0,5), 
+            pady=(0,0),
+            sticky='w')
+        # define path-loss coefficient option attributes
+        self.option_target_emitter_preset = customtkinter.CTkOptionMenu(
+            master=self.frame_left, 
+            values=["Custom"]+list(App.conf_target_presets.keys()),
+            fg_color='brown',
+            button_color='brown',
+            command=self.change_preset_target_emitter)
+        # assign path-loss coefficient option grid position
+        self.option_target_emitter_preset.grid(
+            row=self.frequency.grid_info()["row"]+1,
+            rowspan=1, 
+            column=1, 
+            columnspan=1, 
+            padx=(0,0), 
+            pady=(0,0))
         self.label_min_ERP = customtkinter.CTkLabel(
             master=self.frame_left, 
             text="Minimum ERP (Watts):", 
             text_color='white')
         # assign min ERP label grid position
         self.label_min_ERP.grid(
-            row=self.frequency.grid_info()["row"]+1,
+            row=self.option_target_emitter_preset.grid_info()["row"]+1,
             rowspan=1,
             column=0,
             columnspan=1, 
@@ -551,7 +582,7 @@ class App(customtkinter.CTk):
             placeholder_text="Wattage (W)")
         # assign min ERP grid position
         self.min_ERP.grid(
-            row=self.frequency.grid_info()["row"]+1, 
+            row=self.option_target_emitter_preset.grid_info()["row"]+1, 
             rowspan=1,
             column=1, 
             columnspan=1, 
@@ -2919,7 +2950,7 @@ class App(customtkinter.CTk):
             msg = f'"{selected_text}" copied to clipboard'
         self._show_info(msg,box_title="Selection Copied",icon="info")
     
-    def search_event(self, event=None):
+    def search_event(self, event=None) -> None:
         from tkinter import END
         from coords import convert_mgrs_to_coords, check_mgrs_input, correct_mgrs_input, check_coord_input, correct_coord_input
         try:
@@ -2930,7 +2961,7 @@ class App(customtkinter.CTk):
         if check_mgrs_input(search_mgrs):
             search_mgrs = correct_mgrs_input(search_mgrs)
             self.search_mgrs.delete(0,END)
-            self.search_mgrs.insert(0,correct_mgrs_input(search_mgrs))
+            self.search_mgrs.insert(0,search_mgrs)
             search_coord = convert_mgrs_to_coords(search_mgrs)
             self.map_widget.set_position(search_coord[0],search_coord[1])
             self.add_marker_event(search_coord)
@@ -2942,7 +2973,7 @@ class App(customtkinter.CTk):
             self._show_info("Invalid MGRS input!",icon='warning')
             return
 
-    def get_latest_logged_position(self):
+    def get_latest_logged_position(self) -> None:
         import os
         import json
         from pathlib import Path
@@ -3378,6 +3409,19 @@ class App(customtkinter.CTk):
             self.sensor1_error = 6
             self.sensor2_error = 6
             self.sensor3_error = 6
+
+    def change_preset_target_emitter(self, preset_option: str) -> None:
+        """Change target emitter parameters based on the selected preset option."""
+        if preset_option == 'Custom':
+            self.logger_gui.info("Custom target preset selected.") 
+        elif preset_option in App.conf_target_presets.keys():
+            self.min_ERP.delete(0, 'end')
+            self.min_ERP.insert(0,App.conf_target_presets[preset_option]["MIN_ERP"])
+            self.max_ERP.delete(0, 'end')
+            self.max_ERP.insert(0,App.conf_target_presets[preset_option]["MAX_ERP"])
+            self.logger_gui.info(f"Target preset changed to: {preset_option} ({App.conf_target_presets[preset_option]['MIN_ERP']} - {App.conf_target_presets[preset_option]['MAX_ERP']} W)")
+        else:
+            self.logger_gui.warning(f"Invalid target preset option: {preset_option}")
 
     def _append_object(self,map_object,map_object_list_name):
         # check if map object is a EWT marker

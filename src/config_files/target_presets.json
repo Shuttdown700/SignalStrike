@@ -1,0 +1,14 @@
+{
+    "Handheld Radio": {
+        "MIN_ERP": 0.001,
+        "MAX_ERP": 10
+    },
+    "Manpack Radio": {
+        "MIN_ERP": 0.001,
+        "MAX_ERP": 20
+    },
+    "VRC Radio": {
+        "MIN_ERP": 0.001,
+        "MAX_ERP": 50
+    }
+}
