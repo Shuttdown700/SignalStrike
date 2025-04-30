@@ -117,8 +117,10 @@ class App(customtkinter.CTk):
         self.icon_directory = os.path.join(os.path.dirname(self.src_directory), App.conf["DIR_RELATIVE_ICONS"])
         # define map tile directory
         self.tile_directory = os.path.join(os.path.dirname(self.src_directory), App.conf["DIR_RELATIVE_MAP_TILES"])
-        # define icon file directory
+        # define base log directory
         self.log_directory = os.path.join(os.path.dirname(self.src_directory), App.conf["DIR_RELATIVE_LOGS"])
+        # define targeting log directory
+        self.log_targeting_directory = os.path.join(os.path.dirname(self.src_directory), App.conf["DIR_RELATIVE_LOGS_TARGETING"])
         # define EUD log file directory
         self.log_eud_position_directory = os.path.join(os.path.dirname(self.src_directory), App.conf["DIR_RELATIVE_LOGS_EUD_POSITION"])
         # define target image icon
@@ -173,6 +175,8 @@ class App(customtkinter.CTk):
         self.target_class = ''
         # define default target value (used as conditional in logging method)
         self.target_mgrs = None
+        # define default target emitter
+        self.bypass_input_errors = False
 
         # ============ create two CTkFrames ============
 
@@ -1168,6 +1172,7 @@ class App(customtkinter.CTk):
         """
         Function to read and ajudicate EWT input
         """
+        # self.bypass_input_errors = False ### TEMP, until i figure it out...
         from tkinter import END
         from coords import check_mgrs_input, correct_mgrs_input
         # resets boolean values to FALSE, allowing EWT input
@@ -1194,11 +1199,14 @@ class App(customtkinter.CTk):
                 pass
             else:
                 # if MGRS is invalid, give user the option to re-input, bypass EWT, or use default value
-                choice = self._input_error(category='Sensor 1 Grid',msg=f'Invalid Input {self.sensor1_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
+                if not self.bypass_input_errors: 
+                    choice = self._input_error(category='Sensor 1 Grid',msg=f'Invalid Input {self.sensor1_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
+                else:
+                    choice = "Bypass"
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # assess if user wishes to use the default value or end function
-                if choice == 'Default':
+                elif choice == 'Default':
                     # clear the previous sensor 1 MGRS input
                     self.sensor1_mgrs.delete(0,END)
                     # insert the default sensor 1 MGRS value
@@ -1241,7 +1249,10 @@ class App(customtkinter.CTk):
             # exception handling for ValueError
             except ValueError:
                 # give user option to re-input value, bypass EWT, or use the default Sensor 1 LOB value
-                choice = self._input_error(category='Sensor 1 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
+                if not self.bypass_input_errors: 
+                    choice = self._input_error(category='Sensor 1 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
+                else:
+                    choice = "Bypass"
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if user chooses to use the default Sensor 1 LOB value
@@ -1279,7 +1290,10 @@ class App(customtkinter.CTk):
             # exception for ValueError
             except ValueError:
                 # give user option to re-input value, bypass EWT, or use the default Sensor 1 PWR received value
-                choice = self._input_error(category='Sensor 1 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
+                if not self.bypass_input_errors:
+                    choice = self._input_error(category='Sensor 1 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='1')
+                else:
+                    choice = "Bypass"
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if user chooses to use the default Sensor 1 PWR Received value
@@ -1317,7 +1331,10 @@ class App(customtkinter.CTk):
                     pass
                 else:
                     # if MGRS is invalid, give user the option to re-input, bypass EWT, or use default value
-                    choice = self._input_error(category='Sensor 2 Grid',msg=f'Invalid Input {self.sensor2_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='2')
+                    if not self.bypass_input_errors:
+                        choice = self._input_error(category='Sensor 2 Grid',msg=f'Invalid Input {self.sensor2_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='2')
+                    else:
+                        choice = "Bypass"
                     # end function if user x's out of the pop-up window
                     if choice is None: return
                     # if user chooses to use default Sensor 2 MGRS value
@@ -1387,7 +1404,10 @@ class App(customtkinter.CTk):
             # exception for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
-                choice = self._input_error(category='Sensor 2 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='2')
+                if not self.bypass_input_errors:
+                    choice = self._input_error(category='Sensor 2 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='2')
+                else:
+                    choice = "Bypass"
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if users chooses to utilize the default Sensor 2 LOB value
@@ -1446,7 +1466,10 @@ class App(customtkinter.CTk):
             # exception handling for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
-                choice = self._input_error(category='Sensor 2 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='2')
+                if not self.bypass_input_errors:
+                    choice = self._input_error(category='Sensor 2 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='2')
+                else:
+                    choice = "Bypass"
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if user chooses to utilize the default Sensor 2 LOB value
@@ -1502,7 +1525,10 @@ class App(customtkinter.CTk):
                     pass
                 else:
                     # if MGRS is invalid, give user the option to re-input, bypass EWT, or use default value
-                    choice = self._input_error(category='Sensor 3 Grid',msg=f'Invalid Input {self.sensor3_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='3')
+                    if not self.bypass_input_errors:
+                        choice = self._input_error(category='Sensor 3 Grid',msg=f'Invalid Input {self.sensor3_mgrs_val}',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='3')
+                    else:
+                        choice = "Bypass"
                     # end function if user x's out of the pop-up window
                     if choice is None: return
                     # if user chooses to use default Sensor 3 MGRS value
@@ -1579,7 +1605,10 @@ class App(customtkinter.CTk):
             # exception for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
-                choice = self._input_error(category='Sensor 3 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='3')
+                if not self.bypass_input_errors:
+                    choice = self._input_error(category='Sensor 3 Grid Azimuth',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='3')
+                else:
+                    choice = "Bypass"
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if users chooses to utilize the default Sensor 3 LOB value
@@ -1639,7 +1668,10 @@ class App(customtkinter.CTk):
             # exception handling for ValueError
             except ValueError:
                 # if ValueError occurs, give user the option to re-input, bypass EWT, or use default value
-                choice = self._input_error(category='Sensor 3 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='3')
+                if not self.bypass_input_errors:
+                    choice = self._input_error(category='Sensor 3 Power Received',msg='Invalid Input',single_lob_option=False,cut_option=False,ewt_bypass_option=True,EWT_num='3')
+                else:
+                    choice = "Bypass"
                 # end function if user x's out of the pop-up window
                 if choice is None: return
                 # if user chooses to utilize the default Sensor 3 LOB value
@@ -1789,6 +1821,7 @@ class App(customtkinter.CTk):
                 # end function
                 return
         # logging the input values
+        self.bypass_input_errors = False
         self._log_ewt_input_values()
 
     def set_target_field(self) -> None:
@@ -1826,7 +1859,7 @@ class App(customtkinter.CTk):
         if self.sensor2_distance_val != None: self.logger_targeting.info(f'Sensor 2 distance to target: {self._generate_sensor_distance_text(self.sensor2_distance_val)}')
         if self.sensor3_distance_val != None: self.logger_targeting.info(f'Sensor 3 distance to target: {self._generate_sensor_distance_text(self.sensor3_distance_val)}')
 
-    def ewt_input_processor(self,*args) -> None:
+    def ewt_input_processor(self,*args, **kwargs) -> None:
         from utilities import format_readable_DTG, generate_DTG
         from coords import convert_coords_to_mgrs, convert_mgrs_to_coords, format_readable_mgrs, get_distance_between_coords, get_center_coord, get_coords_from_LOBs
         from ew import get_emission_distance
@@ -2557,15 +2590,16 @@ class App(customtkinter.CTk):
         num_ewt_datapoints = 9
         ewt_bool = False
         # assess if directory exists
-        if not os.path.exists(self.log_directory):
+        if not os.path.exists(self.log_targeting_directory):
             # create log directory
-            os.makedirs(self.log_directory)
+            os.makedirs(self.log_targeting_directory)
+            self.logger_gui.info(f"Created directory: {self.log_targeting_directory}")
         # define log file name
         filename = f"EW-targeting-log-{str(datetime.datetime.today()).split()[0]}.csv"
         # if log file already exists
-        if os.path.isfile(os.path.join(self.log_directory, filename)):
+        if os.path.isfile(os.path.join(self.log_targeting_directory, filename)):
             # read current log file
-            log_data = read_csv(os.path.join(self.log_directory, filename))
+            log_data = read_csv(os.path.join(self.log_targeting_directory, filename))
         # if log file does not yet exist
         else:
             # create log file DataFrame
@@ -2602,6 +2636,7 @@ class App(customtkinter.CTk):
                 return
         except AttributeError:
             # end function w/o logging
+            self.logger_gui.warning("Missing required targeting and input data. No data logged.")
             self._show_info("Missing required data. No data logged.",icon='warning')
             return
         # if sensor 1 has data in the input fields
@@ -2696,7 +2731,7 @@ class App(customtkinter.CTk):
         log_data.append(log_row_dict)
         # try to save the updated log file
         try:
-            write_csv(os.path.join(self.log_directory, filename),log_data)
+            write_csv(os.path.join(self.log_targeting_directory, filename),log_data)
         # if file permissions prevent log file saving
         except PermissionError:
             # error message if file is currently open
@@ -2704,53 +2739,102 @@ class App(customtkinter.CTk):
             self._show_info("Log file currently open. Cannot log data!",icon='warning')
             return
         # success pop-up
+        self.logger_gui.info(f"Target data successfully logged to {filename}")
         self._show_info("Data successfully logged!!!",box_title='Successful Log',icon='info') 
     
     def reload_last_log(self) -> None:
         from utilities import read_csv
+        import os
+        import datetime
+        import tkinter as tk
+
         def get_most_recently_modified_file(directory):
-            # Get list of all files in the directory
-            files = [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
-            
-            # Sort files based on modification time
-            files.sort(key=lambda x: os.stat(x).st_mtime, reverse=True)
-            
-            # Return the most recently modified file
-            if files:
-                return files[0]
-            else:
+            # Validate directory
+            if not os.path.isdir(directory):
                 return None
-        # read last log
-        recent_file = get_most_recently_modified_file(self.log_directory)
+            # Get list of CSV files
+            files = [
+                os.path.join(directory, f) for f in os.listdir(directory)
+                if os.path.isfile(os.path.join(directory, f)) and f.endswith('.csv')
+            ]
+            # Sort by modification time
+            files.sort(key=lambda x: os.stat(x).st_mtime, reverse=True)
+            mtime = os.stat(files[0]).st_mtime
+            readable_date = datetime.datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %Hh:%Mm:%Ss')
+            self.logger_gui.info(f"Reloading logged target from: {readable_date}")
+            return files[0] if files else None
+
+        # Check log directory
+        if not os.path.isdir(self.log_targeting_directory):
+            os.makedirs(self.log_targeting_directory)
+            self.logger_gui.info(f"Target log directory created: '{self.log_targeting_directory}'")
+
+        # Get most recent file
+        recent_file = get_most_recently_modified_file(self.log_targeting_directory)
         if recent_file is None:
-            self._show_info("No log files detected.",icon='warning')
-            return            
-        log_data = read_csv(os.path.join(self.log_directory, recent_file))
-        last_log_entry = log_data[-1]
-        try:
-            last_log_entry['EWT_1_MGRS']
-        except KeyError:
-            self._show_info("No data is most recent log file.",icon='warning')
+            self.logger_gui.warning("No log files detected.")
+            self._show_info("No log files detected.", icon='warning')
             return
-        # clear current entries
+
+        # Read log data
+        log_data = read_csv(recent_file)
+        print(recent_file)
+        if not log_data:
+            self.logger_gui.warning("Most recent log file is empty.")
+            self._show_info("Most recent log file is empty.", icon='warning')
+            return
+
+        last_log_entry = log_data[-1]
+
+        # Validate required keys
+        required_keys = [
+            'EWT_1_MGRS', 'EWT_1_LOB_DEGREES', 'EWT_1_PWR_REC_DbM',
+            'EWT_2_MGRS', 'EWT_2_LOB_DEGREES', 'EWT_2_PWR_REC_DbM',
+            'EWT_3_MGRS', 'EWT_3_LOB_DEGREES', 'EWT_3_PWR_REC_DbM',
+            'FREQ_MHz', 'MIN_ERP_W', 'MAX_ERP_W', 'PATH_LOSS_COEFF'
+        ]
+        missing_keys = [key for key in required_keys if key not in last_log_entry]
+        if missing_keys:
+            self.logger_gui.error(f"Missing keys in log file: {', '.join(missing_keys)}")
+            self._show_info(f"Missing keys in log file: {', '.join(missing_keys)}", icon='warning')
+            return
+
+        # Clear current entries
         self.clear_entries()
-        # configure EWT entries
-        self.sensor1_mgrs.insert(0,last_log_entry['EWT_1_MGRS'])
-        self.sensor1_lob.insert(0,last_log_entry['EWT_1_LOB_DEGREES'])
-        self.sensor1_Rpwr.insert(0,last_log_entry['EWT_1_PWR_REC_DbM'])
-        self.sensor2_mgrs.insert(0,last_log_entry['EWT_2_MGRS'])
-        self.sensor2_lob.insert(0,last_log_entry['EWT_2_LOB_DEGREES'])
-        self.sensor2_Rpwr.insert(0,last_log_entry['EWT_2_PWR_REC_DbM'])
-        self.sensor3_mgrs.insert(0,last_log_entry['EWT_3_MGRS'])
-        self.sensor3_lob.insert(0,last_log_entry['EWT_3_LOB_DEGREES'])
-        self.sensor3_Rpwr.insert(0,last_log_entry['EWT_3_PWR_REC_DbM'])
-        self.frequency.insert(0,last_log_entry['FREQ_MHz'])
-        self.min_ERP.insert(0,last_log_entry['MIN_ERP_W'])
-        self.max_ERP.insert(0,last_log_entry['MAX_ERP_W'])
+
+        # Populate Tkinter fields
+        self.sensor1_mgrs.insert(0, last_log_entry['EWT_1_MGRS'])
+        self.sensor1_lob.insert(0, last_log_entry['EWT_1_LOB_DEGREES'])
+        self.sensor1_Rpwr.insert(0, last_log_entry['EWT_1_PWR_REC_DbM'])
+        self.sensor2_mgrs.insert(0, last_log_entry['EWT_2_MGRS'])
+        self.sensor2_lob.insert(0, last_log_entry['EWT_2_LOB_DEGREES'])
+        self.sensor2_Rpwr.insert(0, last_log_entry['EWT_2_PWR_REC_DbM'])
+        self.sensor3_mgrs.insert(0, last_log_entry['EWT_3_MGRS'])
+        self.sensor3_lob.insert(0, last_log_entry['EWT_3_LOB_DEGREES'])
+        self.sensor3_Rpwr.insert(0, last_log_entry['EWT_3_PWR_REC_DbM'])
+        self.frequency.insert(0, last_log_entry['FREQ_MHz'])
+        self.min_ERP.insert(0, last_log_entry['MIN_ERP_W'])
+        self.max_ERP.insert(0, last_log_entry['MAX_ERP_W'])
         self.path_loss_coeff = last_log_entry['PATH_LOSS_COEFF']
-        self.option_path_loss_coeff.set(self.get_pathloss_description_from_coeff(last_log_entry['PATH_LOSS_COEFF']))
-        # run EWT function
-        self.ewt_input_processor()
+        self.logger_gui.info(f"Target data reloaded into input fields.")
+
+        # Set path loss coefficient option
+        try:
+            self.option_path_loss_coeff.set(self.get_pathloss_description_from_coeff(last_log_entry['PATH_LOSS_COEFF']))
+        except Exception as e:
+            self.logger_gui.error(f"Invalid path loss coefficient: {str(e)}")
+            self._show_info(f"Invalid path loss coefficient: {str(e)}", icon='warning')
+            return
+
+        # Run EWT processor
+        try:
+            self.bypass_input_errors = True
+            self.ewt_input_processor()
+        except Exception as e:
+            self.logger_gui.error(f"Failed to process log data: {str(e)}")
+            self._show_info(f"Failed to process log data: {str(e)}", icon='warning')
+        finally:
+            self.bypass_input_errors = False
     
     def add_marker_event(self, coord: list[float,float], bool_bypass_measurement: bool = False, bool_bypass_log: bool = False) -> None:
         """Plot a "user marker" on the map at user discretion."""
