@@ -1,13 +1,14 @@
 import datetime
-import os
-import time
-import ssl
-import urllib.request
-from logger import LoggerManager
 import logging
+import os
+import ssl
+import time
+import urllib.request
 from typing import Dict, List
-from utilities import check_internet_connection, read_csv, write_csv, read_json
-from colorama import init, Fore
+
+from colorama import Fore, init
+from logger import LoggerManager
+from utilities import check_internet_connection, read_csv, read_json, write_csv
 
 init(autoreset=True)
 

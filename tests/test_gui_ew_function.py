@@ -1,8 +1,9 @@
-import pytest
-import customtkinter as ctk
-import sys
 import os
+import pytest
+import sys
 import time
+
+import customtkinter as ctk
 
 # Ensure src/ is in the system path for imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
@@ -27,6 +28,7 @@ def default_inputs():
     "default_max_ERP":conf["DEFAULT_MAX_ERP_W"],
     "default_option_path_loss_coeff":conf["DEFAULT_PATH-LOSS_COEFFICIENT_DESCRIPTION"]
     }
+
 
 @pytest.fixture()
 def expected_values():
@@ -107,8 +109,31 @@ def expected_values():
             "expected_target_class": "(FIX)",
             "expected_target_coord": [49.247557821821765, 11.76706972332321],
             "expected_target_mgrs": "32UQV0137458661"
+        },
+        "2_LOBs": {
+            "expected_target_grid": "32UPV 98804 60644\n32UQV 01759 58557",
+            "expected_label_target_grid": "TARGET GRIDs (2 LOBs)",
+            "expected_sensor1_distance": "1.89km",
+            "expected_sensor2_distance": "2.11km",
+            "expected_sensor3_distance": "N/A",
+            "expected_target_error": "564 acres",
+            "expected_target_class": "(2 LOBs)",
+            "expected_target_coord": "49.266214054206486, 11.732785386721917 | 49.24649727522025, 11.772304238438442",
+            "expected_target_mgrs": "32UPV9880460644, 32UQV0175958557"            
+        },
+        "3_LOBs": {
+            "expected_target_grid": "32UPV 98804 60644\n32UQV 01759 58557\n32UPV 97127 57354",
+            "expected_label_target_grid": "TARGET GRIDs (3 LOBs)",
+            "expected_sensor1_distance": "1.89km",
+            "expected_sensor2_distance": "2.11km",
+            "expected_sensor3_distance": "2.38km",
+            "expected_target_error": "714 acres",
+            "expected_target_class": "(3 LOBs)",
+            "expected_target_coord": "49.266214054206486, 11.732785386721917 | 49.24649727522025, 11.772304238438442 | 49.237196232557714, 11.70813997293801",
+            "expected_target_mgrs": "32UPV9880460644, 32UQV0175958557, 32UPV9712757354"            
         }
     }
+
 
 @pytest.fixture(scope="module")
 def app():
@@ -128,6 +153,7 @@ def app():
     app_instance.button_clear_measurements.invoke()
     app_instance.button_clear_entries.invoke()
     app_instance.destroy()
+
 
 def test_attribute_existence(app):
     """Test if the required attributes exist in the App instance."""
@@ -170,8 +196,10 @@ def test_attribute_existence(app):
     assert hasattr(app, "button_brightness_down"), "button_brightness_down button not found in App."
     assert hasattr(app, "button_brightness_up"), "button_brightness_up button not found in App."
 
+
 def plot_user_markers(app):
     pass
+
 
 def test_default_inputs_EWT1_LOB(app,default_inputs,expected_values):
     """Test default input in the GUI and their expected outputs"""
@@ -211,6 +239,7 @@ def test_default_inputs_EWT1_LOB(app,default_inputs,expected_values):
 
     # Clear the entries after the test
     app.button_clear_target_overlays.invoke()
+
 
 def test_default_inputs_EWT2_LOB(app,default_inputs,expected_values):
     """Test default input in the GUI and their expected outputs"""
@@ -292,6 +321,49 @@ def test_default_inputs_EWT3_LOB(app,default_inputs,expected_values):
     app.button_clear_target_overlays.invoke()
 
 
+def test_default_inputs_2_LOBs(app,default_inputs,expected_values):
+    """Test default input in the GUI and their expected outputs"""
+    
+    # Insert default values into the entry fields
+    app.button_clear_entries.invoke()
+    app.update_idletasks()
+    app.bypass_input_errors = True  # Bypass input errors for testing
+    app.bypass_elevation_plot_prompt = True  # Bypass elevation plot prompt for testing
+
+    app.sensor1_mgrs.insert(0, default_inputs["default_sensor1_mgrs"])
+    app.sensor1_Rpwr.insert(0, default_inputs["default_sensor1_Rpwr"])
+    app.sensor1_lob.insert(0, int((default_inputs["default_sensor1_lob"] + 180) % 360))
+    app.sensor2_mgrs.insert(0, default_inputs["default_sensor2_mgrs"])
+    app.sensor2_Rpwr.insert(0, default_inputs["default_sensor2_Rpwr"])
+    app.sensor2_lob.insert(0, default_inputs["default_sensor2_lob"])
+    app.frequency.insert(0, default_inputs["default_frequency"])
+    app.min_ERP.insert(0, default_inputs["default_min_ERP"])
+    app.max_ERP.insert(0, default_inputs["default_max_ERP"])
+    app.option_path_loss_coeff.set(default_inputs["default_option_path_loss_coeff"])
+
+    # Update UI to process the inserted values
+    app.update_idletasks()
+
+    # Run the calculation
+    app.button_calculate.invoke()
+    app.update_idletasks()
+    time.sleep(1)
+
+    # Check if the calculated values are displayed
+    assert app.target_grid.cget("text") == expected_values["2_LOBs"]["expected_target_grid"], f"Target grid is {app.target_grid.cget("text")} instead of {expected_values["2_LOBs"]["expected_target_grid"]}."
+    assert app.label_target_grid.cget("text") == expected_values["2_LOBs"]["expected_label_target_grid"], f"Label for target grid is {app.label_target_grid.cget("text")} instead of {expected_values["2_LOBs"]["expected_label_target_grid"]}."
+    assert app.sensor1_distance.cget("text") == expected_values["2_LOBs"]["expected_sensor1_distance"], f"Sensor 1 distance is {app.sensor1_distance.cget("text")} instead of {expected_values["2_LOBs"]["expected_sensor1_distance"]}."
+    assert app.sensor2_distance.cget("text") == expected_values["2_LOBs"]["expected_sensor2_distance"], f"Sensor 2 distance is {app.sensor2_distance.cget("text")} instead of {expected_values["2_LOBs"]["expected_sensor2_distance"]}."
+    assert app.sensor3_distance.cget("text") == expected_values["2_LOBs"]["expected_sensor3_distance"], f"Sensor 3 distance is {app.sensor3_distance.cget("text")} instead of {expected_values["2_LOBs"]["expected_sensor3_distance"]}."
+    assert app.target_error.cget("text") == expected_values["2_LOBs"]["expected_target_error"], f"Target error is {app.target_error.cget("text")} instead of {expected_values["2_LOBs"]["expected_target_error"]}."
+    assert app.target_class == expected_values["2_LOBs"]["expected_target_class"], f"Target class is {app.target_class} instead of {expected_values["2_LOBs"]["expected_target_class"]}."
+    assert app.target_coord == expected_values["2_LOBs"]["expected_target_coord"], f"Target coordinate is {app.target_coord} instead of {expected_values["2_LOBs"]["expected_target_coord"]}."
+    assert app.target_mgrs == expected_values["2_LOBs"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["2_LOBs"]["expected_target_mgrs"]}."
+
+    # Clear the entries after the test
+    app.button_clear_target_overlays.invoke()
+
+
 def test_default_inputs_EWT1_EWT2_CUT(app,default_inputs,expected_values):
     """Test default input in the GUI and their expected outputs"""
     
@@ -327,7 +399,7 @@ def test_default_inputs_EWT1_EWT2_CUT(app,default_inputs,expected_values):
     assert app.sensor2_distance.cget("text") == expected_values["CUT_EWT1_EWT2"]["expected_sensor2_distance"], f"Sensor 2 distance is {app.sensor2_distance.cget("text")} instead of {expected_values["CUT_EWT1_EWT2"]["expected_sensor2_distance"]}."
     assert app.sensor3_distance.cget("text") == expected_values["CUT_EWT1_EWT2"]["expected_sensor3_distance"], f"Sensor 3 distance is {app.sensor3_distance.cget("text")} instead of {expected_values["CUT_EWT1_EWT2"]["expected_sensor3_distance"]}."
     assert app.target_error.cget("text") == expected_values["CUT_EWT1_EWT2"]["expected_target_error"], f"Target error is {app.target_error.cget("text")} instead of {expected_values["CUT_EWT1_EWT2"]["expected_target_error"]}."
-    assert app.target_class == expected_values["CUT_EWT1_EWT2"]["expected_target_class"], f"Target class is {app.target_class} instead of {expected_values["FCUT_EWT1_EWT2ix"]["expected_target_class"]}."
+    assert app.target_class == expected_values["CUT_EWT1_EWT2"]["expected_target_class"], f"Target class is {app.target_class} instead of {expected_values["CUT_EWT1_EWT2"]["expected_target_class"]}."
     assert app.target_coord == expected_values["CUT_EWT1_EWT2"]["expected_target_coord"], f"Target coordinate is {app.target_coord} instead of {expected_values["CUT_EWT1_EWT2"]["expected_target_coord"]}."
     assert app.target_mgrs == expected_values["CUT_EWT1_EWT2"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["CUT_EWT1_EWT2"]["expected_target_mgrs"]}."
 
@@ -336,10 +408,90 @@ def test_default_inputs_EWT1_EWT2_CUT(app,default_inputs,expected_values):
 
 
 def test_default_inputs_EWT1_EWT3_CUT(app,default_inputs,expected_values):
-    pass
+    """Test default input in the GUI and their expected outputs"""
+    
+    # Insert default values into the entry fields
+    app.button_clear_entries.invoke()
+    app.update_idletasks()
+    app.bypass_input_errors = True  # Bypass input errors for testing
+    app.bypass_elevation_plot_prompt = True  # Bypass elevation plot prompt for testing
+
+    app.sensor1_mgrs.insert(0, default_inputs["default_sensor1_mgrs"])
+    app.sensor1_Rpwr.insert(0, default_inputs["default_sensor1_Rpwr"])
+    app.sensor1_lob.insert(0, default_inputs["default_sensor1_lob"])
+    app.sensor3_mgrs.insert(0, default_inputs["default_sensor3_mgrs"])
+    app.sensor3_Rpwr.insert(0, default_inputs["default_sensor3_Rpwr"])
+    app.sensor3_lob.insert(0, default_inputs["default_sensor3_lob"])
+    app.frequency.insert(0, default_inputs["default_frequency"])
+    app.min_ERP.insert(0, default_inputs["default_min_ERP"])
+    app.max_ERP.insert(0, default_inputs["default_max_ERP"])
+    app.option_path_loss_coeff.set(default_inputs["default_option_path_loss_coeff"])
+
+    # Update UI to process the inserted values
+    app.update_idletasks()
+
+    # Run the calculation
+    app.button_calculate.invoke()
+    app.update_idletasks()
+    time.sleep(1)
+
+    # Check if the calculated values are displayed
+    assert app.target_grid.cget("text") == expected_values["CUT_EWT1_EWT3"]["expected_target_grid"], f"Target grid is {app.target_grid.cget("text")} instead of {expected_values["CUT_EWT1_EWT3"]["expected_target_grid"]}."
+    assert app.label_target_grid.cget("text") == expected_values["CUT_EWT1_EWT3"]["expected_label_target_grid"], f"Label for target grid is {app.label_target_grid.cget("text")} instead of {expected_values["CUT_EWT1_EWT3"]["expected_label_target_grid"]}."
+    assert app.sensor1_distance.cget("text") == expected_values["CUT_EWT1_EWT3"]["expected_sensor1_distance"], f"Sensor 1 distance is {app.sensor1_distance.cget("text")} instead of {expected_values["CUT_EWT1_EWT3"]["expected_sensor1_distance"]}."
+    assert app.sensor2_distance.cget("text") == expected_values["CUT_EWT1_EWT3"]["expected_sensor2_distance"], f"Sensor 2 distance is {app.sensor2_distance.cget("text")} instead of {expected_values["CUT_EWT1_EWT3"]["expected_sensor2_distance"]}."
+    assert app.sensor3_distance.cget("text") == expected_values["CUT_EWT1_EWT3"]["expected_sensor3_distance"], f"Sensor 3 distance is {app.sensor3_distance.cget("text")} instead of {expected_values["CUT_EWT1_EWT3"]["expected_sensor3_distance"]}."
+    assert app.target_error.cget("text") == expected_values["CUT_EWT1_EWT3"]["expected_target_error"], f"Target error is {app.target_error.cget("text")} instead of {expected_values["CUT_EWT1_EWT3"]["expected_target_error"]}."
+    assert app.target_class == expected_values["CUT_EWT1_EWT3"]["expected_target_class"], f"Target class is {app.target_class} instead of {expected_values["CUT_EWT1_EWT3"]["expected_target_class"]}."
+    assert app.target_coord == expected_values["CUT_EWT1_EWT3"]["expected_target_coord"], f"Target coordinate is {app.target_coord} instead of {expected_values["CUT_EWT1_EWT3"]["expected_target_coord"]}."
+    assert app.target_mgrs == expected_values["CUT_EWT1_EWT3"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["CUT_EWT1_EWT3"]["expected_target_mgrs"]}."
+
+    # Clear the entries after the test
+    app.button_clear_target_overlays.invoke()
+
 
 def test_default_inputs_EWT2_EWT3_CUT(app,default_inputs,expected_values):
-    pass
+    """Test default input in the GUI and their expected outputs"""
+    
+    # Insert default values into the entry fields
+    app.button_clear_entries.invoke()
+    app.update_idletasks()
+    app.bypass_input_errors = True  # Bypass input errors for testing
+    app.bypass_elevation_plot_prompt = True  # Bypass elevation plot prompt for testing
+
+    app.sensor2_mgrs.insert(0, default_inputs["default_sensor2_mgrs"])
+    app.sensor2_Rpwr.insert(0, default_inputs["default_sensor2_Rpwr"])
+    app.sensor2_lob.insert(0, default_inputs["default_sensor2_lob"])
+    app.sensor3_mgrs.insert(0, default_inputs["default_sensor3_mgrs"])
+    app.sensor3_Rpwr.insert(0, default_inputs["default_sensor3_Rpwr"])
+    app.sensor3_lob.insert(0, default_inputs["default_sensor3_lob"])
+    app.frequency.insert(0, default_inputs["default_frequency"])
+    app.min_ERP.insert(0, default_inputs["default_min_ERP"])
+    app.max_ERP.insert(0, default_inputs["default_max_ERP"])
+    app.option_path_loss_coeff.set(default_inputs["default_option_path_loss_coeff"])
+
+    # Update UI to process the inserted values
+    app.update_idletasks()
+
+    # Run the calculation
+    app.button_calculate.invoke()
+    app.update_idletasks()
+    time.sleep(1)
+
+    # Check if the calculated values are displayed
+    assert app.target_grid.cget("text") == expected_values["CUT_EWT2_EWT3"]["expected_target_grid"], f"Target grid is {app.target_grid.cget("text")} instead of {expected_values["CUT_EWT2_EWT3"]["expected_target_grid"]}."
+    assert app.label_target_grid.cget("text") == expected_values["CUT_EWT2_EWT3"]["expected_label_target_grid"], f"Label for target grid is {app.label_target_grid.cget("text")} instead of {expected_values["CUT_EWT2_EWT3"]["expected_label_target_grid"]}."
+    assert app.sensor1_distance.cget("text") == expected_values["CUT_EWT2_EWT3"]["expected_sensor1_distance"], f"Sensor 1 distance is {app.sensor1_distance.cget("text")} instead of {expected_values["CUT_EWT2_EWT3"]["expected_sensor1_distance"]}."
+    assert app.sensor2_distance.cget("text") == expected_values["CUT_EWT2_EWT3"]["expected_sensor2_distance"], f"Sensor 2 distance is {app.sensor2_distance.cget("text")} instead of {expected_values["CUT_EWT2_EWT3"]["expected_sensor2_distance"]}."
+    assert app.sensor3_distance.cget("text") == expected_values["CUT_EWT2_EWT3"]["expected_sensor3_distance"], f"Sensor 3 distance is {app.sensor3_distance.cget("text")} instead of {expected_values["CUT_EWT2_EWT3"]["expected_sensor3_distance"]}."
+    assert app.target_error.cget("text") == expected_values["CUT_EWT2_EWT3"]["expected_target_error"], f"Target error is {app.target_error.cget("text")} instead of {expected_values["CUT_EWT2_EWT3"]["expected_target_error"]}."
+    assert app.target_class == expected_values["CUT_EWT2_EWT3"]["expected_target_class"], f"Target class is {app.target_class} instead of {expected_values["CUT_EWT2_EWT3"]["expected_target_class"]}."
+    assert app.target_coord == expected_values["CUT_EWT2_EWT3"]["expected_target_coord"], f"Target coordinate is {app.target_coord} instead of {expected_values["CUT_EWT2_EWT3"]["expected_target_coord"]}."
+    assert app.target_mgrs == expected_values["CUT_EWT2_EWT3"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["CUT_EWT2_EWT3"]["expected_target_mgrs"]}."
+
+    # Clear the entries after the test
+    app.button_clear_target_overlays.invoke()
+
 
 def test_default_inputs_fix(app,default_inputs,expected_values):
     """Test default input in the GUI and their expected outputs"""
@@ -382,6 +534,52 @@ def test_default_inputs_fix(app,default_inputs,expected_values):
     assert app.target_class == expected_values["Fix"]["expected_target_class"], f"Target class is {app.target_class} instead of {expected_values["Fix"]["expected_target_class"]}."
     assert app.target_coord == expected_values["Fix"]["expected_target_coord"], f"Target coordinate is {app.target_coord} instead of {expected_values["Fix"]["expected_target_coord"]}."
     assert app.target_mgrs == expected_values["Fix"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["Fix"]["expected_target_mgrs"]}."
+
+    # Clear the entries after the test
+    app.button_clear_target_overlays.invoke()
+
+
+def test_default_inputs_3_LOBs(app,default_inputs,expected_values):
+    """Test default input in the GUI and their expected outputs"""
+    
+    # Insert default values into the entry fields
+    app.button_clear_entries.invoke()
+    app.update_idletasks()
+    app.bypass_input_errors = True  # Bypass input errors for testing
+    app.bypass_elevation_plot_prompt = True  # Bypass elevation plot prompt for testing
+
+    app.sensor1_mgrs.insert(0, default_inputs["default_sensor1_mgrs"])
+    app.sensor1_Rpwr.insert(0, default_inputs["default_sensor1_Rpwr"])
+    app.sensor1_lob.insert(0, int((default_inputs["default_sensor1_lob"] + 180) % 360))
+    app.sensor2_mgrs.insert(0, default_inputs["default_sensor2_mgrs"])
+    app.sensor2_Rpwr.insert(0, default_inputs["default_sensor2_Rpwr"])
+    app.sensor2_lob.insert(0, default_inputs["default_sensor2_lob"])
+    app.sensor3_mgrs.insert(0, default_inputs["default_sensor3_mgrs"])
+    app.sensor3_Rpwr.insert(0, default_inputs["default_sensor3_Rpwr"])
+    app.sensor3_lob.insert(0, int((default_inputs["default_sensor3_lob"] + 180) % 360))
+    app.frequency.insert(0, default_inputs["default_frequency"])
+    app.min_ERP.insert(0, default_inputs["default_min_ERP"])
+    app.max_ERP.insert(0, default_inputs["default_max_ERP"])
+    app.option_path_loss_coeff.set(default_inputs["default_option_path_loss_coeff"])
+
+    # Update UI to process the inserted values
+    app.update_idletasks()
+
+    # Run the calculation
+    app.button_calculate.invoke()
+    app.update_idletasks()
+    time.sleep(1)
+
+    # Check if the calculated values are displayed
+    assert app.target_grid.cget("text") == expected_values["3_LOBs"]["expected_target_grid"], f"Target grid is {app.target_grid.cget("text")} instead of {expected_values["3_LOBs"]["expected_target_grid"]}."
+    assert app.label_target_grid.cget("text") == expected_values["3_LOBs"]["expected_label_target_grid"], f"Label for target grid is {app.label_target_grid.cget("text")} instead of {expected_values["3_LOBs"]["expected_label_target_grid"]}."
+    assert app.sensor1_distance.cget("text") == expected_values["3_LOBs"]["expected_sensor1_distance"], f"Sensor 1 distance is {app.sensor1_distance.cget("text")} instead of {expected_values["3_LOBs"]["expected_sensor1_distance"]}."
+    assert app.sensor2_distance.cget("text") == expected_values["3_LOBs"]["expected_sensor2_distance"], f"Sensor 2 distance is {app.sensor2_distance.cget("text")} instead of {expected_values["3_LOBs"]["expected_sensor2_distance"]}."
+    assert app.sensor3_distance.cget("text") == expected_values["3_LOBs"]["expected_sensor3_distance"], f"Sensor 3 distance is {app.sensor3_distance.cget("text")} instead of {expected_values["3_LOBs"]["expected_sensor3_distance"]}."
+    assert app.target_error.cget("text") == expected_values["3_LOBs"]["expected_target_error"], f"Target error is {app.target_error.cget("text")} instead of {expected_values["3_LOBs"]["expected_target_error"]}."
+    assert app.target_class == expected_values["3_LOBs"]["expected_target_class"], f"Target class is {app.target_class} instead of {expected_values["3_LOBs"]["expected_target_class"]}."
+    assert app.target_coord == expected_values["3_LOBs"]["expected_target_coord"], f"Target coordinate is {app.target_coord} instead of {expected_values["3_LOBs"]["expected_target_coord"]}."
+    assert app.target_mgrs == expected_values["3_LOBs"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["3_LOBs"]["expected_target_mgrs"]}."
 
     # Clear the entries after the test
     app.button_clear_target_overlays.invoke()

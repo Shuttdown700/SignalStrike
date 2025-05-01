@@ -1,19 +1,21 @@
-import serial
-import serial.tools.list_ports
-import time
 import json
+import logging
 import os
+import threading
+import time
 from datetime import datetime, UTC
 from pathlib import Path
+
 import mgrs
-import threading
-import winreg
-import win32com.client
+import serial
+import serial.tools.list_ports
 import usb.core
 import usb.util
+import win32com.client
+import winreg
+
 from coords import convert_coords_to_mgrs
 from logger import LoggerManager
-import logging
 from utilities import read_json
 
 class PositioningService:
@@ -89,20 +91,20 @@ class PositioningService:
                                 self.logger.warning("No USB GNSS device found.")
                                 return None, None, None
         except Exception as e:
-            print(f"Error checking sensors: {e}")
+            self.logger.error(f"Error checking sensors: {e}")
 
         # Step 4: Fallback to scanning for GGA sentences
         common_baud_rates = [9600, 38400, 115200]
         for port_info in ports:
             port = port_info.device
-            print(f"Trying port: {port} | {port_info.description}")
+            self.logger.info(f"Trying port: {port} | {port_info.description}")
             for baudrate in common_baud_rates:
                 try:
                     with serial.Serial(port, baudrate, timeout=1) as ser:
                         for _ in range(5):
                             line = ser.readline().decode('utf-8', errors='ignore').strip()
                             if line.startswith('$GPGGA'):
-                                print(f"Detected GNSS on {port} at {baudrate} baud")
+                                self.logger.info(f"Detected GNSS on {port} at {baudrate} baud")
                                 return "serial", port, baudrate
                 except Exception as e:
                     continue
@@ -230,7 +232,6 @@ class PositioningService:
                 except usb.core.USBError:
                     self.logger.error("USB read error. Device may be disconnected.")
                     continue
-            print("No valid GNSS data from USB within timeout.")
             self.logger.warning("No valid GNSS data from USB within timeout.")
             return
         except usb.core.NoBackendError:
@@ -297,7 +298,6 @@ class PositioningService:
                 f.write(json.dumps(self.latest_position) + '\n')
             self.logger.info(f"Logged position: {format_readable_mgrs(self.latest_position['data']['mgrs'])}")
         except Exception as e:
-            print(f"Failed to write to log file: {e}")
             self.logger.error(f"Failed to write to log file: {e}")
 
     def poll_location(self):
@@ -318,7 +318,7 @@ class PositioningService:
         threading.Thread(target=self.poll_location, daemon=True).start()
 
     def stop(self):
-        print("Positioning service stopping.")
+        self.logger.warning("Positioning service stopping.")
         self._stop_event.set()
 
     def get_latest_position_from_logs(self):
@@ -342,9 +342,9 @@ if __name__ == "__main__":
             time.sleep(sleep_interval)
             latest = service.get_latest_position_from_logs()
             if latest:
-                print("Latest logged position:", latest)
+                service.logger.info("Latest logged position:", latest)
             if service.device_type is None:
-                print("No GNSS device found. Exiting...")
+                service.logger.info("No GNSS device found. Exiting.")
                 service.stop()
                 break
     except KeyboardInterrupt:
