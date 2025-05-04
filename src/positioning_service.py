@@ -349,4 +349,4 @@ if __name__ == "__main__":
                 break
     except KeyboardInterrupt:
         service.stop()
-    time.sleep(1000)
+    time.sleep(10)

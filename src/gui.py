@@ -2780,7 +2780,6 @@ class App(customtkinter.CTk):
 
         # Read log data
         log_data = read_csv(recent_file)
-        print(recent_file)
         if not log_data:
             self.logger_gui.warning("Most recent log file is empty.")
             self._show_info("Most recent log file is empty.", icon='warning')
@@ -2988,19 +2987,21 @@ class App(customtkinter.CTk):
         from coords import convert_coords_to_mgrs, format_readable_mgrs
         coord = list(coord)
         msgBox = CTkMessagebox(title="Plotting EWT", message="Which EWT is to be plotted?", icon='info',options=['EWT 1','EWT 2','EWT 3'])
-        print(coord)
         mgrs = convert_coords_to_mgrs(coord)
         mgrs_readable = format_readable_mgrs(mgrs)
         if msgBox.get() == "EWT 1":
             self.plot_EWT(coord,1)
+            self.sensor1_mgrs.delete(0, 'end')
             self.sensor1_mgrs.insert(0,mgrs)
             self.logger_gui.info(f"EWT 1 plotted at {mgrs_readable} via right-click")
         elif msgBox.get() == "EWT 2":
             self.plot_EWT(coord,2)
+            self.sensor2_mgrs.delete(0, 'end')
             self.sensor2_mgrs.insert(0,mgrs)
             self.logger_gui.info(f"EWT 2 plotted at {mgrs_readable} via right-click")
         elif msgBox.get() == "EWT 3":
             self.plot_EWT(coord,3)
+            self.sensor3_mgrs.delete(0, 'end')
             self.sensor3_mgrs.insert(0,mgrs)
             self.logger_gui.info(f"EWT 3 plotted at {mgrs_readable} via right-click")
 
@@ -3183,7 +3184,7 @@ class App(customtkinter.CTk):
 
     def log_tactical_marker(self,marker,marker_type):
         import datetime
-        from utilities import generate_DTG, read_csv, write_csv
+        from utilities import read_csv, write_csv
         from coords import convert_coords_to_mgrs
         marker_coord = [marker.position[0],marker.position[1]]
         marker_mgrs = convert_coords_to_mgrs(marker_coord)
