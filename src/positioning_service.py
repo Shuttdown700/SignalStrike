@@ -310,7 +310,7 @@ class PositioningService:
                     'data': position
                 }
                 self.latest_position = entry
-                self._log_position_to_file(entry)
+                self._log_position_to_file()
             self._stop_event.wait(self.interval)
 
     def start(self):
