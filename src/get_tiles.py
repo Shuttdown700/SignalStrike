@@ -155,7 +155,7 @@ def download_tile(tile: Tuple[int, int, int], args: Dict) -> None:
     write_filepath = os.path.join(write_dir, f"{tile_y}{extension}")
 
     if os.path.exists(write_filepath) and not args["overwrite"]:
-        print(f"Skipping: {zoom}/{tile_x}/{tile_y}{extension} already exists")
+        print(f"{Fore.GREEN}{Style.BRIGHT}Skipping{Style.RESET_ALL}: {zoom}/{tile_x}/{tile_y}{extension} already exists")
         return
 
     url = args["tile_url"].format(x=tile_x, y=tile_y, z=zoom)
