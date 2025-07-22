@@ -21,7 +21,7 @@ def check_internet_connection() -> bool:
         return False
 
 def adjust_brightness(action) -> int:
-    """Adjusts brightness by increasing or decreasing it by 10%."""
+    """Adjusts brightness by increasing or decreasing it by 20%."""
     import platform
     import os
 
@@ -34,7 +34,7 @@ def adjust_brightness(action) -> int:
     # Get the current OS
     current_os = platform.system()
     
-    increment_value = 10  # Brightness increment in percentage
+    increment_value = 20  # Brightness increment in percentage
     
     if current_os == "Windows":
         # For Windows, using the screen_brightness_control library

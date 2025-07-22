@@ -872,9 +872,9 @@ class App(customtkinter.CTk):
         # configure third row with low weight
         self.frame_right.grid_rowconfigure(2, weight=0)        
         # configure first column with low weight
-        self.frame_right.grid_columnconfigure(0, weight=1)
+        self.frame_right.grid_columnconfigure(0, weight=0)
         # configure second column with high weight
-        self.frame_right.grid_columnconfigure(1, weight=0)
+        self.frame_right.grid_columnconfigure(1, weight=1)
         # configure third column with low weight
         self.frame_right.grid_columnconfigure(2, weight=0)
         # configure forth column with low weight
@@ -890,7 +890,7 @@ class App(customtkinter.CTk):
         # assign map widget grid position
         self.map_widget.grid(
             row=1, 
-            rowspan=1, 
+            rowspan=2, 
             column=0, 
             columnspan=6,
             padx=(0, 0), 
@@ -918,90 +918,6 @@ class App(customtkinter.CTk):
             columnspan=1, 
             padx=(12, 0), 
             pady=12,
-            sticky="e")
-        # define clear tactical graphics button attributes
-        self.button_clear_tactical_graphics = customtkinter.CTkButton(
-            master=self.frame_right,
-            text="Clear Tactical Graphics",
-            fg_color="red",
-            hover_color="black",
-            text_color="white",
-            command=self.clear_tactical_markers)
-        # assign clear tactical graphics button grid position
-        self.button_clear_tactical_graphics.grid(
-            row=0,
-            rowspan=1,
-            column=1, 
-            columnspan=1, 
-            padx=(12, 0), 
-            pady=12,
-            sticky="ew")   
-        # define clear LOBs button attributes
-        self.button_clear_target_overlays = customtkinter.CTkButton(
-            master=self.frame_right,
-            text="Clear TGT Graphics",
-            fg_color="red",
-            hover_color="black",
-            text_color="white",
-            command=self.clear_target_overlays)
-        # assign clear LOBs button grid position
-        self.button_clear_target_overlays.grid(
-            row=0, 
-            rowspan=1,
-            column=2, 
-            columnspan=1, 
-            padx=(12, 0), 
-            pady=12,
-            sticky="ew")
-        # define clear markers button attributes
-        self.button_clear_markers = customtkinter.CTkButton(
-            master=self.frame_right,
-            text="Clear Generic Markers",
-            fg_color="red",
-            hover_color="black",
-            text_color="white",
-            command=self.clear_user_markers)
-        # assign clear markers button grid position
-        self.button_clear_markers.grid(
-            row=0, 
-            rowspan=1,
-            column=3, 
-            columnspan=1, 
-            padx=(12, 0), 
-            pady=12,
-            sticky="ew")
-        # define clear measurements button attributes
-        self.button_clear_measurements = customtkinter.CTkButton(
-            master=self.frame_right,
-            text="Clear Measurements",
-            fg_color="red",
-            hover_color="black",
-            text_color="white",
-            command=self.clear_measurements)
-        # assign clear measurements button grid position
-        self.button_clear_measurements.grid(
-            row=0, 
-            rowspan=1,
-            column=4, 
-            columnspan=1, 
-            padx=(12, 0), 
-            pady=12,
-            sticky="ew")     
-        # define map option dropdown attributes
-        self.map_option_menu = customtkinter.CTkOptionMenu(
-            master=self.frame_right, 
-            values=["Local Terrain Map", "Local Satellite Map", "OpenStreetMap", "Google Street", "Google Satellite"],
-            fg_color="green",
-            text_color="white",
-            command=self.change_map)
-        # assign map option dropdown grid position
-        self.map_option_menu.grid(
-            row=0,
-            rowspan=1,
-            column=5, 
-            columnspan=1, 
-            padx=(12, 0), 
-            pady=12,
             sticky="ew")
         # define mgrs entry form attributes
         self.search_mgrs = customtkinter.CTkEntry(
@@ -1009,8 +925,8 @@ class App(customtkinter.CTk):
             placeholder_text="Insert MGRS Grid")
         # assign mgrs entry form grid position
         self.search_mgrs.grid(
-            row=2,
-            column=0,
+            row=0,
+            column=1,
             columnspan=2,
             padx=(12, 0), 
             pady=12,
@@ -1027,58 +943,59 @@ class App(customtkinter.CTk):
             command=self.search_event)
         # assign search button grid position
         self.button_search.grid(
-            row=2,
+            row=0,
             rowspan=1,
-            column=2, 
+            column=3, 
             columnspan=1, 
             padx=(12, 0), 
             pady=12,
             sticky="ew")
-        # define Brightness down button attributes
-        self.button_brightness_down = customtkinter.CTkButton(
-            master=self.frame_right,
-            text="Brightness Down",
-            fg_color="black",
-            hover_color="gray",
+        # define clear option dropdown attributes
+        self.clear_option_dropdown = customtkinter.CTkOptionMenu(
+            master=self.frame_right, 
+            values=["Clear Generic Markers",
+                    "Clear Graphics", 
+                    "Clear Target Overlays", 
+                    "Clear EWTs", 
+                    "Clear Measurements"
+                    ],
+            fg_color="red",
             text_color="white",
-            command=self.increment_brightness_down)
-        # assign batch download radius 
-        self.button_brightness_down.grid(
-            row=2, 
-            column=3, 
+            command=self.clear_options)
+        self.clear_option_dropdown.grid(
+            row=0,
+            rowspan=1,
+            column=4, 
+            columnspan=1, 
+            padx=(12,0), 
+            pady=12,
+            sticky="w")
+
+        # define map option dropdown attributes
+        self.map_option_menu = customtkinter.CTkOptionMenu(
+            master=self.frame_right, 
+            values=["Local Terrain Map", 
+                    "Local Satellite Map", 
+                    "OpenStreetMap", 
+                    "Google Street", 
+                    "Google Satellite"
+                    ],
+            fg_color="green",
+            text_color="white",
+            command=self.change_map)
+        # assign map option dropdown grid position
+        self.map_option_menu.grid(
+            row=0,
+            rowspan=1,
+            column=5, 
+            columnspan=1, 
             padx=(12, 0), 
             pady=12,
-            sticky="we")
-        # define Brightness up button attributes
-        self.button_brightness_up = customtkinter.CTkButton(
-            master=self.frame_right,
-            text="Brightness Up",
-            fg_color="yellow",
-            hover_color="orange",
-            text_color="black",
-            command=self.increment_brightness_up)
-        # assign batch download's center MGRS
-        self.button_brightness_up.grid(
-            row=2, 
-            column=4,
-            columnspan=1,
-            padx=(12, 0), 
-            pady=12,
-            sticky="we")
-        # define text label attributes
-        self.label_status = customtkinter.CTkLabel(
-            master=self.frame_right,
-            text="")
-        # assign text label grid position
-        self.label_status.grid(
-            row=2, 
-            column=5,
-            columnspan=1,
-            padx=(12, 0), 
-            pady=12,
-            sticky="we")
+            sticky="w")
         # set initial location
         self.map_widget.set_position(App.DEFAULT_VALUES["Initial Latitude"],App.DEFAULT_VALUES["Initial Longitude"])
+        # set clear option
+        self.clear_option_dropdown.set("Map Clear Options")
         # set map widget default server
         self.map_option_menu.set("Local Terrain Map")
         # set default path-loss coefficient
@@ -1094,18 +1011,24 @@ class App(customtkinter.CTk):
             label="Copy MGRS Gid",
             command=self.copy_mgrs_grid,
             pass_coords=True)
-        self.map_widget.add_right_click_menu_command(
-            label="Plot OBJ",
-            command=self.plot_OBJ,
-            pass_coords=True)
-        self.map_widget.add_right_click_menu_command(
-            label="Plot NAI",
-            command=self.plot_NAI,
-            pass_coords=True)
+        # self.map_widget.add_right_click_menu_command(
+        #     label="Plot OBJ",
+        #     command=self.plot_OBJ,
+        #     pass_coords=True)
+        # self.map_widget.add_right_click_menu_command(
+        #     label="Plot NAI",
+        #     command=self.plot_NAI,
+        #     pass_coords=True)
         self.map_widget.add_right_click_menu_command(
             label="Plot EWT",
             command=self.right_click_plot_EWT,
             pass_coords=True)
+        self.map_widget.add_right_click_menu_command(
+            label="Decrease Brightness (20%)",
+            command=self.increment_brightness_down)
+        self.map_widget.add_right_click_menu_command(
+            label="Increase Brightness (20%)",
+            command=self.increment_brightness_up)
         self.plot_current_markers()
 
     def plot_current_markers(self) -> None:
@@ -1173,7 +1096,6 @@ class App(customtkinter.CTk):
         """
         Function to read and ajudicate EWT input
         """
-        # self.bypass_input_errors = False ### TEMP, until i figure it out...
         from tkinter import END
         from coords import check_mgrs_input, correct_mgrs_input
         # resets boolean values to FALSE, allowing EWT input
@@ -2837,7 +2759,11 @@ class App(customtkinter.CTk):
         finally:
             self.bypass_input_errors = False
     
-    def add_marker_event(self, coord: list[float,float], bool_bypass_measurement: bool = False, bool_bypass_log: bool = False) -> None:
+    def add_marker_event(self, 
+                         coord: list[float,float], 
+                         bool_bypass_measurement: bool = False, 
+                         bool_bypass_log: bool = False
+                         ) -> None:
         """Plot a "user marker" on the map at user discretion."""
         # import libraries
         from PIL import Image, ImageTk
@@ -2903,12 +2829,14 @@ class App(customtkinter.CTk):
             mgrs_end = format_readable_mgrs(convert_coords_to_mgrs(sequencial_coord_list[1]))
             self.logger_gui.info(f"Measurement plotted from {mgrs_start} to {mgrs_end}: {distance_text}")
 
-    def plot_OBJ(self,coord : list[float,float],bool_bypass_log = False):
+    def plot_OBJ(self,coord : list[float,float], 
+                 bool_bypass_log = False
+                 ) -> None:
         """Plot an "objective" on the map at user discretion."""
         # import libraries
         from PIL import Image, ImageTk
         from utilities import format_readable_DTG, generate_DTG
-        from coords import convert_coords_to_mgrs, format_readable_mgrs, get_distance_between_coords
+        from coords import convert_coords_to_mgrs, format_readable_mgrs
         import numpy as np
         import os
         # define marker's mgrs string
@@ -2957,7 +2885,10 @@ class App(customtkinter.CTk):
         # log the marker 
         if not bool_bypass_log: self.log_tactical_marker(new_marker,"NAI")
 
-    def plot_EWT(self,ewt_coord : list[float,float], ewt_num: int, bool_bypass_log = False):
+    def plot_EWT(self,ewt_coord : list[float,float], 
+                 ewt_num: int, 
+                 bool_bypass_log = False
+                 ) -> None:
         from utilities import format_readable_DTG, generate_DTG
         from coords import convert_coords_to_mgrs, format_readable_mgrs
         ewt_mgrs = format_readable_mgrs(convert_coords_to_mgrs(ewt_coord))
@@ -2981,7 +2912,9 @@ class App(customtkinter.CTk):
         self._append_object(ewt_marker,"EWT")
         if not bool_bypass_log: self.log_ewt_marker(ewt_marker,ewt_num)
 
-    def right_click_plot_EWT(self,coord: list[float,float]) -> None:
+    def right_click_plot_EWT(self,
+                             coord: list[float,float]
+                             ) -> None:
         """Function to plot EWT marker on right-click."""
         from CTkMessagebox import CTkMessagebox
         from coords import convert_coords_to_mgrs, format_readable_mgrs
@@ -3005,7 +2938,9 @@ class App(customtkinter.CTk):
             self.sensor3_mgrs.insert(0,mgrs)
             self.logger_gui.info(f"EWT 3 plotted at {mgrs_readable} via right-click")
 
-    def copy_mgrs_grid(self, coords: tuple[float,float]) -> None:
+    def copy_mgrs_grid(self, 
+                       coords: tuple[float,float]
+                       ) -> None:
         """Function to copy MGRS coordinates to clipboard."""
         from coords import convert_coords_to_mgrs
         # function to write text to clipboard
@@ -3037,7 +2972,7 @@ class App(customtkinter.CTk):
             msg = f'"{selected_text}" copied to clipboard'
         self._show_info(msg,box_title="Selection Copied",icon="info")
     
-    def search_event(self, event=None) -> None:
+    def search_event(self) -> None:
         from tkinter import END
         from coords import convert_mgrs_to_coords, check_mgrs_input, correct_mgrs_input, check_coord_input, correct_coord_input
         try:
@@ -3315,6 +3250,21 @@ class App(customtkinter.CTk):
         if not bool_bypass_log: self.logger_gui.info("Cleared all tactical markers from the map and marker list.")
     
     def clear_target_overlays(self) -> None:
+        for target in self.target_marker_list:
+            target.delete()
+        self.target_marker_list = []
+        for lob in self.lob_list:
+            lob.delete()
+        self.lob_list = []
+        for cut in self.cut_list:
+            cut.delete()
+        self.cut_list = []
+        for fix in self.fix_list:
+            fix.delete()
+        self.fix_list = []
+        self.logger_gui.info(f"Cleared all target overlays from the map and tracker lists.")
+
+    def clear_ewts(self) -> None:
         for ewt_marker in self.ewt_marker_list:
             ewt_marker.delete()
         self.ewt_marker_list = []
@@ -3333,21 +3283,8 @@ class App(customtkinter.CTk):
         except PermissionError:
             # error message if file is currently open
             self._show_info("EWT Marker file currently open. Cannot clear data!",icon='warning')
-        self.obj_list = []; self.nai_list = []
+        # Log the clearing of EWT markers
         self.logger_gui.info("Cleared all EWT markers from the map and marker list.")
-        for target in self.target_marker_list:
-            target.delete()
-        self.target_marker_list = []
-        for lob in self.lob_list:
-            lob.delete()
-        self.lob_list = []
-        for cut in self.cut_list:
-            cut.delete()
-        self.cut_list = []
-        for fix in self.fix_list:
-            fix.delete()
-        self.fix_list = []
-        self.logger_gui.info(f"Cleared all target overlays from the map and tracker lists.")
 
     def clear_entries(self) -> None:
         from tkinter import END
@@ -3460,6 +3397,22 @@ class App(customtkinter.CTk):
                 self.logger_gui.info(f"FIX Polygon removed from the map and tracker list.")
             # delete polygon from map
             polygon.delete()
+
+    def clear_options(self, command: str) -> None:
+        """Clear specific options based on the marker type."""
+        if command == 'Clear Generic Markers':
+            self.clear_user_markers()
+        elif command == 'Clear Graphics':
+            self.clear_tactical_markers()
+        elif command == 'Clear Target Overlays':
+            self.clear_target_overlays()
+        elif command == 'Clear Measurements':
+            self.clear_measurements()
+        elif command == 'Clear EWTs':
+            self.clear_ewts()
+        else:
+            self.logger_gui.warning(f"Unknown marker clear command: {command}")
+        self.clear_option_dropdown.set('Map Clear Options')
 
     def change_map(self, new_map: str) -> None:
         map_server_url = f'http://localhost:{App.MAP_SERVER_PORT}'

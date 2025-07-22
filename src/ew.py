@@ -119,9 +119,10 @@ def get_emission_distance(P_t_watts: float,
                           t_h: float,
                           r_h: float,
                           temp_f: float,
-                          path_loss_coeff=3,
-                          weather_coeff=4 / 3,
-                          pure_pathLoss=False) -> float:
+                          path_loss_coeff: int = 3,
+                          weather_coeff: float = 4 / 3,
+                          pure_pathLoss: bool = False,
+                          logger = None) -> float:
     """
     Returns theoretical maximum transceiver distance with all considerations.
 
@@ -155,6 +156,17 @@ def get_emission_distance(P_t_watts: float,
     float
         Maximum line-of-sight distance in km.
     """
+    P_t_watts = float(P_t_watts)
+    f_MHz = float(f_MHz)
+    G_t = float(G_t)
+    G_r = float(G_r)
+    R_s = float(R_s)
+    t_h = float(t_h)
+    r_h = float(r_h)
+    temp_f = float(temp_f)
+    path_loss_coeff = float(path_loss_coeff)
+    weather_coeff = float(weather_coeff)
+    
     path_loss = theoretical_emission_distance(
         P_t_watts, f_MHz, G_t, G_r, R_s, path_loss_coeff
     )
