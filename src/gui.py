@@ -60,7 +60,7 @@ class App(customtkinter.CTk):
         "Initial Latitude":conf["DEFAULT_INITIAL_LATITUDE"],
         "Initial Longitude":conf["DEFAULT_INITIAL_LONGITUDE"],
         "Map Server File Path":conf["DEFAULT_MAP_SERVER_PATH"],
-        "User Marker Filename":conf["FILENAME_USER_MARKERS"],
+        "POI Marker Filename":conf["FILENAME_POI_MARKERS"],
         "Tactical Graphic Marker Filename":conf["FILENAME_TACTICAL_GRAPHIC_MARKERS"],
         "EWT Marker Filename":conf["FILENAME_EWT_MARKERS"],
         "Initial Map Zoom":conf["INITIAL_ZOOM"]
@@ -141,8 +141,8 @@ class App(customtkinter.CTk):
         self.blank_image = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "empty.png")).resize((40, 40)))
         # set app icon
         self.iconbitmap(os.path.join(self.icon_directory, "app_icon.ico"))
-        # define initial user marker list
-        self.user_marker_list = []
+        # define initial POI marker list
+        self.POI_marker_list = []
         # define objective list
         self.obj_list = []
         # define NAI list
@@ -194,7 +194,7 @@ class App(customtkinter.CTk):
         self.frame_right = customtkinter.CTkFrame(master=self, corner_radius=0)
         self.frame_right.grid(row=0, column=1, rowspan=1, pady=10, padx=10, sticky="nsew")
 
-        # ============ User Input/Ouput Frame ============
+        # ============ GUI Input/Ouput Frame ============
         
         # define frame header attributes
         self.label_header = customtkinter.CTkLabel(
@@ -953,7 +953,7 @@ class App(customtkinter.CTk):
         # define clear option dropdown attributes
         self.clear_option_dropdown = customtkinter.CTkOptionMenu(
             master=self.frame_right, 
-            values=["Clear Generic Markers",
+            values=["Clear POIs",
                     "Clear Graphics", 
                     "Clear Target Overlays", 
                     "Clear EWTs", 
@@ -1004,7 +1004,7 @@ class App(customtkinter.CTk):
         self.option_sensor.set('BEAST+')
         # define right-click attributes
         self.map_widget.add_right_click_menu_command(
-            label="Add Generic Marker",
+            label="Add Point of Interest (POI)",
             command=self.add_marker_event,
             pass_coords=True)
         self.map_widget.add_right_click_menu_command(
@@ -1035,16 +1035,16 @@ class App(customtkinter.CTk):
         from tkinter import END
         from coords import convert_coords_to_mgrs, format_readable_mgrs
         from utilities import read_csv
-        user_marker_filepath = os.path.join(self.log_directory, App.DEFAULT_VALUES["User Marker Filename"])
+        filepath_POI_markers = os.path.join(self.log_directory, App.DEFAULT_VALUES["POI Marker Filename"])
         initial_coord = []
         try:
-            marker_data_list = read_csv(user_marker_filepath)
+            marker_data_list = read_csv(filepath_POI_markers)
             marker_data_list = sorted(marker_data_list,key=lambda x: int(x["MARKER_NUM"]))
             for marker_data in marker_data_list:
                 marker_coord = marker_data['LOC_LATLON']
                 marker_coord = [float(x) for x in marker_coord.split(', ')]
                 self.add_marker_event(marker_coord,True,True)
-                self.logger_gui.info(f"Loaded User Marker No. {marker_data['MARKER_NUM']} at {format_readable_mgrs(convert_coords_to_mgrs(marker_coord))}")
+                self.logger_gui.info(f"Loaded POI Marker No. {marker_data['MARKER_NUM']} at {format_readable_mgrs(convert_coords_to_mgrs(marker_coord))}")
                 initial_coord = marker_coord
         except FileNotFoundError:
             pass
@@ -1780,12 +1780,15 @@ class App(customtkinter.CTk):
         else:
             self.logger_targeting.info(f'{self.target_class} Target at {format_readable_mgrs(self.target_mgrs)} with an error of {self.target_error_val:,.0f} acres')
         if self.sensor1_distance_val != None: self.logger_targeting.info(f'Sensor 1 distance to target: {self._generate_sensor_distance_text(self.sensor1_distance_val)}')
+        if self.sensor1_bearing_val != None: self.logger_targeting.info(f'Sensor 1 bearing to target: {self.sensor1_bearing_val}°')
         if self.sensor2_distance_val != None: self.logger_targeting.info(f'Sensor 2 distance to target: {self._generate_sensor_distance_text(self.sensor2_distance_val)}')
+        if self.sensor2_bearing_val != None: self.logger_targeting.info(f'Sensor 2 bearing to target: {self.sensor2_bearing_val}°')
         if self.sensor3_distance_val != None: self.logger_targeting.info(f'Sensor 3 distance to target: {self._generate_sensor_distance_text(self.sensor3_distance_val)}')
+        if self.sensor3_bearing_val != None: self.logger_targeting.info(f'Sensor 3 bearing to target: {self.sensor3_bearing_val}°')
 
     def ewt_input_processor(self,*args, **kwargs) -> None:
         from utilities import format_readable_DTG, generate_DTG
-        from coords import convert_coords_to_mgrs, convert_mgrs_to_coords, format_readable_mgrs, get_distance_between_coords, get_center_coord, get_coords_from_LOBs
+        from coords import convert_coords_to_mgrs, convert_mgrs_to_coords, format_readable_mgrs, get_bearing_between_coordinates, get_distance_between_coords, get_center_coord, get_coords_from_LOBs
         from ew import get_emission_distance
         from map import check_for_intersection, check_if_point_in_polygon, get_intersection, get_line, get_polygon_area, organize_polygon_coords
         import threading
@@ -1875,8 +1878,9 @@ class App(customtkinter.CTk):
                     self._append_object(target1_marker,"TGT")
                 # calculate sensor 1 distance to target 1
                 self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.sensor1_target_coord))
+                self.sensor1_bearing_val = int(get_bearing_between_coordinates(self.sensor1_coord,self.sensor1_target_coord))
                 # generate sensor 1 distance from target text     
-                dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val)
+                dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val,self.sensor1_bearing_val)
                 # set sensor 1 distance field
                 self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
                 # generate a 2D elevation plot
@@ -1944,8 +1948,9 @@ class App(customtkinter.CTk):
                     self._append_object(target2_marker,"TGT")
                 # calculate sensor 1 distance to target 2
                 self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.sensor2_target_coord))
+                self.sensor2_bearing_val = int(get_bearing_between_coordinates(self.sensor2_coord,self.sensor2_target_coord))
                 # generate sensor 2 distance from target text       
-                dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val)
+                dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val,self.sensor2_bearing_val)
                 # set sensor 2 distance field
                 self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
                 # generate a 2D elevation plot
@@ -2014,8 +2019,9 @@ class App(customtkinter.CTk):
                     self._append_object(target3_marker,"TGT")
                 # calculate sensor 3 distance to target 3
                 self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.sensor3_target_coord))
+                self.sensor3_bearing_val = int(get_bearing_between_coordinates(self.sensor3_coord,self.sensor3_target_coord))
                 # generate sensor 3 distance from target text       
-                dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val)
+                dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val,self.sensor3_bearing_val)
                 # set sensor 3 distance field
                 self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
                 # generate a 2D elevation plot
@@ -2035,7 +2041,8 @@ class App(customtkinter.CTk):
             if self.sensor1_distance._text == "N/A" and self.sensor1_coord != None:
                 if self.sensor2_target_coord != None:
                     self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.sensor2_target_coord))
-                    dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val)
+                    self.sensor1_bearing_val = int(get_bearing_between_coordinates(self.sensor1_coord,self.sensor2_target_coord))
+                    dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val,self.sensor1_bearing_val)
                     self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
                 if self.sensor3_target_coord != None:
                     self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.sensor3_target_coord))
@@ -2045,21 +2052,25 @@ class App(customtkinter.CTk):
             if self.sensor2_distance._text == "N/A" and self.sensor2_coord != None:
                 if self.sensor1_target_coord != None:
                     self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.sensor1_target_coord))
-                    dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val)
+                    self.sensor2_bearing_val = int(get_bearing_between_coordinates(self.sensor2_coord,self.sensor1_target_coord))
+                    dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val,self.sensor2_bearing_val)
                     self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
                 if self.sensor3_target_coord != None:
                     self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.sensor3_target_coord))
-                    dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val)
+                    self.sensor2_bearing_val = int(get_bearing_between_coordinates(self.sensor2_coord,self.sensor3_target_coord))
+                    dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val,self.sensor2_bearing_val)
                     self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
             # calculate distance from EWT 3 to other EWT targets
             if self.sensor3_distance._text == "N/A" and self.sensor3_coord != None:
                 if self.sensor2_target_coord != None:
                     self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.sensor2_target_coord))
-                    dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val)
+                    self.sensor3_bearing_val = int(get_bearing_between_coordinates(self.sensor3_coord,self.sensor2_target_coord))
+                    dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val,self.sensor3_bearing_val)
                     self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
                 if self.sensor1_target_coord != None:
                     self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.sensor1_target_coord))
-                    dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val)
+                    self.sensor3_bearing_val = int(get_bearing_between_coordinates(self.sensor3_coord,self.sensor1_target_coord))
+                    dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val,self.sensor3_bearing_val)
                     self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
     
         def plot_cut(l1c,l1r,l1l,l2c,l2r,l2l,multi_cut_bool=False,plot_cut_tgts=True):
@@ -2105,11 +2116,17 @@ class App(customtkinter.CTk):
             # add CUT polygon to the polygon list
             self._append_object(cut_area,"CUT")
             # calculate distance from sensor 1 and CUT intersection (in meters)
-            if self.sensor1_mgrs_val != None: self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
+            if self.sensor1_mgrs_val != None: 
+                self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
+                self.sensor1_bearing_val = int(get_bearing_between_coordinates(self.sensor1_coord,self.target_coord))
             # calculate distance from sensor 2 and CUT intersection (in meters)
-            if self.sensor2_mgrs_val != None: self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.target_coord))    
+            if self.sensor2_mgrs_val != None: 
+                self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.target_coord))
+                self.sensor2_bearing_val = int(get_bearing_between_coordinates(self.sensor2_coord,self.target_coord))
             # define and set the CUT target marker
-            if self.sensor3_mgrs_val != None: self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.target_coord))    
+            if self.sensor3_mgrs_val != None: 
+                self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.target_coord))
+                self.sensor3_bearing_val = int(get_bearing_between_coordinates(self.sensor3_coord,self.target_coord))
             if plot_cut_tgts:
                 # define and set the CUT target marker
                 cut_target_marker = self.map_widget.set_marker(
@@ -2126,7 +2143,7 @@ class App(customtkinter.CTk):
             # generate sensor 1 distance from target text     
             if self.sensor1_mgrs_val != None: 
                 # generate sensor 1 distance from target text
-                dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val)
+                dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val,self.sensor1_bearing_val)
                 # set sensor 1 distance field
                 if self.sensor1_distance.cget("text") != '' and multi_cut_bool:
                     if self.sensor1_distance.cget("text") > dist_sensor1_text:
@@ -2135,7 +2152,7 @@ class App(customtkinter.CTk):
                     self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
             if self.sensor2_mgrs_val != None: 
                 # generate sensor 2 distance from target text
-                dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val)
+                dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val,self.sensor2_bearing_val)
                 # set sensor 2 distance field
                 if self.sensor2_distance.cget("text") != '' and multi_cut_bool:
                     if self.sensor2_distance.cget("text") > dist_sensor2_text:
@@ -2144,7 +2161,7 @@ class App(customtkinter.CTk):
                     self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
             if self.sensor3_mgrs_val != None:
                 # generate sensor 3 distance from target text
-                dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val)
+                dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val,self.sensor3_bearing_val)
                 # set sensor 3 distance field
                 if self.sensor3_distance.cget("text") != '' and multi_cut_bool:
                     if self.sensor3_distance.cget("text") > dist_sensor3_text:
@@ -2155,15 +2172,18 @@ class App(customtkinter.CTk):
             # set EWT distance of EWTs without target data
             if self.sensor1_distance._text == "N/A" and self.sensor1_coord != None:
                 self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
-                dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val)
+                self.sensor1_bearing_val = int(get_bearing_between_coordinates(self.sensor1_coord,self.target_coord))
+                dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val,self.sensor1_bearing_val)
                 self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
             if self.sensor2_distance._text == "N/A" and self.sensor2_coord != None:
                 self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.target_coord))
-                dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val)
+                self.sensor2_bearing_val = int(get_bearing_between_coordinates(self.sensor2_coord,self.target_coord))
+                dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val,self.sensor2_bearing_val)
                 self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
             if self.sensor3_distance._text == "N/A" and self.sensor3_coord != None:
                 self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.target_coord))
-                dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val)
+                self.sensor3_bearing_val = int(get_bearing_between_coordinates(self.sensor3_coord,self.target_coord))
+                dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val,self.sensor3_bearing_val)
                 self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
             # set target grid field with CUT center MGRS
             if multi_cut_bool: self.target_grid.configure(text="MULTIPLE CUTS")
@@ -2280,8 +2300,11 @@ class App(customtkinter.CTk):
             self.target_coord = fix_coord
             self.target_mgrs = convert_coords_to_mgrs(self.target_coord)
             self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
+            self.sensor1_bearing_val = int(get_bearing_between_coordinates(self.sensor1_coord,self.target_coord))
             self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.target_coord))
+            self.sensor2_bearing_val = int(get_bearing_between_coordinates(self.sensor2_coord,self.target_coord))
             self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.target_coord))
+            self.sensor3_bearing_val = int(get_bearing_between_coordinates(self.sensor3_coord,self.target_coord))
             self.target_error_val = get_polygon_area(fix_polygon)
             fix_description = f"Target FIX at {format_readable_mgrs(self.target_mgrs)} with {self.target_error_val:,.0f} acres of error"
             fix_target_marker = self.map_widget.set_marker(
@@ -2296,15 +2319,15 @@ class App(customtkinter.CTk):
             # add FIX marker to target marker list
             self._append_object(fix_target_marker,"TGT")
             # generate sensor 1 distance from target text     
-            dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val)
+            dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val,self.sensor1_bearing_val)
             # set sensor 1 distance field
             self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
             # generate sensor 2 distance from target text       
-            dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val)
+            dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val,self.sensor2_bearing_val)
             # set sensor 2 distance field
             self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
             # set target grid field with CUT center MGRS
-            dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val)
+            dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val,self.sensor3_bearing_val)
             # set sensor 2 distance field
             self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
             # set target grid field with CUT center MGRS
@@ -2329,15 +2352,18 @@ class App(customtkinter.CTk):
             # set EWT distance of EWTs without target data
             if self.sensor1_distance._text == "N/A" and self.sensor1_coord != None:
                 self.sensor1_distance_val = int(get_distance_between_coords(self.sensor1_coord,self.target_coord))
-                dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val)
+                self.sensor1_bearing_val = int(get_bearing_between_coordinates(self.sensor1_coord,self.target_coord))
+                dist_sensor1_text = self._generate_sensor_distance_text(self.sensor1_distance_val,self.sensor1_bearing_val)
                 self.sensor1_distance.configure(text=dist_sensor1_text,text_color='white')
             if self.sensor2_distance._text == "N/A" and self.sensor2_coord != None:
                 self.sensor2_distance_val = int(get_distance_between_coords(self.sensor2_coord,self.target_coord))
-                dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val)
+                self.sensor2_bearing_val = int(get_bearing_between_coordinates(self.sensor2_coord,self.target_coord))
+                dist_sensor2_text = self._generate_sensor_distance_text(self.sensor2_distance_val,self.sensor2_bearing_val)
                 self.sensor2_distance.configure(text=dist_sensor2_text,text_color='white')
             if self.sensor3_distance._text == "N/A" and self.sensor3_coord != None:
                 self.sensor3_distance_val = int(get_distance_between_coords(self.sensor3_coord,self.target_coord))
-                dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val)
+                self.sensor3_bearing_val = int(get_bearing_between_coordinates(self.sensor3_coord,self.target_coord))
+                dist_sensor3_text = self._generate_sensor_distance_text(self.sensor3_distance_val,self.sensor3_bearing_val)
                 self.sensor3_distance.configure(text=dist_sensor3_text,text_color='white')
         # reset fields to defaults
         self.label_target_grid.configure(text='')
@@ -2348,6 +2374,7 @@ class App(customtkinter.CTk):
         self.target_error.configure(text='')
         self.target_class = ''; self.target_coord = None; self.target_mgrs = None
         self.sensor1_distance_val = None; self.sensor2_distance_val = None; self.sensor3_distance_val = None
+        self.sensor1_bearing_val = None; self.sensor2_bearing_val = None; self.sensor3_bearing_val = None
         sensor1_lob_near_middle_coord = None; sensor2_lob_near_middle_coord = None; sensor3_lob_near_middle_coord = None
         sensor1_lob_far_middle_coord = None; sensor2_lob_far_middle_coord = None; sensor3_lob_far_middle_coord = None
         # read the user input fields
@@ -2764,7 +2791,7 @@ class App(customtkinter.CTk):
                          bool_bypass_measurement: bool = False, 
                          bool_bypass_log: bool = False
                          ) -> None:
-        """Plot a "user marker" on the map at user discretion."""
+        """Plot a "POI marker" on the map at user discretion."""
         # import libraries
         from PIL import Image, ImageTk
         from utilities import format_readable_DTG, generate_DTG
@@ -2774,14 +2801,14 @@ class App(customtkinter.CTk):
         # define marker's mgrs string
         marker_mgrs = f"{format_readable_mgrs(convert_coords_to_mgrs(list(coord)))}"
         # define marker's number
-        marker_num = len(self.user_marker_list) + 1
+        marker_num = len(self.POI_marker_list) + 1
         # define marker's data string
         try:
-            marker_data = f"User marker (No. {marker_num%10}) plotted at {format_readable_mgrs(convert_coords_to_mgrs(list(coord)))} on {format_readable_DTG(generate_DTG())}"
-            marker_icon = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "user_markers", f"user_marker_{marker_num}.png")).resize((40, 40)))
+            marker_data = f"POI marker (No. {marker_num%10}) plotted at {format_readable_mgrs(convert_coords_to_mgrs(list(coord)))} on {format_readable_DTG(generate_DTG())}"
+            marker_icon = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "POI_markers", f"POI_marker_{marker_num}.png")).resize((40, 40)))
         except FileNotFoundError:
-            maker_data = f"User marker plotted at {format_readable_mgrs(convert_coords_to_mgrs(list(coord)))} on {format_readable_DTG(generate_DTG())}"
-            marker_icon = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "user_markers", "generic_marker.png")).resize((40, 40)))
+            maker_data = f"POI marker plotted at {format_readable_mgrs(convert_coords_to_mgrs(list(coord)))} on {format_readable_DTG(generate_DTG())}"
+            marker_icon = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "POI_markers", "generic_marker.png")).resize((40, 40)))
         # plot marker
         new_marker = self.map_widget.set_marker(coord[0], coord[1], 
                                                 text=marker_mgrs,
@@ -2790,29 +2817,29 @@ class App(customtkinter.CTk):
                                                 command=self.marker_click,
                                                 data=marker_data)
         # append marker object to marker list
-        self._append_object(new_marker,"USER")
-        self.logger_gui.info(f"User marker (No. {marker_num}) plotted at {marker_mgrs}")
+        self._append_object(new_marker,"POI")
+        self.logger_gui.info(f"POI marker (No. {marker_num}) plotted at {marker_mgrs}")
         # log the marker 
-        if not bool_bypass_log: self.log_user_marker(new_marker)
+        if not bool_bypass_log: self.log_POI_marker(new_marker)
         # if other markers current exist
-        if len(self.user_marker_list) > 1 and not bool_bypass_measurement:
+        if len(self.POI_marker_list) > 1 and not bool_bypass_measurement:
             from CTkMessagebox import CTkMessagebox
-            num_start_point = len(self.user_marker_list)-1
+            num_start_point = len(self.POI_marker_list)-1
             msgBox = CTkMessagebox(title="Measurement Option", message=f"Measure distance from point {num_start_point}?", icon='info',options=['Yes','No'])
             response = msgBox.get()
             if response == "No": return
-            # reverse user marker list (last marker first)
-            sequencial_marker_list = self.user_marker_list[::-1]
+            # reverse POI marker list (last marker first)
+            sequencial_marker_list = self.POI_marker_list[::-1]
             # initialize coordinate list
             sequencial_coord_list = []
-            # create list of user marker coordinates
+            # create list of POI marker coordinates
             for i,marker in enumerate(sequencial_marker_list):
                 sequencial_coord_list.append(list(marker.position))
-            # determine distance between last two user markers
+            # determine distance between last two POI markers
             distance = get_distance_between_coords(sequencial_coord_list[0],sequencial_coord_list[1])
             # generate distance text
             distance_text = self._generate_sensor_distance_text(distance)
-            # plot line between last two user markers
+            # plot line between last two POI markers
             dist_line = self.map_widget.set_polygon([(sequencial_coord_list[0][0],sequencial_coord_list[0][1]),
                             (sequencial_coord_list[1][0],sequencial_coord_list[1][1])],outline_color="black")
             # determine middle coordinate between the last two coordinates
@@ -3081,7 +3108,7 @@ class App(customtkinter.CTk):
         new_brightness = adjust_brightness('decrease')
         self.logger_gui.info(f"Brightness decreased to {new_brightness}%.")
 
-    def log_user_marker(self,marker):
+    def log_POI_marker(self,marker):
         import datetime
         from utilities import generate_DTG, read_csv, write_csv
         from coords import convert_coords_to_mgrs
@@ -3093,7 +3120,7 @@ class App(customtkinter.CTk):
             # create log directory
             os.makedirs(self.log_directory)
         # define marker file name
-        filename = App.DEFAULT_VALUES["User Marker Filename"]
+        filename = App.DEFAULT_VALUES["POI Marker Filename"]
         # if marker file already exists
         if os.path.isfile(os.path.join(self.log_directory, filename)):
             # read current log file
@@ -3103,7 +3130,7 @@ class App(customtkinter.CTk):
             # create marker file DataFrame
             marker_data = []
         marker_columns = ['MARKER_NUM','MARKER_TYPE','LOC_MGRS','LOC_LATLON']
-        new_marker_data = [len(marker_data)+1,'USER',marker_mgrs,', '.join([str(x) for x in marker_coord])]
+        new_marker_data = [len(marker_data)+1,'POI',marker_mgrs,', '.join([str(x) for x in marker_coord])]
         # convert marker row into dictionary
         log_row_dict = dict(zip(marker_columns, new_marker_data))
         # append data row (dict) to marker data
@@ -3114,7 +3141,7 @@ class App(customtkinter.CTk):
         # if file permissions prevent log file saving
         except PermissionError:
             # error message if file is currently open
-            self._show_info("User Marker file currently open. Cannot log data!",icon='warning')
+            self._show_info("POI Marker file currently open. Cannot log data!",icon='warning')
             return
 
     def log_tactical_marker(self,marker,marker_type):
@@ -3149,7 +3176,7 @@ class App(customtkinter.CTk):
         # if file permissions prevent log file saving
         except PermissionError:
             # error message if file is currently open
-            self._show_info("User Marker file currently open. Cannot log data!",icon='warning')
+            self._show_info("POI Marker file currently open. Cannot log data!",icon='warning')
             return
 
     def log_ewt_marker(self, marker, ewt_num):
@@ -3198,10 +3225,10 @@ class App(customtkinter.CTk):
         self.path_list = []
         if not bool_bypass_log: self.logger_gui.info("Cleared all measurements from map and path list.")
 
-    def clear_user_markers(self, bool_bypass_log = False) -> None:
-        """Clear all user markers from the map and the marker list."""
-        for user_marker in self.user_marker_list:
-            user_marker.delete()
+    def clear_POI_markers(self, bool_bypass_log = False) -> None:
+        """Clear all POI markers from the map and the marker list."""
+        for POI_marker in self.POI_marker_list:
+            POI_marker.delete()
 
         for eud_marker in self.eud_marker_list:
             eud_marker.delete()
@@ -3211,7 +3238,7 @@ class App(customtkinter.CTk):
             os.makedirs(self.log_directory)
             self.logger_gui.info(f"Created marker log directory at {self.log_directory}")
 
-        filename = App.DEFAULT_VALUES["User Marker Filename"]
+        filename = App.DEFAULT_VALUES["POI Marker Filename"]
         marker_file_path = os.path.join(self.log_directory, filename)
 
         try:
@@ -3219,12 +3246,12 @@ class App(customtkinter.CTk):
         except FileNotFoundError:
             self.logger_gui.debug(f"Marker file not found: {marker_file_path}")
         except PermissionError:
-            self._show_info("User Marker file currently open. Cannot clear data!", icon='warning')
+            self._show_info("POI Marker file currently open. Cannot clear data!", icon='warning')
             self.logger_gui.warning(f"Permission denied while deleting: {marker_file_path}")
 
-        self.user_marker_list = []
+        self.POI_marker_list = []
         self.eud_marker_list = []
-        if not bool_bypass_log: self.logger_gui.info("Cleared all user markers from the map and marker list.")
+        if not bool_bypass_log: self.logger_gui.info("Cleared all POI markers from the map and marker list.")
 
     def clear_tactical_markers(self,bool_bypass_log=False) -> None:
         for obj_marker in self.obj_list:
@@ -3300,7 +3327,7 @@ class App(customtkinter.CTk):
         self.frequency.delete(0,END)
         self.min_ERP.delete(0,END)
         self.max_ERP.delete(0,END)
-        self.logger_gui.info(f"Cleared all user input fields.")
+        self.logger_gui.info(f"Cleared all POI input fields.")
         # self.batch_download_center_mgrs.delete(0,END)
         # self.batch_download_zoom_range.delete(0,END)
         # self.batch_download_radius.delete(0,END)
@@ -3316,8 +3343,8 @@ class App(customtkinter.CTk):
         elif "EWT" in marker.data:
             msgBox_title = "EWT Data"
             msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])
-        elif "User" in marker.data:
-            msgBox_title = "Generic Marker"
+        elif "POI" in marker.data:
+            msgBox_title = "Point of Interest (POI)"
             msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])
         elif "OBJ" in marker.data:
             msgBox_title = "OBJ Marker"
@@ -3342,12 +3369,12 @@ class App(customtkinter.CTk):
                 coord_string = ', '.join([str(marker.position[0]),str(marker.position[1])])
                 remove_ewt_from_marker_csv(filepath,ewt_num,coord_string)
                 self.logger_gui.info(f"EWT {ewt_num} marker removed from the map and tracker list.")
-            elif msgBox_title == "Generic Marker":
-                self.user_marker_list.remove(marker)
-                filepath = os.path.join(self.log_directory,App.DEFAULT_VALUES["User Marker Filename"])
+            elif msgBox_title == "Point of Interest (POI)":
+                self.POI_marker_list.remove(marker)
+                filepath = os.path.join(self.log_directory,App.DEFAULT_VALUES["POI Marker Filename"])
                 marker_num = int(str(marker.data).split('No. ')[-1].split(')')[0].strip())
-                remove_rows_from_marker_csv(filepath,"USER",marker_num)
-                self.logger_gui.info(f"Generic Marker (No. {marker_num}) removed from the map and tracker file.")
+                remove_rows_from_marker_csv(filepath,"POI",marker_num)
+                self.logger_gui.info(f"POI (No. {marker_num}) removed from the map and tracker file.")
             elif msgBox_title == "OBJ Marker":
                 self.obj_list.remove(marker)
                 filepath = os.path.join(self.log_directory,App.DEFAULT_VALUES["Tactical Graphic Marker Filename"])
@@ -3362,8 +3389,8 @@ class App(customtkinter.CTk):
                 self.logger_gui.info(f"NAI Marker removed from the map and tracker file.")
             # delete marker from map
             marker.delete()
-            if len(self.user_marker_list) == len(self.path_list) == 0:
-                self.clear_user_markers(bool_bypass_log=True)
+            if len(self.POI_marker_list) == len(self.path_list) == 0:
+                self.clear_POI_markers(bool_bypass_log=True)
             if len(self.obj_list) == len(self.nai_list) == 0:
                 self.clear_tactical_markers(bool_bypass_log=True)
         
@@ -3400,8 +3427,8 @@ class App(customtkinter.CTk):
 
     def clear_options(self, command: str) -> None:
         """Clear specific options based on the marker type."""
-        if command == 'Clear Generic Markers':
-            self.clear_user_markers()
+        if command == 'Clear POIs':
+            self.clear_POI_markers()
         elif command == 'Clear Graphics':
             self.clear_tactical_markers()
         elif command == 'Clear Target Overlays':
@@ -3476,12 +3503,12 @@ class App(customtkinter.CTk):
             if not self._check_if_object_in_object_list(map_object,self.target_marker_list):
                 # append the target marker to the target marker list
                 self.target_marker_list.append(map_object)
-        # check if map object is a USER marker
-        if map_object_list_name.upper() == 'USER':
+        # check if map object is a POI marker
+        if map_object_list_name.upper() == 'POI':
             # check if EWT marker already exists in the EWT marker list
-            if not self._check_if_object_in_object_list(map_object,self.user_marker_list):
+            if not self._check_if_object_in_object_list(map_object,self.POI_marker_list):
                 # append the EWT marker to the EWT marker list
-                self.user_marker_list.append(map_object)
+                self.POI_marker_list.append(map_object)
         # check if map object is an OBJ
         elif map_object_list_name.upper() == 'OBJ':
             # check if OBJ already exists in the OBJ list
@@ -3529,7 +3556,10 @@ class App(customtkinter.CTk):
         else:
             return False
 
-    def _generate_sensor_distance_text(self,distance : float) -> str:
+    def _generate_sensor_distance_text(self,
+                                       distance : float,
+                                       bearing: int = None
+                                       ) -> str:
         """Generate sensor distance string w/ adjusted units of measurement."""
         # set default unit of measurement
         distance_unit = 'm'
@@ -3540,6 +3570,8 @@ class App(customtkinter.CTk):
             # change unit of measurement to km
             distance_unit = 'km'
         # return distance string
+        if bearing is not None:
+            return f'{distance:,.2f}{distance_unit} at {bearing}°'
         return f'{distance:,.2f}{distance_unit}'
 
     def _input_error(self,category: str,msg: str,single_lob_option: bool =False,cut_option: bool =False,ewt_bypass_option: bool =False,EWT_num: str ='') -> str:

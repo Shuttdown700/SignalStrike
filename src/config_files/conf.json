@@ -43,7 +43,7 @@
     "DEFAULT_INITIAL_LATITUDE":31.88104104150809, 
     "DEFAULT_INITIAL_LONGITUDE":-81.61558568893086,
     "DEFAULT_MAP_SERVER_PATH":"/Terrain/{z}/{x}/{y}.png",
-    "FILENAME_USER_MARKERS":"current_user_markers.csv",
+    "FILENAME_POI_MARKERS":"current_POI_markers.csv",
     "FILENAME_TACTICAL_GRAPHIC_MARKERS":"tactical_graphic_markers.csv",
     "FILENAME_EWT_MARKERS":"ewt_markers.csv"
 }
