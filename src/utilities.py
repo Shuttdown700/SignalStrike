@@ -181,5 +181,3 @@ def generate_DTG(timezone='LOCAL') -> str:
 def format_readable_DTG(dtg: str) -> str:
     """Formats the datetime grouop (DTG) in DDTTTTXMMMYYYY format to be more readable format: "TTTT on DD MMM YYYY"."""
     return f'{dtg[2:7]} on {dtg[:2]} {dtg[7:10]} {dtg[-4:]}'
-
-

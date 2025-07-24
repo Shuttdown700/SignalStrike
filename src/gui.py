@@ -3336,25 +3336,32 @@ class App(customtkinter.CTk):
     def marker_click(self,marker) -> None:
         from CTkMessagebox import CTkMessagebox
         from map import remove_rows_from_marker_csv, remove_ewt_from_marker_csv
+        from coords import convert_coords_to_mgrs
+
         # generate message box based on marker category
+        standard_options = ['Acknowledge','Remove','Copy MGRS']
         if "TGT" in marker.data:
             msgBox_title = "TGT Data"
-            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])
+            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=standard_options)
         elif "EWT" in marker.data:
             msgBox_title = "EWT Data"
-            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])
+            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=standard_options)
         elif "POI" in marker.data:
             msgBox_title = "Point of Interest (POI)"
-            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])
+            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=standard_options)
         elif "OBJ" in marker.data:
             msgBox_title = "OBJ Marker"
-            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])        
+            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=standard_options)        
         elif "NAI" in marker.data:
             msgBox_title = "NAI Marker"
-            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])        
+            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=standard_options)        
         else:
             msgBox_title = "Unknown Marker"
-            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Acknowledge','Remove'])
+            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=standard_options)
+
+        msgBox.button_3.configure(fg_color="#4CAF50", hover_color="#45A049", text_color="white")  # green
+        msgBox.button_2.configure(fg_color="#f44336", hover_color="#e53935", text_color="white")  # red
+        msgBox.button_1.configure(fg_color="#2196F3", hover_color="#1976D2", text_color="white")  # blue
         # get user response
         response = msgBox.get()
         if response == 'Remove':
@@ -3393,6 +3400,14 @@ class App(customtkinter.CTk):
                 self.clear_POI_markers(bool_bypass_log=True)
             if len(self.obj_list) == len(self.nai_list) == 0:
                 self.clear_tactical_markers(bool_bypass_log=True)
+        elif response == 'Copy MGRS':
+            # copy MGRS coordinates to clipboard
+            mgrs = convert_coords_to_mgrs([marker.position[0], marker.position[1]])
+            self.clipboard_clear()
+            self.clipboard_append(mgrs)
+            self.update()
+            self.logger_gui.info(f"Copied MGRS coordinates '{mgrs}' to clipboard.")
+            self._show_info(f'"{mgrs}" copied to clipboard',icon='info')
         
     def polygon_click(self,polygon) -> None:
         from CTkMessagebox import CTkMessagebox
