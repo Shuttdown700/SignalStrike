@@ -3589,7 +3589,14 @@ class App(customtkinter.CTk):
             return f'{distance:,.2f}{distance_unit} at {bearing}°'
         return f'{distance:,.2f}{distance_unit}'
 
-    def _input_error(self,category: str,msg: str,single_lob_option: bool =False,cut_option: bool =False,ewt_bypass_option: bool =False,EWT_num: str ='') -> str:
+    def _input_error(self,
+                     category: str,
+                     msg: str,
+                     single_lob_option: bool =False,
+                     cut_option: bool =False,
+                     ewt_bypass_option: bool =False,
+                     EWT_num: str =''
+                     ) -> str:
         from CTkMessagebox import CTkMessagebox
         if not single_lob_option and not cut_option and not ewt_bypass_option:
             msgBox = CTkMessagebox(title=f"Error in {category}", message=msg, icon='warning',options=['Re-input','Use Default'])

@@ -62,8 +62,13 @@ class TileDownloader:
             return ""
         return map_urls[map_name]
     
-    def _download_tile(self, tile: Dict, tile_url: str, bool_overwrite: bool = False, 
-                      timeout_num: int = 5, interval_num: int = 100) -> bool:
+    def _download_tile(self, 
+                       tile: Dict, 
+                       tile_url: str, 
+                       bool_overwrite: bool = False, 
+                      timeout_num: int = 5, 
+                      interval_num: int = 100
+                      ) -> bool:
         """Download a single tile and save it to the output directory."""
         try:
             basepath = tile_url.split('?')[0].split("/")[-1]

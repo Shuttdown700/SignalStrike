@@ -36,7 +36,7 @@ def expected_values():
         "LOB_EWT1": {
             "expected_target_grid": "32UQV 01793 58322",
             "expected_label_target_grid": "TARGET GRID (1 LOB)",
-            "expected_sensor1_distance": "1.89km",
+            "expected_sensor1_distance": "1.89km at 129°",
             "expected_sensor2_distance": "N/A",
             "expected_sensor3_distance": "N/A",
             "expected_target_error": "446 acres",
@@ -48,7 +48,7 @@ def expected_values():
             "expected_target_grid": "32UQV 01759 58557",
             "expected_label_target_grid": "TARGET GRID (1 LOB)",
             "expected_sensor1_distance": "N/A",
-            "expected_sensor2_distance": "2.11km",
+            "expected_sensor2_distance": "2.11km at 99°",
             "expected_sensor3_distance": "N/A",
             "expected_target_error": "564 acres",
             "expected_target_class": "(1 LOB)",
@@ -60,7 +60,7 @@ def expected_values():
             "expected_label_target_grid": "TARGET GRID (1 LOB)",
             "expected_sensor1_distance": "N/A",
             "expected_sensor2_distance": "N/A",
-            "expected_sensor3_distance": "2.38km",
+            "expected_sensor3_distance": "2.38km at 74°",
             "expected_target_error": "714 acres",
             "expected_target_class": "(1 LOB)",
             "expected_target_coord": [49.24829283849336, 11.771573744236349],
@@ -69,8 +69,8 @@ def expected_values():
         "CUT_EWT1_EWT2": {
             "expected_target_grid": "32UQV 01433 58602",
             "expected_label_target_grid": "TARGET GRID (CUT)",
-            "expected_sensor1_distance": "1.43km",
-            "expected_sensor2_distance": "1.78km",
+            "expected_sensor1_distance": "1.43km at 129°",
+            "expected_sensor2_distance": "1.78km at 99°",
             "expected_sensor3_distance": "N/A",
             "expected_target_error": "100 acres",
             "expected_target_class": "(CUT)",
@@ -80,9 +80,9 @@ def expected_values():
         "CUT_EWT1_EWT3": {
             "expected_target_grid": "32UQV 01367 58653",
             "expected_label_target_grid": "TARGET GRID (CUT)",
-            "expected_sensor1_distance": "1.35km",
+            "expected_sensor1_distance": "1.35km at 129°",
             "expected_sensor2_distance": "N/A",
-            "expected_sensor3_distance": "2.04km",
+            "expected_sensor3_distance": "2.04km at 74°",
             "expected_target_error": "58 acres",
             "expected_target_class": "(CUT)",
             "expected_target_coord": [49.24748873637496, 11.766976917051867],
@@ -92,8 +92,8 @@ def expected_values():
             "expected_target_grid": "32UQV 01273 58624",
             "expected_label_target_grid": "TARGET GRID (CUT)",
             "expected_sensor1_distance": "N/A",
-            "expected_sensor2_distance": "1.62km",
-            "expected_sensor3_distance": "1.94km",
+            "expected_sensor2_distance": "1.62km at 99°",
+            "expected_sensor3_distance": "1.94km at 74°",
             "expected_target_error": "159 acres",
             "expected_target_class": "(CUT)",
             "expected_target_coord": [49.24726059841342, 11.765672634976104],
@@ -102,9 +102,9 @@ def expected_values():
         "Fix": {
             "expected_target_grid": "32UQV 01374 58661",
             "expected_label_target_grid": "TARGET GRID (FIX)",
-            "expected_sensor1_distance": "1.35km",
-            "expected_sensor2_distance": "1.72km",
-            "expected_sensor3_distance": "2.05km",
+            "expected_sensor1_distance": "1.35km at 129°",
+            "expected_sensor2_distance": "1.72km at 98°",
+            "expected_sensor3_distance": "2.05km at 74°",
             "expected_target_error": "53 acres",
             "expected_target_class": "(FIX)",
             "expected_target_coord": [49.247557821821765, 11.76706972332321],
@@ -113,8 +113,8 @@ def expected_values():
         "2_LOBs": {
             "expected_target_grid": "32UPV 98804 60644\n32UQV 01759 58557",
             "expected_label_target_grid": "TARGET GRIDs (2 LOBs)",
-            "expected_sensor1_distance": "1.89km",
-            "expected_sensor2_distance": "2.11km",
+            "expected_sensor1_distance": "1.89km at 310°",
+            "expected_sensor2_distance": "2.11km at 99°",
             "expected_sensor3_distance": "N/A",
             "expected_target_error": "564 acres",
             "expected_target_class": "(2 LOBs)",
@@ -124,9 +124,9 @@ def expected_values():
         "3_LOBs": {
             "expected_target_grid": "32UPV 98804 60644\n32UQV 01759 58557\n32UPV 97127 57354",
             "expected_label_target_grid": "TARGET GRIDs (3 LOBs)",
-            "expected_sensor1_distance": "1.89km",
-            "expected_sensor2_distance": "2.11km",
-            "expected_sensor3_distance": "2.38km",
+            "expected_sensor1_distance": "1.89km at 310°",
+            "expected_sensor2_distance": "2.11km at 99°",
+            "expected_sensor3_distance": "2.38km at 255°",
             "expected_target_error": "714 acres",
             "expected_target_class": "(3 LOBs)",
             "expected_target_coord": "49.266214054206486, 11.732785386721917 | 49.24649727522025, 11.772304238438442 | 49.237196232557714, 11.70813997293801",
@@ -139,21 +139,25 @@ def expected_values():
 def app():
     """Initialize the CustomTkinter app for testing in the main thread."""
     app_instance = App()
-    app_instance.button_clear_markers.invoke()
-    app_instance.button_clear_tactical_graphics.invoke()
-    app_instance.button_clear_target_overlays.invoke()
-    app_instance.button_clear_measurements.invoke()
-    app_instance.button_clear_entries.invoke()
-    app_instance.update_idletasks()  # Process UI events
-    app_instance.update()  # Ensure widgets are rendered
-    yield app_instance
-    app_instance.button_clear_markers.invoke()
-    app_instance.button_clear_tactical_graphics.invoke()
-    app_instance.button_clear_target_overlays.invoke()
-    app_instance.button_clear_measurements.invoke()
-    app_instance.button_clear_entries.invoke()
-    app_instance.destroy()
 
+    # clear all map markers, graphics, entries, and overlays
+    clear_options=["Clear POIs","Clear Graphics", "Clear Target Overlays", "Clear EWTs", "Clear Measurements"]
+    for option in clear_options: app_instance.clear_options(option)
+    app_instance.button_clear_entries.invoke()
+
+    # Process UI Events & render widgets
+    app_instance.update_idletasks()
+    app_instance.update() 
+
+    # Ensure the app is running in the main thread
+    yield app_instance
+
+    # clear all map markers, graphics, entries, and overlays
+    for option in clear_options: app_instance.clear_options(option)
+    app_instance.button_clear_entries.invoke()
+
+    # Destroy the app instance after tests
+    app_instance.destroy()
 
 def test_attribute_existence(app):
     """Test if the required attributes exist in the App instance."""
@@ -182,19 +186,13 @@ def test_attribute_existence(app):
     assert hasattr(app, "button_reload_last_log"), "button_reload_last_log button not found in App."
     assert hasattr(app, "button_log_data"), "button_log_data button not found in App."
     # top right panel
-    assert hasattr(app, "button_plot_eud_location"), "button_plot_eud_location button not found in App."
-    assert hasattr(app, "button_clear_tactical_graphics"), "button_clear_tactical_graphics button not found in App."
-    assert hasattr(app, "button_clear_target_overlays"), "button_clear_target_overlays button not found in App."
-    assert hasattr(app, "button_clear_markers"), "button_clear_markers button not found in App."
-    assert hasattr(app, "button_clear_measurements"), "button_clear_measurements button not found in App."
-    assert hasattr(app, "map_option_menu"), "map_option_menu entry field not found in App."
+    assert hasattr(app, "clear_option_dropdown"), "clear_option_dropdown dropdown field not found in App."
+    assert hasattr(app, "map_option_menu"), "map_option_menu dropdown field not found in App."
     # mid right panel
     assert hasattr(app, "map_widget"), "map_widget not found in App."
     # bottom right panel
     assert hasattr(app, "search_mgrs"), "search_mgrs entry field not found in App."
     assert hasattr(app, "button_search"), "button_search_mgrs button not found in App."
-    assert hasattr(app, "button_brightness_down"), "button_brightness_down button not found in App."
-    assert hasattr(app, "button_brightness_up"), "button_brightness_up button not found in App."
 
 
 def plot_user_markers(app):
@@ -237,9 +235,8 @@ def test_default_inputs_EWT1_LOB(app,default_inputs,expected_values):
     assert app.target_coord == expected_values["LOB_EWT1"]["expected_target_coord"], f"Target coordinate is {app.target_coord} instead of {expected_values["LOB_EWT1"]["expected_target_coord"]}."
     assert app.target_mgrs == expected_values["LOB_EWT1"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["LOB_EWT1"]["expected_target_mgrs"]}."
 
-    # Clear the entries after the test
-    app.button_clear_target_overlays.invoke()
-
+    # Clear the target overlays after the test
+    app.clear_options("Clear Target Overlays")
 
 def test_default_inputs_EWT2_LOB(app,default_inputs,expected_values):
     """Test default input in the GUI and their expected outputs"""
@@ -278,8 +275,7 @@ def test_default_inputs_EWT2_LOB(app,default_inputs,expected_values):
     assert app.target_mgrs == expected_values["LOB_EWT2"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["LOB_EWT2"]["expected_target_mgrs"]}."
 
     # Clear the entries after the test
-    app.button_clear_target_overlays.invoke()
-
+    app.clear_options("Clear Target Overlays")
 
 def test_default_inputs_EWT3_LOB(app,default_inputs,expected_values):
     """Test default input in the GUI and their expected outputs"""
@@ -318,7 +314,7 @@ def test_default_inputs_EWT3_LOB(app,default_inputs,expected_values):
     assert app.target_mgrs == expected_values["LOB_EWT3"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["LOB_EWT3"]["expected_target_mgrs"]}."
 
     # Clear the entries after the test
-    app.button_clear_target_overlays.invoke()
+    app.clear_options("Clear Target Overlays")
 
 
 def test_default_inputs_2_LOBs(app,default_inputs,expected_values):
@@ -361,8 +357,7 @@ def test_default_inputs_2_LOBs(app,default_inputs,expected_values):
     assert app.target_mgrs == expected_values["2_LOBs"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["2_LOBs"]["expected_target_mgrs"]}."
 
     # Clear the entries after the test
-    app.button_clear_target_overlays.invoke()
-
+    app.clear_options("Clear Target Overlays")
 
 def test_default_inputs_EWT1_EWT2_CUT(app,default_inputs,expected_values):
     """Test default input in the GUI and their expected outputs"""
@@ -404,7 +399,7 @@ def test_default_inputs_EWT1_EWT2_CUT(app,default_inputs,expected_values):
     assert app.target_mgrs == expected_values["CUT_EWT1_EWT2"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["CUT_EWT1_EWT2"]["expected_target_mgrs"]}."
 
     # Clear the entries after the test
-    app.button_clear_target_overlays.invoke()
+    app.clear_options("Clear Target Overlays")
 
 
 def test_default_inputs_EWT1_EWT3_CUT(app,default_inputs,expected_values):
@@ -447,7 +442,7 @@ def test_default_inputs_EWT1_EWT3_CUT(app,default_inputs,expected_values):
     assert app.target_mgrs == expected_values["CUT_EWT1_EWT3"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["CUT_EWT1_EWT3"]["expected_target_mgrs"]}."
 
     # Clear the entries after the test
-    app.button_clear_target_overlays.invoke()
+    app.clear_options("Clear Target Overlays")
 
 
 def test_default_inputs_EWT2_EWT3_CUT(app,default_inputs,expected_values):
@@ -490,8 +485,7 @@ def test_default_inputs_EWT2_EWT3_CUT(app,default_inputs,expected_values):
     assert app.target_mgrs == expected_values["CUT_EWT2_EWT3"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["CUT_EWT2_EWT3"]["expected_target_mgrs"]}."
 
     # Clear the entries after the test
-    app.button_clear_target_overlays.invoke()
-
+    app.clear_options("Clear Target Overlays")
 
 def test_default_inputs_fix(app,default_inputs,expected_values):
     """Test default input in the GUI and their expected outputs"""
@@ -536,7 +530,7 @@ def test_default_inputs_fix(app,default_inputs,expected_values):
     assert app.target_mgrs == expected_values["Fix"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["Fix"]["expected_target_mgrs"]}."
 
     # Clear the entries after the test
-    app.button_clear_target_overlays.invoke()
+    app.clear_options("Clear Target Overlays")
 
 
 def test_default_inputs_3_LOBs(app,default_inputs,expected_values):
@@ -582,5 +576,5 @@ def test_default_inputs_3_LOBs(app,default_inputs,expected_values):
     assert app.target_mgrs == expected_values["3_LOBs"]["expected_target_mgrs"], f"Target MGRS is {app.target_mgrs} instead of {expected_values["3_LOBs"]["expected_target_mgrs"]}."
 
     # Clear the entries after the test
-    app.button_clear_target_overlays.invoke()
+    app.clear_options("Clear Target Overlays")
 
