@@ -8,13 +8,15 @@ import logging
 from logger import LoggerManager
 from _tkinter import TclError
 
-customtkinter.set_default_color_theme(os.path.dirname(os.path.abspath(__file__))+"/config_files/color_theme.json")
+customtkinter.set_default_color_theme(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "config_files", "color_theme.json")
+)
 class App(customtkinter.CTk):
     """
     Custom Tkinter Application Class for GUI support
     """
     # preset application name
-    APP_NAME = "Electromagnetic Warfare Targeting Application"
+    APP_NAME = "SignalStrike | EW Targeting Application"
     # preset aspect ratio of application display
     ASPECT_RATIO = 16/9
     # preset width of GUI dislay
@@ -74,7 +76,7 @@ class App(customtkinter.CTk):
         'Jungle Foliage':5        
     }
     # read the target preset config file
-    conf_target_presets = read_json(os.path.join(os.path.dirname(os.path.abspath(__file__)),"config_files","target_presets.json"))
+    TARGET_PRESETS = read_json(os.path.join(os.path.dirname(os.path.abspath(__file__)),"config_files","target_presets.json"))
 
     def __init__(self, *args, **kwargs):
         """
@@ -556,7 +558,7 @@ class App(customtkinter.CTk):
         # define path-loss coefficient option attributes
         self.option_target_emitter_preset = customtkinter.CTkOptionMenu(
             master=self.frame_left, 
-            values=["Custom"]+list(App.conf_target_presets.keys()),
+            values=["Custom"]+list(App.TARGET_PRESETS.keys()),
             fg_color='brown',
             button_color='brown',
             command=self.change_preset_target_emitter)
@@ -3496,12 +3498,12 @@ class App(customtkinter.CTk):
         """Change target emitter parameters based on the selected preset option."""
         if preset_option == 'Custom':
             self.logger_gui.info("Custom target preset selected.") 
-        elif preset_option in App.conf_target_presets.keys():
+        elif preset_option in App.TARGET_PRESETS.keys():
             self.min_ERP.delete(0, 'end')
-            self.min_ERP.insert(0,App.conf_target_presets[preset_option]["MIN_ERP"])
+            self.min_ERP.insert(0,App.TARGET_PRESETS[preset_option]["MIN_ERP"])
             self.max_ERP.delete(0, 'end')
-            self.max_ERP.insert(0,App.conf_target_presets[preset_option]["MAX_ERP"])
-            self.logger_gui.info(f"Target preset changed to: {preset_option} ({App.conf_target_presets[preset_option]['MIN_ERP']} - {App.conf_target_presets[preset_option]['MAX_ERP']} W)")
+            self.max_ERP.insert(0,App.TARGET_PRESETS[preset_option]["MAX_ERP"])
+            self.logger_gui.info(f"Target preset changed to: {preset_option} ({App.TARGET_PRESETS[preset_option]['MIN_ERP']} - {App.TARGET_PRESETS[preset_option]['MAX_ERP']} W)")
         else:
             self.logger_gui.warning(f"Invalid target preset option: {preset_option}")
 

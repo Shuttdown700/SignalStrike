@@ -9,6 +9,7 @@ from typing import Dict, List
 from colorama import Fore, init
 from logger import LoggerManager
 from utilities import check_internet_connection, read_csv, read_json, write_csv
+from get_tiles import download_tile
 
 init(autoreset=True)
 
@@ -62,52 +63,6 @@ class TileDownloader:
             return ""
         return map_urls[map_name]
     
-    def _download_tile(self, 
-                       tile: Dict, 
-                       tile_url: str, 
-                       bool_overwrite: bool = False, 
-                      timeout_num: int = 5, 
-                      interval_num: int = 100
-                      ) -> bool:
-        """Download a single tile and save it to the output directory."""
-        try:
-            basepath = tile_url.split('?')[0].split("/")[-1]
-            ext = "." + basepath.split(".")[-1] if "." in basepath else ".png"
-            val_map = str(tile["Map"])
-            val_z = str(tile["Z"])
-            val_x = str(tile["X"])
-            val_y = str(tile["Y"])
-            
-            write_dir = os.path.join(self.output_dir, val_map, val_z, val_x)
-            write_filepath = os.path.join(write_dir, val_y) + ext
-            
-            if os.path.exists(write_filepath) and not bool_overwrite:
-                return True
-            
-            url = tile_url.replace("{x}", val_x).replace("{y}", val_y).replace("{z}", val_z)
-            
-            ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
-            
-            with urllib.request.urlopen(url, timeout=timeout_num, context=ctx) as data:
-                os.makedirs(write_dir, exist_ok=True)
-                with open(write_filepath, mode="wb") as f:
-                    f.write(data.read())
-            self.logger.info(f"Downloaded tile: {write_filepath.split(self.base_dir)[-1]}")
-            time.sleep(interval_num / 1000)
-            return True
-            
-        except urllib.error.HTTPError as e:
-            self.logger.error(f"HTTP Error downloading .{write_filepath.split(self.base_dir)[-1]}: {e}")
-            return False
-        except Exception as e:
-            if "timeout" in str(e).lower():
-                self.logger.error(f"Timeout downloading .{write_filepath.split(self.base_dir)[-1]}: {e}")
-                return False
-            self.logger.error(f"Error downloading .{write_filepath.split(self.base_dir)[-1]}: {e}")
-            return False
-    
     def _process_queue(self) -> List[Dict]:
         """Process all tiles in the queue and return downloaded tiles."""
         downloaded_tiles = []
@@ -120,7 +75,15 @@ class TileDownloader:
         for tile in tile_queue:
             map_name = tile["Map"]
             tile_url = self._determine_tile_url(map_name)
-            if tile_url and self._download_tile(tile, tile_url):
+            args = {
+                "tile_url": tile_url,
+                "output_dir": os.path.join(self.output_dir,map_name),
+                "overwrite": False,
+                "timeout": 5,
+                "interval": 100
+            }
+            tile_coords = (int(tile["X"]), int(tile["Y"]), int(tile["Z"]))
+            if tile_url and download_tile(tile_coords, args):
                 downloaded_tiles.append(tile)
         
         return downloaded_tiles

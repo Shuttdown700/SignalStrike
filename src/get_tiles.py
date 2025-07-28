@@ -153,16 +153,17 @@ def download_tile(tile: Tuple[int, int, int], args: Dict) -> None:
 
     write_dir = os.path.join(args["output_dir"], str(zoom), str(tile_x))
     write_filepath = os.path.join(write_dir, f"{tile_y}{extension}")
+    map_name = write_dir.split(os.sep)[-3]
 
     if os.path.exists(write_filepath) and not args["overwrite"]:
-        print(f"{Fore.YELLOW}{Style.BRIGHT}Skipping{Style.RESET_ALL}: {zoom}/{tile_x}/{tile_y}{extension} already exists")
-        return
+        print(f"{Fore.YELLOW}{Style.BRIGHT}Skipping{Style.RESET_ALL}: {map_name}/{zoom}/{tile_x}/{tile_y}{extension} already exists")
+        return True
 
     url = args["tile_url"].format(x=tile_x, y=tile_y, z=zoom)
 
     try:
         with urllib.request.urlopen(url, timeout=args["timeout"]) as response:
-            print(f"{Fore.GREEN}{Style.BRIGHT}Downloading{Style.RESET_ALL}: {zoom}/{tile_x}/{tile_y}{extension}")
+            print(f"{Fore.GREEN}{Style.BRIGHT}Downloading{Style.RESET_ALL}: {map_name}/{zoom}/{tile_x}/{tile_y}{extension}")
             os.makedirs(write_dir, exist_ok=True)
             with open(write_filepath, "wb") as f:
                 f.write(response.read())
