@@ -839,9 +839,9 @@ class App(customtkinter.CTk):
         # define TBD button attributes
         self.button_reload_last_log = customtkinter.CTkButton(
             master=self.frame_left, 
-            text="Reload Last Log",
+            text="Reload Targets",
             fg_color='brown',
-            command=self.reload_last_log)
+            command=self.open_log_popup)
         # assign TBD button grid position
         self.button_reload_last_log.grid(
             row=self.button_calculate.grid_info()["row"]+1,
@@ -2694,49 +2694,74 @@ class App(customtkinter.CTk):
         # success pop-up
         self.logger_gui.info(f"Target data successfully logged to {filename}")
         self._show_info("Data successfully logged!!!",box_title='Successful Log',icon='info') 
-    
-    def reload_last_log(self) -> None:
+
+    def load_recent_logs(self, hours=72):
+        from datetime import datetime, timedelta
+        from pathlib import Path
+        from utilities import parse_dtg
+        import csv
+        log_path = Path(__file__).parent.parent / "logs" / "targeting"
+        cutoff = datetime.now().astimezone() - timedelta(hours=hours)
+        logs = []
+        
+        for file in log_path.glob("EW-targeting-log-*.csv"):
+            with open(file, newline='') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    dtg = parse_dtg(row["DTG_LOCAL"])
+                    if dtg and dtg >= cutoff:
+                        row["_parsed_dtg"] = dtg
+                        logs.append(row)
+
+        self.logger_gui.info(f"Loaded {len(logs)} valid entries after {cutoff}")
+        return sorted(logs, key=lambda r: r["_parsed_dtg"], reverse=True)
+
+    def select_target_log(self, event, popup):
+        """Updates the table with selected log entry details."""
+        popup.destroy()
+        self.reload_target(event)
+
+    def open_log_popup(self) -> None:
+        """Creates the scrollable pop-up menu with recent log buttons."""
+        from utilities import parse_dtg
+        popup = customtkinter.CTkToplevel(self)
+        popup.title("Select Event")
+        popup.geometry("600x600")
+        popup.lift()
+        popup.focus_force()
+        popup.grab_set()
+
+        scroll_frame = customtkinter.CTkScrollableFrame(
+            popup,
+            width=580,
+            height=580,
+            fg_color="#2b2b2b"  # ensure this is a valid hex color with '#'
+        )
+        scroll_frame.pack(padx=10, pady=10, fill="both", expand=True)
+        for event in self.load_recent_logs(hours=72):
+            label = (
+                f"{event['DTG_LOCAL']} | "
+                f"{event.get('TGT_CLASS', 'N/A')} | "
+                f"{event.get('FREQ_MHz', 'N/A')} MHz | "
+                f"{event.get('TGT_MGRS', 'N/A')}"
+            )
+            target_class = event.get('TGT_CLASS', 'N/A')
+            label_color = None
+            if "LOB" in target_class:
+                label_color = "#ADD8E6"  # Light Blue
+            elif "CUT" in target_class:
+                    label_color = "#90ee90"  # Light Green
+            elif "FIX" in target_class:
+                    label_color = "#FFFF00"  # Bright Yellow
+            button = customtkinter.CTkButton(scroll_frame, text=label, anchor="w", text_color=label_color,
+                                   bg_color="gray", command=lambda e=event: self.select_target_log(e, popup))
+            button.pack(pady=3, fill="x", padx=5)
+
+    def reload_target(self,log_data) -> None:
         from utilities import read_csv
         import os
         import datetime
         import tkinter as tk
-
-        def get_most_recently_modified_file(directory):
-            # Validate directory
-            if not os.path.isdir(directory):
-                return None
-            # Get list of CSV files
-            files = [
-                os.path.join(directory, f) for f in os.listdir(directory)
-                if os.path.isfile(os.path.join(directory, f)) and f.endswith('.csv')
-            ]
-            # Sort by modification time
-            files.sort(key=lambda x: os.stat(x).st_mtime, reverse=True)
-            mtime = os.stat(files[0]).st_mtime
-            readable_date = datetime.datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %Hh:%Mm:%Ss')
-            self.logger_gui.info(f"Reloading logged target from: {readable_date}")
-            return files[0] if files else None
-
-        # Check log directory
-        if not os.path.isdir(self.log_targeting_directory):
-            os.makedirs(self.log_targeting_directory)
-            self.logger_gui.info(f"Target log directory created: '{self.log_targeting_directory}'")
-
-        # Get most recent file
-        recent_file = get_most_recently_modified_file(self.log_targeting_directory)
-        if recent_file is None:
-            self.logger_gui.warning("No log files detected.")
-            self._show_info("No log files detected.", icon='warning')
-            return
-
-        # Read log data
-        log_data = read_csv(recent_file)
-        if not log_data:
-            self.logger_gui.warning("Most recent log file is empty.")
-            self._show_info("Most recent log file is empty.", icon='warning')
-            return
-
-        last_log_entry = log_data[-1]
 
         # Validate required keys
         required_keys = [
@@ -2745,7 +2770,7 @@ class App(customtkinter.CTk):
             'EWT_3_MGRS', 'EWT_3_LOB_DEGREES', 'EWT_3_PWR_REC_DbM',
             'FREQ_MHz', 'MIN_ERP_W', 'MAX_ERP_W', 'PATH_LOSS_COEFF'
         ]
-        missing_keys = [key for key in required_keys if key not in last_log_entry]
+        missing_keys = [key for key in required_keys if key not in log_data]
         if missing_keys:
             self.logger_gui.error(f"Missing keys in log file: {', '.join(missing_keys)}")
             self._show_info(f"Missing keys in log file: {', '.join(missing_keys)}", icon='warning')
@@ -2755,24 +2780,24 @@ class App(customtkinter.CTk):
         self.clear_entries()
 
         # Populate Tkinter fields
-        self.sensor1_mgrs.insert(0, last_log_entry['EWT_1_MGRS'])
-        self.sensor1_lob.insert(0, last_log_entry['EWT_1_LOB_DEGREES'])
-        self.sensor1_Rpwr.insert(0, last_log_entry['EWT_1_PWR_REC_DbM'])
-        self.sensor2_mgrs.insert(0, last_log_entry['EWT_2_MGRS'])
-        self.sensor2_lob.insert(0, last_log_entry['EWT_2_LOB_DEGREES'])
-        self.sensor2_Rpwr.insert(0, last_log_entry['EWT_2_PWR_REC_DbM'])
-        self.sensor3_mgrs.insert(0, last_log_entry['EWT_3_MGRS'])
-        self.sensor3_lob.insert(0, last_log_entry['EWT_3_LOB_DEGREES'])
-        self.sensor3_Rpwr.insert(0, last_log_entry['EWT_3_PWR_REC_DbM'])
-        self.frequency.insert(0, last_log_entry['FREQ_MHz'])
-        self.min_ERP.insert(0, last_log_entry['MIN_ERP_W'])
-        self.max_ERP.insert(0, last_log_entry['MAX_ERP_W'])
-        self.path_loss_coeff = last_log_entry['PATH_LOSS_COEFF']
+        self.sensor1_mgrs.insert(0, log_data['EWT_1_MGRS'])
+        self.sensor1_lob.insert(0, log_data['EWT_1_LOB_DEGREES'])
+        self.sensor1_Rpwr.insert(0, log_data['EWT_1_PWR_REC_DbM'])
+        self.sensor2_mgrs.insert(0, log_data['EWT_2_MGRS'])
+        self.sensor2_lob.insert(0, log_data['EWT_2_LOB_DEGREES'])
+        self.sensor2_Rpwr.insert(0, log_data['EWT_2_PWR_REC_DbM'])
+        self.sensor3_mgrs.insert(0, log_data['EWT_3_MGRS'])
+        self.sensor3_lob.insert(0, log_data['EWT_3_LOB_DEGREES'])
+        self.sensor3_Rpwr.insert(0, log_data['EWT_3_PWR_REC_DbM'])
+        self.frequency.insert(0, log_data['FREQ_MHz'])
+        self.min_ERP.insert(0, log_data['MIN_ERP_W'])
+        self.max_ERP.insert(0, log_data['MAX_ERP_W'])
+        self.path_loss_coeff = log_data['PATH_LOSS_COEFF']
         self.logger_gui.info(f"Target data reloaded into input fields.")
 
         # Set path loss coefficient option
         try:
-            self.option_path_loss_coeff.set(self.get_pathloss_description_from_coeff(last_log_entry['PATH_LOSS_COEFF']))
+            self.option_path_loss_coeff.set(self.get_pathloss_description_from_coeff(log_data['PATH_LOSS_COEFF']))
         except Exception as e:
             self.logger_gui.error(f"Invalid path loss coefficient: {str(e)}")
             self._show_info(f"Invalid path loss coefficient: {str(e)}", icon='warning')

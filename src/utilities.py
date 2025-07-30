@@ -181,3 +181,16 @@ def generate_DTG(timezone='LOCAL') -> str:
 def format_readable_DTG(dtg: str) -> str:
     """Formats the datetime grouop (DTG) in DDTTTTXMMMYYYY format to be more readable format: "TTTT on DD MMM YYYY"."""
     return f'{dtg[2:7]} on {dtg[:2]} {dtg[7:10]} {dtg[-4:]}'
+
+def parse_dtg(dtg_str):
+    """Parses DTG_LOCAL like '301244LJUL2025' to a localized datetime."""
+    from datetime import datetime
+    from dateutil import tz
+    try:
+        # Remove only the 'L' or 'Z' before the month — which is at position 6
+        if dtg_str[6] in ["L","Z"]: dtg_clean = dtg_str[:6] + dtg_str[7:]  # Keep 301244 + JUL2025
+        dt = datetime.strptime(dtg_clean, "%d%H%M%b%Y")
+        return dt.replace(tzinfo=tz.tzlocal())
+    except Exception as e:
+        print(f"[ERROR] Failed to parse DTG '{dtg_str}': {e}")
+        return None
