@@ -50,24 +50,55 @@ def convert_mgrs_to_coords(milGrid: str) -> list:
     
 def check_mgrs_input(mgrs_input: str) -> bool:
     """Determine if the MGRS input is valid"""
-    prefix_len = 5
-    mgrs_input = mgrs_input.replace(" ","").strip()
-    return mgrs_input[:2].isdigit() and mgrs_input[2:prefix_len].isalpha() and mgrs_input[prefix_len:].isdigit() and len(mgrs_input[prefix_len:]) % 2 == 0
+    try:
+        if not isinstance(mgrs_input, str):
+            return False
+
+        mgrs_input = mgrs_input.replace(" ", "").strip().upper()
+        if len(mgrs_input) < 7:
+            return False
+
+        zone = mgrs_input[:2]
+        band = mgrs_input[2]
+        column = mgrs_input[3]
+        row = mgrs_input[4]
+        coords = mgrs_input[5:]
+
+        if not (zone.isdigit() and band.isalpha() and column.isalpha() and row.isalpha()):
+            return False
+
+        if not coords.isdigit() or len(coords) % 2 != 0:
+            return False
+
+        return True
+
+    except Exception:
+        return False
 
 def correct_mgrs_input(mgrs_input: str) -> str:
     """Corrects MGRS input format"""
     try:
-        if check_mgrs_input(mgrs_input):
-            mgrs_input = mgrs_input.replace(" ","").strip()
-            zone_number = mgrs_input[:2]
-            band_letter = mgrs_input[2].upper()
-            mgrs_column_letter = mgrs_input[3].upper()
-            mgrs_row_letter = mgrs_input[4].upper()
-            mgrs_easting_northing = mgrs_input[5:]
-            mgrs_corrected = zone_number+band_letter+mgrs_column_letter+mgrs_row_letter+mgrs_easting_northing
-            return mgrs_corrected
-        return mgrs_input
-    except AttributeError:
+        if not isinstance(mgrs_input, str):
+            return mgrs_input
+
+        mgrs_input = mgrs_input.replace(" ", "").strip().upper()
+
+        # Must be at least 5 characters: zone (2), band (1), column (1), row (1)
+        if len(mgrs_input) < 5:
+            return mgrs_input
+
+        if not check_mgrs_input(mgrs_input):
+            return mgrs_input
+
+        zone_number = mgrs_input[:2]
+        band_letter = mgrs_input[2]
+        column_letter = mgrs_input[3]
+        row_letter = mgrs_input[4]
+        easting_northing = mgrs_input[5:]
+
+        return f"{zone_number}{band_letter}{column_letter}{row_letter}{easting_northing}"
+
+    except Exception:
         return mgrs_input
     
 def check_coord_input(coord_input : list) -> bool:
@@ -108,15 +139,29 @@ def correct_coord_input(coord):
         return [float(c) for c in list(coord)]
     return coord
 
-def format_readable_mgrs(mgrs:str) -> str:
-    """Formats a standard MGRS to a more readable MGRS on the UI display."""
-     # determine the MGRS precision level
-    prefix_len = 5; mgrs_len = len(mgrs); precision = int((mgrs_len - prefix_len) / 2)
-    # if the MGRS is valid, return a more readable MGRS string object
-    if check_mgrs_input(mgrs): 
-        return f'{str(mgrs[:prefix_len]).upper()} {mgrs[prefix_len:prefix_len+precision]} {mgrs[prefix_len+precision:]}'
-    # return the input MGRS if invalid
-    return mgrs
+def format_readable_mgrs(mgrs: str) -> str:
+    """Formats a standard MGRS to a more readable MGRS for UI display.
+    Returns original input if format or characters are invalid."""
+    try:
+        if not isinstance(mgrs, str):
+            return mgrs
+        if not check_mgrs_input(mgrs):
+            return mgrs
+        mgrs = mgrs.strip().upper()
+        mgrs_len = len(mgrs)
+        # Valid MGRS lengths: 7 (10km), 9 (1km), 11 (100m), 13 (10m), 15 (1m)
+        valid_lengths = {7, 9, 11, 13, 15}
+        if mgrs_len not in valid_lengths:
+            return mgrs
+        prefix_len = 5
+        precision = (mgrs_len - prefix_len) // 2
+        # Validate format: 3-digit zone + 2-letter 100k grid
+        if not (mgrs[:2].isdigit() and mgrs[2:5].isalpha()):
+            return mgrs
+        return f"{mgrs[:prefix_len]} {mgrs[prefix_len:prefix_len+precision]} {mgrs[prefix_len+precision:]}"
+    
+    except Exception:
+        return mgrs
 
 def get_distance_between_coords(coord1 : list[float,float],coord2 : list[float,float], unit = 'm') -> float:
     """Determines distance between two coordinates in meters."""

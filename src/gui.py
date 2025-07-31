@@ -955,7 +955,9 @@ class App(customtkinter.CTk):
         # define clear option dropdown attributes
         self.clear_option_dropdown = customtkinter.CTkOptionMenu(
             master=self.frame_right, 
-            values=["Clear POIs",
+            values=[
+                    "Clear All",
+                    "Clear POIs",
                     "Clear Graphics", 
                     "Clear Target Overlays", 
                     "Clear EWTs", 
@@ -2723,7 +2725,13 @@ class App(customtkinter.CTk):
 
     def open_log_popup(self) -> None:
         """Creates the scrollable pop-up menu with recent log buttons."""
-        from utilities import parse_dtg
+        from coords import format_readable_mgrs
+        def fmt_num(val):
+            try:
+                f = float(val)
+                return f"{f:,.2f}"
+            except (ValueError, TypeError):
+                return str(val)
         popup = customtkinter.CTkToplevel(self)
         popup.title("Select Event")
         popup.geometry("600x600")
@@ -2742,8 +2750,8 @@ class App(customtkinter.CTk):
             label = (
                 f"{event['DTG_LOCAL']} | "
                 f"{event.get('TGT_CLASS', 'N/A')} | "
-                f"{event.get('FREQ_MHz', 'N/A')} MHz | "
-                f"{event.get('TGT_MGRS', 'N/A')}"
+                f"{fmt_num(event.get('FREQ_MHz', 'N/A'))} MHz | "
+                f"{format_readable_mgrs(event.get('TGT_MGRS', 'N/A'))}"
             )
             target_class = event.get('TGT_CLASS', 'N/A')
             label_color = None
@@ -2753,6 +2761,9 @@ class App(customtkinter.CTk):
                     label_color = "#90ee90"  # Light Green
             elif "FIX" in target_class:
                     label_color = "#FFFF00"  # Bright Yellow
+            else:
+                self.logger_gui.warning(f"Unknown target class: {target_class}. Defaulting to white.")
+                label_color = "#FFFFFF"  # Default to white if unknown
             button = customtkinter.CTkButton(scroll_frame, text=label, anchor="w", text_color=label_color,
                                    bg_color="gray", command=lambda e=event: self.select_target_log(e, popup))
             button.pack(pady=3, fill="x", padx=5)
@@ -3303,7 +3314,7 @@ class App(customtkinter.CTk):
         self.obj_list = []; self.nai_list = []
         if not bool_bypass_log: self.logger_gui.info("Cleared all tactical markers from the map and marker list.")
     
-    def clear_target_overlays(self) -> None:
+    def clear_target_overlays(self,bool_bypass_log: bool = False) -> None:
         for target in self.target_marker_list:
             target.delete()
         self.target_marker_list = []
@@ -3316,9 +3327,9 @@ class App(customtkinter.CTk):
         for fix in self.fix_list:
             fix.delete()
         self.fix_list = []
-        self.logger_gui.info(f"Cleared all target overlays from the map and tracker lists.")
+        if not bool_bypass_log: self.logger_gui.info(f"Cleared all target overlays from the map and tracker lists.")
 
-    def clear_ewts(self) -> None:
+    def clear_ewts(self, bool_bypass_log: bool = False) -> None:
         for ewt_marker in self.ewt_marker_list:
             ewt_marker.delete()
         self.ewt_marker_list = []
@@ -3338,7 +3349,7 @@ class App(customtkinter.CTk):
             # error message if file is currently open
             self._show_info("EWT Marker file currently open. Cannot clear data!",icon='warning')
         # Log the clearing of EWT markers
-        self.logger_gui.info("Cleared all EWT markers from the map and marker list.")
+        if not bool_bypass_log: self.logger_gui.info("Cleared all EWT markers from the map and marker list.")
 
     def clear_entries(self) -> None:
         from tkinter import END
@@ -3469,7 +3480,14 @@ class App(customtkinter.CTk):
 
     def clear_options(self, command: str) -> None:
         """Clear specific options based on the marker type."""
-        if command == 'Clear POIs':
+        if command == 'Clear All':
+            self.clear_POI_markers(bool_bypass_log=True)
+            self.clear_tactical_markers(bool_bypass_log=True)
+            self.clear_target_overlays(bool_bypass_log=True)
+            self.clear_measurements(bool_bypass_log=True)
+            self.clear_ewts(bool_bypass_log=True)
+            self.logger_gui.info("Cleared all markers and measurements from the map.")
+        elif command == 'Clear POIs':
             self.clear_POI_markers()
         elif command == 'Clear Graphics':
             self.clear_tactical_markers()
