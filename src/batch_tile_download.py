@@ -13,7 +13,10 @@ YELLOW = Fore.YELLOW
 RED = Fore.RED
 MAGENTA = Fore.MAGENTA
 
-def delete_small_files_and_empty_dirs(directory: str, size_limit_kb: float, dry_run=False) -> None:
+def delete_small_files_and_empty_dirs(directory: str, 
+                                      size_limit_kb: float, 
+                                      dry_run: bool = False
+                                      ) -> None:
     # Convert size limit from kilobytes to bytes
     size_limit_bytes = size_limit_kb * 1024
     # Check if the provided directory exists
@@ -59,9 +62,9 @@ def delete_small_files_and_empty_dirs(directory: str, size_limit_kb: float, dry_
                     print(f"Deleted empty directory '{dir_path}'")
 
 def download_tile_batch(
-        lat_lon_top_left:list[float],
-        lat_lon_bottom_right:list[float],
-        tile_directory:str = "",
+        lat_lon_top_left: list[float],
+        lat_lon_bottom_right: list[float],
+        tile_directory: str = "",
         tile_url: str = "https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=8242f8cd508342868f3d7d29e472aca9",
         min_zoom: int = 0,
         max_zoom: int = 18,
@@ -93,7 +96,10 @@ def download_tile_batch(
     subprocess.run(cmd, shell=True, start_new_session=True)
     #delete_small_files_and_empty_dirs(tile_directory, min_map_tile_size_kb=3,dry_run=True)
 
-def get_coord_box(center_coord : list[float,float],x_dist_m : float,y_dist_m : float) -> str:
+def get_coord_box(center_coord : list[float,float]
+                  ,x_dist_m : float
+                  ,y_dist_m : float
+                  ) -> str:
     """Generate a coordinate box for the tile downloader."""
     import numpy as np
     from coords import adjust_coordinate

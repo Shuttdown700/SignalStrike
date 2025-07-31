@@ -1,4 +1,7 @@
-def adjust_coordinate(starting_coord: list,azimuth_degrees: float,shift_m: float) -> list:
+def adjust_coordinate(starting_coord: list[float,float],
+                      azimuth_degrees: float,
+                      shift_m: float
+                      ) -> list:
     """Adjusts input lat-lon coordinate a specified distance in a specified direction."""
     # import libraries
     import math
@@ -27,7 +30,9 @@ def adjust_coordinate(starting_coord: list,azimuth_degrees: float,shift_m: float
     # return adjusted coordinate
     return [new_lat,new_lon]
 
-def convert_coords_to_mgrs(coords: list[float,float],precision:int = 5) -> str:
+def convert_coords_to_mgrs(coords: list[float,float],
+                           precision:int = 5
+                           ) -> str:
     """Convert location from coordinates to MGRS."""
     import mgrs
     try:
@@ -163,7 +168,10 @@ def format_readable_mgrs(mgrs: str) -> str:
     except Exception:
         return mgrs
 
-def get_distance_between_coords(coord1 : list[float,float],coord2 : list[float,float], unit = 'm') -> float:
+def get_distance_between_coords(coord1: list[float,float],
+                                coord2: list[float,float], 
+                                unit: str = 'm'
+                                ) -> float:
     """Determines distance between two coordinates in meters."""
     import haversine
     unit = unit.lower()
@@ -181,7 +189,9 @@ def get_distance_between_coords(coord1 : list[float,float],coord2 : list[float,f
     if unit== 'km':
         return haversine.haversine(coord1,coord2,unit=haversine.Unit.KILOMETERS)
 
-def get_bearing_between_coordinates(coord_origin: list,coord_tgt: list) -> float:
+def get_bearing_between_coordinates(coord_origin: list[float,float],
+                                    coord_tgt: list[float,float]
+                                    ) -> float:
     """Determines bearing (in degrees) between origin coordinates and target coordinate."""
     import math
     import numpy as np
@@ -221,10 +231,14 @@ def get_center_coord(coord_list : list[list[float,float]]) -> list:
     assert isinstance(coord_list,list) and len(coord_list) >= 1, "Coordinates must be in a list comprehension of length 1 or greater"
     return [float(mean([c[0] for c in coord_list])),float(mean([c[1] for c in coord_list]))]
 
-def get_coords_from_LOBs(sensor_coord,azimuth,error,min_lob_length,max_lob_length):
+def get_coords_from_LOBs(sensor_coord: list[float,float],
+                         azimuth: float,
+                         sensor_error: float,
+                         min_lob_length: float,
+                         max_lob_length: float):
     center_coord_list = []
-    right_error_azimuth = (azimuth+error) % 360
-    left_error_azimuth = (azimuth-error) % 360
+    right_error_azimuth = (azimuth+sensor_error) % 360
+    left_error_azimuth = (azimuth-sensor_error) % 360
     running_coord_left = [list(sensor_coord)[0],list(sensor_coord)[1]]
     running_coord_center = [list(sensor_coord)[0],list(sensor_coord)[1]]
     running_coord_right = [list(sensor_coord)[0],list(sensor_coord)[1]]
