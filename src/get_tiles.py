@@ -140,7 +140,9 @@ def get_geometry(args: Dict) -> shapely.geometry.base.BaseGeometry:
     return geometry
 
 
-def download_tile(tile: Tuple[int, int, int], args: Dict) -> None:
+def download_tile(tile: Tuple[int, int, int], 
+                  args: Dict
+                  ) -> None:
     """Download a single tile and save it to the output directory.
 
     Args:
@@ -170,11 +172,13 @@ def download_tile(tile: Tuple[int, int, int], args: Dict) -> None:
         time.sleep(args["interval"] / 1000)
     except urllib.error.HTTPError as e:
         print(f"{Fore.RED}{Style.BRIGHT}HTTP Error{Style.RESET_ALL}: {e} for URL: {url}")
+        return False
     except Exception as e:
         if "timeout" in str(e).lower():
             print(f"{Fore.YELLOW}{Style.BRIGHT}Timeout, retrying{Style.RESET_ALL}: {url}")
         else:
             print(f"{Fore.RED}{Style.BRIGHT}Error{Style.RESET_ALL}: {e} for URL: {url}")
+        return False
 
 
 def main() -> None:

@@ -106,7 +106,7 @@ def correct_mgrs_input(mgrs_input: str) -> str:
     except Exception:
         return mgrs_input
     
-def check_coord_input(coord_input : list) -> bool:
+def check_coord_input(coord_input: list [float,float]) -> bool:
     """Determine if the coordinates input is valid"""
     def coord_list_range_check(coord_list):
         if -90 <= coord_list[0] <= 90 and -180 <= coord_list[1] <= 180:
@@ -128,7 +128,7 @@ def check_coord_input(coord_input : list) -> bool:
     elif isinstance(coord_input, tuple):
         return coord_list_range_check(list(coord_input))
     
-def correct_coord_input(coord):
+def correct_coord_input(coord: list[float,float]) -> list:
     """Corrects coordinate input formats."""
     # if space-seperated string
     if coord.count(',') == 0 and len(coord.strip().split()) == 2: 

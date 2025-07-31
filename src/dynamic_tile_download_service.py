@@ -29,6 +29,8 @@ class TileDownloader:
         self.queue_file = os.path.join(self.base_dir, self.config["DIR_RELATIVE_QUEUE"], "dynamic_tile_queue.csv")
         self.output_dir = os.path.join(self.base_dir, self.config["DIR_RELATIVE_MAP_TILES"])
         self.wait_interval_sec = 10
+        self.max_attempts = 3
+        self.error_tiles = []
         self.logger = LoggerManager.get_logger(
                     name="tile_downloader",
                     category="tile_downloader",
@@ -85,6 +87,13 @@ class TileDownloader:
             tile_coords = (int(tile["X"]), int(tile["Y"]), int(tile["Z"]))
             if tile_url and download_tile(tile_coords, args):
                 downloaded_tiles.append(tile)
+            elif not tile_url:
+                self.logger.error(f"Tile URL for {map_name} is not defined.")
+            else:
+                self.error_tiles.append(tile)
+                if self.error_tiles.count(tile) > self.max_attempts:
+                    self.logger.error(f"X/Y/Z Tile {tile_coords} failed to download after {self.max_attempts} attempts. Removing from queue.")
+                    downloaded_tiles.append(tile)
         
         return downloaded_tiles
     
