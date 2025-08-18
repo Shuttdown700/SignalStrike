@@ -2720,7 +2720,16 @@ class App(customtkinter.CTk):
 
     def select_target_log(self, event, popup):
         """Updates the table with selected log entry details."""
+        from CTkMessagebox import CTkMessagebox
         popup.destroy()
+        msgBox = CTkMessagebox(title="Clear Map Icons?", 
+                                             message="Clear the current map data?", 
+                                             icon='info',
+                                             options=['Yes','No'])
+        response = msgBox.get()
+        if response == "Yes":
+            self.clear_ewts()
+            self.clear_target_overlays()
         self.reload_target(event)
 
     def open_log_popup(self) -> None:
