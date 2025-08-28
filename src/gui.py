@@ -3392,7 +3392,7 @@ class App(customtkinter.CTk):
             msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=standard_options)
         elif "EWT" in marker.data:
             msgBox_title = "EWT Data"
-            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=standard_options)
+            msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=['Edit','Remove','Copy MGRS'])
         elif "POI" in marker.data:
             msgBox_title = "Point of Interest (POI)"
             msgBox = CTkMessagebox(title=msgBox_title, message=marker.data, icon='info',options=standard_options)
@@ -3455,6 +3455,42 @@ class App(customtkinter.CTk):
             self.update()
             self.logger_gui.info(f"Copied MGRS coordinates '{mgrs}' to clipboard.")
             self._show_info(f'"{mgrs}" copied to clipboard',icon='info')
+        elif response == 'Edit' and msgBox_title == "EWT Data":
+            from customtkinter import CTkInputDialog
+            # prompt user for new coordinates
+            mgrs_input = CTkInputDialog(
+                text="Enter new MGRS for the EWT:",
+                title="Edit EWT Position"
+            )
+            new_mgrs = mgrs_input.get_input()
+
+            if new_mgrs:
+                try:
+                    # parse coordinates
+                    from coords import check_mgrs_input, correct_mgrs_input, convert_mgrs_to_coords, format_readable_mgrs
+
+                    if not check_mgrs_input(new_mgrs):
+                        new_mgrs = correct_mgrs_input(new_mgrs)
+
+                    lat, lon = convert_mgrs_to_coords(new_mgrs)
+                    ewt_num = str(str(marker.data).split('\n')[0].split()[-1]).strip()
+
+                    self.ewt_marker_list.remove(marker)
+                    filepath = os.path.join(self.log_directory,App.DEFAULT_VALUES["EWT Marker Filename"])
+                    coord_string = ', '.join([str(marker.position[0]),str(marker.position[1])])
+                    remove_ewt_from_marker_csv(filepath,ewt_num,coord_string)
+                    marker.delete()
+                 
+                    self.plot_EWT([lat, lon], 
+                                  ewt_num, 
+                                  bool_bypass_log=True)
+
+                    formatted_mgrs = format_readable_mgrs(new_mgrs)
+                    self.logger_gui.info(f"EWT {ewt_num} marker position edited: {formatted_mgrs}")
+
+                except Exception as e:
+                    self.logger_gui.error(f"Failed to edit EWT marker: {e}")
+                    self._show_info(f"Invalid MGRS input.", icon="warning")
         
     def polygon_click(self,polygon) -> None:
         from CTkMessagebox import CTkMessagebox
