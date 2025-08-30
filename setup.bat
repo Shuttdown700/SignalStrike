@@ -41,6 +41,8 @@ if exist venv\Scripts\activate (
     echo.
 ) else (
     :: Create a virtual environment named "venv"
+    echo.
+    echo Creating virtual environment
     python -m venv venv
     if %errorlevel% neq 0 (
         echo.
@@ -55,6 +57,8 @@ if exist venv\Scripts\activate (
 cd venv\Scripts
 
 :: Activate the virtual environment
+echo.
+echo Activating virtual environment
 call activate
 if %errorlevel% neq 0 (
     echo Failed to activate virtual environment.
@@ -63,6 +67,8 @@ if %errorlevel% neq 0 (
 )
 
 :: Upgrade pip
+echo.
+echo Upgrading pip
 python -m pip install --upgrade pip
 if %errorlevel% neq 0 (
     echo Failed to upgrade pip.
@@ -75,6 +81,8 @@ cd ..\..
 
 :: Install required Python modules
 if exist requirements.txt (
+    echo.
+    echo Installing required Python modules from requirements.txt
     python -m pip install -r requirements.txt
     if %errorlevel% neq 0 (
         echo Failed to install required modules.
@@ -90,6 +98,7 @@ echo Virtual environment setup complete!
 echo.
 
 :: Run the create_shortcuts.bat script
+echo Creating shortcuts
 call create_shortcuts.bat
 if %errorlevel% neq 0 (
     echo Failed to run create_shortcuts.bat.
