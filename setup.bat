@@ -34,11 +34,32 @@ if %MAJOR_CHECK% LSS 3 (
 echo.
 echo Python is installed. Version: %PYTHON_VERSION%
 
+:: ------------------------------------------------------------------
+:: Check for Visual C++ Build Tools (MSVC)
+:: ------------------------------------------------------------------
+
+echo.
+echo Checking for Microsoft Visual Studio Build Tools 2022 with C++ components...
+
+:: Try to locate vswhere.exe
+set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+
+if not exist "%VSWHERE%" (
+    echo ERROR: vswhere.exe not found. Cannot detect Visual Studio installation.
+    echo Please install Visual Studio Build Tools 2022 and try again.
+    echo Download: https://visualstudio.microsoft.com/visual-cpp-build-tools/
+    timeout /t 20
+    exit /b 1
+)
+
+:: ------------------------------------------------------------------
+:: Setup Virtual Environment
+:: ------------------------------------------------------------------
+
 :: Check if venv already exists
 if exist venv\Scripts\activate (
     echo.
     echo Virtual environment already exists. Skipping creation.
-    echo.
 ) else (
     :: Create a virtual environment named "venv"
     echo.
@@ -47,7 +68,6 @@ if exist venv\Scripts\activate (
     if %errorlevel% neq 0 (
         echo.
         echo Failed to create virtual environment.
-        echo.
         timeout /t 20
         exit /b %errorlevel%
     )
