@@ -9,6 +9,8 @@ for /f "delims=" %%v in ('python -c "import sys; print(sys.version.split()[0])" 
 if not defined PYTHON_VERSION (
     echo.
     echo Python is not installed or not found in PATH. Please install Python 3.x and try again.
+    echo Please install the most updated version of Python and try again.
+    echo Download: https://www.python.org/downloads/ 
     echo.
     timeout /t 20
     exit /b 1
@@ -26,6 +28,8 @@ set /a MAJOR_CHECK=%MAJOR%
 if %MAJOR_CHECK% LSS 3 (
     echo.
     echo Python version %PYTHON_VERSION% is too old. Please install Python 3.0 or higher.
+    echo Please install the most updated version of Python and try again.
+    echo Download: https://www.python.org/downloads/ 
     echo.
     timeout /t 20
     exit /b 1
