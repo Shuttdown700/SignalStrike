@@ -3,6 +3,7 @@ import json
 import os
 import time
 import urllib.request
+import ssl
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, Optional, Tuple, Union
 
@@ -12,6 +13,11 @@ import shapely.geometry
 import shapely.ops
 import tiletanic
 from pyproj import Transformer
+import certifi
+
+
+# Create SSL context with certifi CA bundle
+SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
 
 
 def parse_arguments() -> Dict[str, Union[str, Tuple[float, ...], int, bool]]:
@@ -123,7 +129,7 @@ def get_geometry(args: Dict) -> shapely.geometry.base.BaseGeometry:
         ])
     else:
         try:
-            with open(args["geojson"], "r") as f:
+            with open(args["geojson"], "r", encoding="utf-8") as f:
                 geojson = json.load(f)
         except FileNotFoundError:
             raise FileNotFoundError(f"GeoJSON file not found: {args['geojson']}")
@@ -140,9 +146,7 @@ def get_geometry(args: Dict) -> shapely.geometry.base.BaseGeometry:
     return geometry
 
 
-def download_tile(tile: Tuple[int, int, int], 
-                  args: Dict
-                  ) -> None:
+def download_tile(tile: Tuple[int, int, int], args: Dict) -> None:
     """Download a single tile and save it to the output directory.
 
     Args:
@@ -158,26 +162,40 @@ def download_tile(tile: Tuple[int, int, int],
     map_name = write_dir.split(os.sep)[-3]
 
     if os.path.exists(write_filepath) and not args["overwrite"]:
-        print(f"{Fore.YELLOW}{Style.BRIGHT}Skipping{Style.RESET_ALL}: {map_name}/{zoom}/{tile_x}/{tile_y}{extension} already exists")
+        print(
+            f"{Fore.YELLOW}{Style.BRIGHT}Skipping{Style.RESET_ALL}: "
+            f"{map_name}/{zoom}/{tile_x}/{tile_y}{extension} already exists"
+        )
         return True
 
     url = args["tile_url"].format(x=tile_x, y=tile_y, z=zoom)
 
     try:
-        with urllib.request.urlopen(url, timeout=args["timeout"]) as response:
-            print(f"{Fore.GREEN}{Style.BRIGHT}Downloading{Style.RESET_ALL}: {map_name}/{zoom}/{tile_x}/{tile_y}{extension}")
+        with urllib.request.urlopen(
+            url, timeout=args["timeout"], context=SSL_CONTEXT
+        ) as response:
+            print(
+                f"{Fore.GREEN}{Style.BRIGHT}Downloading{Style.RESET_ALL}: "
+                f"{map_name}/{zoom}/{tile_x}/{tile_y}{extension}"
+            )
             os.makedirs(write_dir, exist_ok=True)
             with open(write_filepath, "wb") as f:
                 f.write(response.read())
         time.sleep(args["interval"] / 1000)
     except urllib.error.HTTPError as e:
-        print(f"{Fore.RED}{Style.BRIGHT}HTTP Error{Style.RESET_ALL}: {e} for URL: {url}")
+        print(
+            f"{Fore.RED}{Style.BRIGHT}HTTP Error{Style.RESET_ALL}: {e} for URL: {url}"
+        )
         return False
     except Exception as e:
         if "timeout" in str(e).lower():
-            print(f"{Fore.YELLOW}{Style.BRIGHT}Timeout, retrying{Style.RESET_ALL}: {url}")
+            print(
+                f"{Fore.YELLOW}{Style.BRIGHT}Timeout, retrying{Style.RESET_ALL}: {url}"
+            )
         else:
-            print(f"{Fore.RED}{Style.BRIGHT}Error{Style.RESET_ALL}: {e} for URL: {url}")
+            print(
+                f"{Fore.RED}{Style.BRIGHT}Error{Style.RESET_ALL}: {e} for URL: {url}"
+            )
         return False
 
 
@@ -193,7 +211,8 @@ def main() -> None:
 
     # Set up tile scheme
     tile_scheme = (
-        tiletanic.tileschemes.WebMercatorBL() if args["tms"]
+        tiletanic.tileschemes.WebMercatorBL()
+        if args["tms"]
         else tiletanic.tileschemes.WebMercator()
     )
 
@@ -207,9 +226,15 @@ def main() -> None:
                 future = executor.submit(download_tile, tile, args)
                 num_tiles += 1
                 if future.exception():
-                    print(f"{Fore.RED}{Style.BRIGHT}Error downloading tile{Style.RESET_ALL}: {future.exception()}")
+                    print(
+                        f"{Fore.RED}{Style.BRIGHT}Error downloading tile"
+                        f"{Style.RESET_ALL}: {future.exception()}"
+                    )
 
-    print(f"{Fore.GREEN}{Style.BRIGHT}Download completed{Style.RESET_ALL}: {num_tiles:,} tiles")
+    print(
+        f"{Fore.GREEN}{Style.BRIGHT}Download completed{Style.RESET_ALL}: "
+        f"{num_tiles:,} tiles"
+    )
 
 
 if __name__ == "__main__":
