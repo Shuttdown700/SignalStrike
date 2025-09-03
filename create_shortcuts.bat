@@ -10,7 +10,7 @@ set "DESKTOP=%USERPROFILE%\Desktop"
 call :CreateShortcut "%CURR_DIR%" "%DESKTOP%\Folder - EW Targeting App.lnk" "%CURR_DIR%\icons\desktop_shortcuts\folder.ico"
 
 :: Define the batch files for which shortcuts should be created
-for %%F in (map_download.bat launch.bat update_code.bat update_requirements.bat) do (
+for %%F in (map_download.bat launch.bat update_code.bat update_requirements.bat run_tests.bat) do (
     set "BATCH_FILE=%%F"
     set "SHORTCUT_PATH=%DESKTOP%\%%~nF.lnk"
 
