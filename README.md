@@ -38,8 +38,10 @@ cd ./SignalStrike
 ```
 
 # Run Application
-- Click on the "launch" Desktop icon (i.e. the Rocket icon)
-- From Window's command or PowerShell terminal:
+- **Method 1:** Click on the "launch" Desktop icon (i.e. the **Rocket icon**)
+
+
+- **Method 2:** From Window's command or PowerShell terminal:
 ```sh
 # change directory to SignalStrike directory
 cd %USERPROFILE%/SignalStrike
