@@ -15,8 +15,7 @@ if not defined VIRTUAL_ENV (
     call venv\Scripts\activate
 ) else (
     echo.
-    echo Virtual environment already active.
-    echo.
+    echo Virtual environment already active
 )
 
 REM Check if requirements.txt exists
@@ -27,13 +26,49 @@ if not exist requirements.txt (
     exit /b 1
 )
 
+:: ------------------------------------------------------------------
+:: Setup Virtual Environment
+:: ------------------------------------------------------------------
+
+:: Check if venv already exists
+if exist venv\Scripts\activate (
+    echo.
+    echo Virtual environment already exists. Skipping creation.
+) else (
+    :: Create a virtual environment named "venv"
+    echo.
+    echo Creating virtual environment
+    python -m venv venv
+    if %errorlevel% neq 0 (
+        echo.
+        echo Failed to create virtual environment.
+        timeout /t 20
+        exit /b %errorlevel%
+    )
+)
+
+:: Change directory to the virtual environment's Scripts folder
+cd venv\Scripts
+
+:: Activate the virtual environment
+echo.
+echo Activating virtual environment
+call activate
+if %errorlevel% neq 0 (
+    echo Failed to activate virtual environment.
+    timeout /t 20
+    exit /b %errorlevel%
+)
+
+cd ..\..
+
 REM Upgrade pip first
 echo.
 echo Upgrading pip...
 python -m pip install --upgrade pip
 if errorlevel 1 (
     echo.
-    echo Error: Failed to upgrade pip (check internet connection).
+    echo Error: Failed to upgrade pip -- check internet connection.
     timeout /t 20
     exit /b 1
 )
@@ -51,7 +86,7 @@ endlocal & set "pipOutput=%pipOutput%"
 
 if errorlevel 1 (
     echo.
-    echo Error: Failed to install/upgrade some dependencies (check errors above).
+    echo Error: Failed to install/upgrade some dependencies -- check errors above.
     timeout /t 20
     exit /b 1
 )
