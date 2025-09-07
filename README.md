@@ -1,95 +1,94 @@
 # Overview
 
-The Electromagnetic Warfare Targeting Application, named SignalStrike, supports EW platoons' operations by streamlining their targeting process. Users input a LOB 3-Line (Sensor MGRS, LOB orientation, PWR Received), and the application reverse-engineers the target signal, identifying the location of potential targets in real-time. The application allows the aggregation of EW targeting data from up to three EW teams (EWTs). The application integrates target data onto an offline digital map to enhance situational awareness and enable precise targeting. This innovative tool empowers EW units to aggregate target data across their EWTs, significantly reducing the time required to detect, identify, and deliver effects on targets with decisive levels of efficiency and accuracy.
+The Electromagnetic Warfare (EW) Targeting Application, dubbed "SignalStrike", supports EW platoons' operations by streamlining their targeting process. Users input a Line-of-Bearing (LOB) LOB 3-Line (the sensor MGRS, its LOB grid azimuth, and the power received from the signal) and the application reverse-engineers the received target signal, overlaying the target area of the source emitter in real-time. The application allows the aggregation of EW sensor data from up to three EW teams (EWTs), and any combination of EWTs. SignalStrike ingests user-input sensor data and presents the generated target data onto an offline, digital, and interactive map to enhance situational awareness and enable effective targeting of signals-of-interest (SOI). This innovative and essential tool enables EW Platoons to rapidly aggregate raw sensor data from their EWTs and generate accurate target data that is clearly communicated through a single user interface. SignalStrike significantly reduces the time required to detect, identify, and deliver effects on targets with decisive levels of efficiency and accuracy, a capability currently unavailable at the Platoon-level through Army Programs of Record.
 
-![](./icons/markdown/ewta_snapshot.PNG)
+SignalStrike began development in October 2023 following a frustrating rotation at the Joint Multinational Training Center (JMRC) wherein EW operators failed to efficiently and accurately cross-reference radio frequency (RF) sensor data and generate accurate RF-based target data in real-time, significantly reducing the utility of the EW Platoon within the assigned unit. During the Combined Resolve (CbR) rotation, the EW Soldiers rapidly developed a command line-based software prototype to ingest RF sensor data and programmatically generate target data; this prototype is considered the first iteration of SignalStrike. The unique value of this software tool was its ability to generate accurate target areas from a single RF sensor's data through a reverse-propagation model, subject to assumptions of the target emitter and operating environment; a capability not yet available to any conventional EW Platoon. This feature, combined with its ability to overlay the target geometry onto a digital map, remains at the core of SignalStrike's value proposition. Following the JMRC rotation, SignalStrike underwent two follow-on development sprints and underwent comprehensive field testing by multiple EW Platoons in the tactical environment at the National Training Center (NTC) in July 2024 and again at JMRC in May 2025. Each field test generated overall positive user feedback and led to the development of features, such as enhanced map features, positioning features, and thorough event logging, based on the end-user's requirements. 
+
+![](./icons/markdown/SignalStrike_CUT_EWT1_EWT3.PNG)
 
 # Installation
 
-#### Install on Linux:
-```bash
-# download package information from all configured sources 
-sudo apt-get update
-# install python
-sudo apt-get install python
-# verify python version
-python --version
-# install git
-sudo apt install git-all
-# clone git repository
-git clone "https://github.com/Shuttdown700/ew_plt_targeting_app"
-# change directory to EW Target App directory
-cd ./ew_plt_targeting_app
-# create a virtual python environment titled "venv"
-python -m venv env
-# activate the virtual environment
-source ./venv/bin/activate
-# install required python modules
-python -m pip install -r requirements.txt
-```
+#### Install on Windows 10/11:
+1. Download **Python 3**.
 
-#### Install on Windows:
-1. Download **Python**
+    **Method 1:** Download from the Microsoft Store.
 
-    **Method 1:** Download from the Microsoft Store
+    **Method 2:** Download from [Python.org](https://www.python.org/downloads/).
 
-    **Method 2:** Download from [Python.org](https://www.python.org/downloads/)
+2. Download **Git for Windows** from [git-scm.com](https://git-scm.com/download/win).
 
-2. Download **Git for Windows** from [git-scm.com](https://git-scm.com/download/win)
+3. Download **Microsoft C++ Build Tools** from [visualstudio.microsoft.com](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 
-3. Open a **Command (cmd) Prompt** and input the following commands:
+5. Open a **Command (cmd) or Powershell Prompt**.
+
+4. Input the following commands:
 ```sh
 # ensure Git is updated
 git update-git-for-windows
 # verify python version
 python --version
+# change directory to your user's home directory
+cd %USERPROFILE%
 # clone git repository
-git clone "https://github.com/Shuttdown700/ew_plt_targeting_app"
-# change directory to EW Target App directory
+git clone "https://github.com/Shuttdown700/SignalStrike.git"
+# change directory to the SignalStrike directory
 cd ./SignalStrike
-# create a virtual python environment titled "venv"
-python -m venv venv
-# change directory to virtual environment scripts
-cd venv/Scripts/
-# activate the virtual environment
-activate
-# update Python's Pip module
-python -m pip install --upgrade pip
-# change directory to root directory
-cd ../..
-# install required python modules
-python -m pip install -r requirements.txt
+# run the setup.bat script
+./setup.bat
 ```
 
 # Run Application
-- From Window's command prompt:
+- Click on the "launch" Desktop icon (i.e. the Rocket icon)
+- From Window's command or PowerShell terminal:
 ```sh
-# Start the EW Targeting Application
-run.bat
-```
-- From Linux Bash shell:
-```bash
-# Start the EW Targeting Application
-source run.sh
+# change directory to SignalStrike directory
+cd %USERPROFILE%/SignalStrike
+# launch the SignalStrike Application
+./launch.bat
 ```
 
 # User-Interface Layout
-![](./icons/markdown/GUI_layout.PNG)
+<p align="center">
+  <img src="./icons/markdown/single_LOB.PNG"/>
+</p>
 
 # Functions
 ### **Single LOB Targeting Function:**
-This essential function allows an estimated target location to be derived from a single sensor's LOB. The user must assume the target transmitter's minimum and maximum effective radiated power (ERP). The application will reverse-engineer the received signal to generate an estimated transmission origin and highlight the area of error where the transmitter may be located based on sensor and environmental parameters.
+This core feature generates an estimated target area from a single RF sensor's LOB. The user must assume the target transmitter's minimum and maximum effective radiated power (ERP) and must assert the path-loss coefficient by selecting the foliage density along the LOB's path. When the user clicks "Calculate", SignalStrike will reverse-engineer the received signal based on the input data and user assumptions to generate an estimated transmission origin and area of error, taking into account sensor and environmental parameters. This area of error represents the target area. From here, users can adjudicate the location of the emitter further by opting to generate a **two-dimensional elevation plot** along the LOB and by interacting with and analyzing the target area on the map to refine the target emitter's location further.
 
-![](./icons/markdown/single_LOB.PNG)
+<p align="center">
+  <img src="./icons/markdown/single_LOB.PNG"/>
+</p>
+
+<p align="center">
+  <img src="./icons/markdown/2D_elevation_plot_EWT2.PNG"/>
+</p>
 
 ### **Multi-LOB Targeting Function (CUT/FIX):**
-Sensor data from multiple EWTs can be simultaneously input to derive CUTs and FIXs: CUTs are in BLUE, and FIXs are in YELLOW. Notice that the target error (measured in acres) significantly reduces from LOB to CUT (18x smaller in this example) while the target error only slightly reduces from CUT to FIX (x3 smaller in this example). The application treats non-intersecting LOBs as two separate LOBs, and the target data from both LOBs will be displayed, allowing for EWTs to target separate transmitters simultaneously.
+In addition to generating a target area from a single RF sensor, SignalStrike can process RF sensor data from up to three EWTs to generate multiple and higher-fidelity target overlays. During the calculation process, SignalStrike assesses if the various EWTs' LOBs generate a CUT (two intersecting LOBs) or a FIX (three intersecting LOBs), with CUTs outlined in blue and a FIX outlined in yellow. Typically, the gold standard for an EW Platoon is to get a FIX on a target emitter, thus maximizing the accuracy of the estimated target location. However, through experimentation, EW Platoons noticed that, on average, the target error (measured in acres) significantly reduces between LOB-based target areas and CUT-based target areas. This difference in target fidelity between LOBs and CUTs averaged to be about x15: for example, 900 acres (LOB) to 60 acres (CUT) of error. That said, the difference in fidelity between CUT-based target areas and FIX-based target areas is only about x3: for example, 60 acres (CUT) to 20 acres (FIX) of error. This finding, which was discovered during the NTC field test in 2024, reduced the EW Platoons' valuation of a FIX relative to a CUT since it was often too much of an operational risk/cost to promptly maneuver a third EWT when a CUT is typically sufficient for non-urban targeting.
 
-![](./icons/markdown/CUT.PNG)
+SignalStrike also enables simultaneous targeting of multiple emitters and assists in rapidly adjudicating the quantity of target emitters in a tactical radio network. Multiple, independent LOBs can overlay on the map when EWTs have non-intersecting LOBs, in which case the SignalStrike treats the LOBs independently and the presents the target data for both LOBs in the user interface. SignalStrike can accommodate any combination of LOB intersections or single LOBs, and will overlay this data on the user interface in real-time.
 
-![](./icons/markdown/FIX.PNG)
+#### **CUT:**
+<p align="center">
+  <img src="./icons/markdown/CUT.PNG"/>
+</p>
 
-![](./icons/markdown/TWO_LOB.PNG)
+#### **FIX:**
+<p align="center">
+  <img src="./icons/markdown/FIX.PNG"/>
+</p>
+
+#### **2 LOBs:**
+<p align="center">
+  <img src="./icons/markdown/TWO_LOB.PNG"/>
+</p>
+
+#### **1 CUT, 1 LOB:**
+<p align="center">
+  <img src="./icons/markdown/TWO_LOB_ONE_CUT.PNG"/>
+</p>
+
 ### **Locally-Host Map Server:**
 The map tiles for the interactive map are downloaded into a local database and served via a locally-hosted map server. This function provides the user with a map service in an offline, austere environment. The map server is an HTTP server that launches when the app starts.
 

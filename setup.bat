@@ -101,7 +101,8 @@ if %errorlevel% neq 0 (
 )
 
 :: Return to the root project directory
-cd ..\..
+cd ..
+cd ..
 
 :: Install required Python modules
 if exist requirements.txt (
@@ -122,7 +123,7 @@ echo Virtual environment setup complete!
 echo.
 
 :: Run the create_shortcuts.bat script
-echo Creating shortcuts
+echo Creating shortcuts.
 call create_shortcuts.bat
 if %errorlevel% neq 0 (
     echo Failed to run create_shortcuts.bat.
