@@ -51,7 +51,7 @@ cd %USERPROFILE%/SignalStrike
 
 # User-Interface Layout
 <p align="center">
-  <img src="./icons/markdown/single_LOB.PNG"/>
+  <img src="./icons/markdown/GUI_layout.PNG"/>
 </p>
 
 # Functions
