@@ -4,6 +4,7 @@
 *.log
 *.dt1
 *.dt2
+*.zip
 **/map_tiles
 **/ewta_venv
 **/venv_test

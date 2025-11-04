@@ -1,6 +1,7 @@
 import logging
 import os
 import subprocess
+import numpy as np
 from colorama import init, Fore
 
 # Initialize colorama (ensures colors work properly on Windows)
@@ -13,7 +14,7 @@ YELLOW = Fore.YELLOW
 RED = Fore.RED
 MAGENTA = Fore.MAGENTA
 
-def delete_small_files_and_empty_dirs(directory: str, 
+def delete_small_files_and_empty_dirs(directory: str,
                                       size_limit_kb: float, 
                                       dry_run: bool = False
                                       ) -> None:
@@ -101,7 +102,6 @@ def get_coord_box(center_coord : list[float,float]
                   ,y_dist_m : float
                   ) -> str:
     """Generate a coordinate box for the tile downloader."""
-    import numpy as np
     from coords import adjust_coordinate
     diag_dist = np.sqrt(x_dist_m**2 + y_dist_m**2)
     tl_coord = adjust_coordinate(center_coord,315,diag_dist)
