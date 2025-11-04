@@ -20,3 +20,5 @@ src/queue_files/*
 !src/queue_files/.gitkeep
 dted/*
 !dted/.gitkeep
+logs_archived/*
+!logs_archived/.gitkeep
