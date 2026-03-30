@@ -16,4 +16,4 @@ REM Run pytest in new terminal
 REM - If SUCCESS → wait 20 seconds then close
 REM - If FAILURE → wait indefinitely until keypress
 REM =========================================
-START "PyTest Session" /D . cmd /c "pytest ./tests && timeout /t 20 || (echo [ERROR] Tests failed. Press any key to close... & pause)"
+START "PyTest Session" /D . cmd /c "python -m pytest ./tests && timeout /t 20 || (echo [ERROR] Tests failed. Press any key to close... & pause)"
