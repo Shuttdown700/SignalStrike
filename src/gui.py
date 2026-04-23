@@ -1708,7 +1708,7 @@ class App(customtkinter.CTk):
             # read Max ERP from input field
             self.max_wattage_val = float(self.max_ERP.get())
             # assess validity of Max ERP value
-            if self.max_wattage_val < 0 or self.max_wattage_val < self.min_wattage_val:
+            if self.max_wattage_val < 0 or self.max_wattage_val <= self.min_wattage_val:
                 # raise a ValueError exception
                 raise ValueError
         # exception handling for ValueError

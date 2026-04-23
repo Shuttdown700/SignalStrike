@@ -228,7 +228,13 @@ def get_center_coord(coord_list : list[list[float,float]]) -> list:
 
     """
     from statistics import mean
+    print(coord_list)
     assert isinstance(coord_list,list) and len(coord_list) >= 1, "Coordinates must be in a list comprehension of length 1 or greater"
+    coord_list = [c for c in coord_list if c]
+    print(coord_list)
+    assert len(coord_list) >= 1, "At least one valid coordinate is required to calculate center coordinate."
+    assert all(isinstance(c, (list, tuple)) and len(c) == 2 for c in coord_list), "Each coordinate must be a list or tuple of length 2 (lat,lon)."
+    
     return [float(mean([c[0] for c in coord_list])),float(mean([c[1] for c in coord_list]))]
 
 def get_coords_from_LOBs(sensor_coord: list[float,float],
