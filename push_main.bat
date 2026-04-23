@@ -14,7 +14,7 @@ git commit -m "%commit_message%"
 
 rem Push changes to the 'main' branch of the remote repository
 git push origin main
-git push mic main
+rem git push mic main
 
 timeout /t 5
 echo.
