@@ -3123,14 +3123,15 @@ class App(customtkinter.CTk):
             response = msgBox.get()
             if response == "Yes":
                 self.map_widget.set_position(self.MAP_POSITIION[0], self.MAP_POSITIION[1])
-                self.logger_gui.info(f"Map view adjusted to EUD position at {mgrs_formated} ({lat}, {lon}).")
+                mgrs_formated = format_readable_mgrs(convert_coords_to_mgrs([self.MAP_POSITIION[0],self.MAP_POSITIION[1]]))
+                self.logger_gui.info(f"Map view adjusted to EUD position at {mgrs_formated} ({self.MAP_POSITIION[0]}, {self.MAP_POSITIION[1]}).")
         time.sleep(2)
         self.logger_positioning.info("Attempting to plot EUD position.")
         if coord == None:
             try:
                 latest_position = self.get_latest_logged_position()
                 if latest_position is None:
-                    self._show_info('No positioning data available.', icon='warning')
+                    # self._show_info('No positioning data available.', icon='warning')
                     self.logger_positioning.warning(f"No positioning data available.")
                     _handle_no_positioning_data()
                     return
@@ -3140,7 +3141,7 @@ class App(customtkinter.CTk):
                 return
             if lat is None or lon is None:
                 self.logger_positioning.warning("No GPS data available. Cannot read GPS receiver.")
-                self._show_info("Cannot read GPS receiver",icon='warning')
+                # self._show_info("Cannot read GPS receiver",icon='warning')
                 _handle_no_positioning_data()
                 return
         else:
