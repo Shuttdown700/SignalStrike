@@ -3118,6 +3118,12 @@ class App(customtkinter.CTk):
         from utilities import format_readable_DTG, generate_DTG
         from coords import convert_coords_to_mgrs, format_readable_mgrs
         from CTkMessagebox import CTkMessagebox
+        def _handle_no_positioning_data():
+            msgBox = CTkMessagebox(title="Map Position", message='The EUD position could not be determined. Plot last known position?', icon='info',options=['Yes','No'])
+            response = msgBox.get()
+            if response == "Yes":
+                self.map_widget.set_position(self.MAP_POSITIION[0], self.MAP_POSITIION[1])
+                self.logger_gui.info(f"Map view adjusted to EUD position at {mgrs_formated} ({lat}, {lon}).")
         time.sleep(2)
         self.logger_positioning.info("Attempting to plot EUD position.")
         if coord == None:
@@ -3126,6 +3132,7 @@ class App(customtkinter.CTk):
                 if latest_position is None:
                     self._show_info('No positioning data available.', icon='warning')
                     self.logger_positioning.warning(f"No positioning data available.")
+                    _handle_no_positioning_data()
                     return
                 lat, lon, acc = latest_position
             except Exception as e:
@@ -3134,11 +3141,7 @@ class App(customtkinter.CTk):
             if lat is None or lon is None:
                 self.logger_positioning.warning("No GPS data available. Cannot read GPS receiver.")
                 self._show_info("Cannot read GPS receiver",icon='warning')
-                msgBox = CTkMessagebox(title="Map Position", message='The EUD position could not be determined. Plot last known position?', icon='info',options=['Yes','No'])
-                response = msgBox.get()
-                if response == "Yes":
-                    self.map_widget.set_position(self.MAP_POSITIION[0], self.MAP_POSITIION[1])
-                    self.logger_gui.info(f"Map view adjusted to EUD position at {mgrs_formated} ({lat}, {lon}).")
+                _handle_no_positioning_data()
                 return
         else:
             lat = coord[0]; lon = coord[1]
