@@ -2,6 +2,15 @@
 :: Stop execution if any command fails
 setlocal enabledelayedexpansion
 
+REM Activate virtual environment
+if exist venv\Scripts\activate.bat (
+    call venv\Scripts\activate.bat || (
+        echo Warning: failed to activate virtual environment. Continuing without activation.
+    )
+) else (
+    echo Warning: virtual environment activation script not found. Continuing.
+)
+
 :: Attempt to get Python version
 for /f "delims=" %%v in ('python -c "import sys; print(sys.version.split()[0])" 2^>nul') do set PYTHON_VERSION=%%v
 
