@@ -29,6 +29,8 @@ class App(customtkinter.CTk):
     MAP_SERVER_IP = conf["MAP_SERVER_IP"]
     # preset local port that is hosting the map server
     MAP_SERVER_PORT = conf["MAP_SERVER_PORT"]
+    # preset intital map position
+    MAP_POSITIION = (conf["DEFAULT_INITIAL_LATITUDE"], conf["DEFAULT_INITIAL_LONGITUDE"])
     # preset maximum map zoom level
     MAX_ZOOM = conf["MAX_ZOOM"]
     # preset default values
@@ -998,6 +1000,7 @@ class App(customtkinter.CTk):
             sticky="w")
         # set initial location
         self.map_widget.set_position(App.DEFAULT_VALUES["Initial Latitude"],App.DEFAULT_VALUES["Initial Longitude"])
+        self.MAP_POSITIION = (App.DEFAULT_VALUES["Initial Latitude"],App.DEFAULT_VALUES["Initial Longitude"])
         # set clear option
         self.clear_option_dropdown.set("Map Clear Options")
         # set map widget default server
@@ -1094,6 +1097,7 @@ class App(customtkinter.CTk):
             pass
         if initial_coord != []:
             self.map_widget.set_position(initial_coord[0],initial_coord[1])
+            self.MAP_POSITIION = tuple(initial_coord)
             self.map_widget.set_zoom(App.DEFAULT_VALUES["Initial Map Zoom"])
 
     def read_ewt_input_fields(self):
@@ -1773,6 +1777,7 @@ class App(customtkinter.CTk):
             target_coord_list = [x for x in [self.sensor1_target_coord,self.sensor2_target_coord,self.sensor3_target_coord] if x != None]
             # set map position based on target location
             self.map_widget.set_position(np.average([x[0] for x in target_coord_list]), np.average([x[1] for x in target_coord_list]))
+            self.MAP_POSITIION = (np.average([x[0] for x in target_coord_list]), np.average([x[1] for x in target_coord_list]))
             target_coord_list = [x for x in [self.sensor1_target_coord,self.sensor2_target_coord,self.sensor3_target_coord] if x != None]
             if len(target_coord_list) == 1:
                 self.target_coord = target_coord_list[0]
@@ -2197,6 +2202,7 @@ class App(customtkinter.CTk):
             if not multi_cut_bool: self.target_error.configure(text=f'{self.target_error_val:,.0f} acres',text_color='white')
             # set map position at CUT target 
             self.map_widget.set_position(self.target_coord[0],self.target_coord[1])
+            self.MAP_POSITIION = (self.target_coord[0],self.target_coord[1])
             
         def plot_fix(lob1_center,lob1_right_bound,lob1_left_bound,lob2_center,lob2_right_bound,lob2_left_bound,lob3_center,lob3_right_bound,lob3_left_bound):
             """
@@ -2340,6 +2346,7 @@ class App(customtkinter.CTk):
             self.target_error.configure(text=f'{self.target_error_val:,.0f} acres',text_color='white')
             # set map position at CUT target 
             self.map_widget.set_position(self.target_coord[0],self.target_coord[1])
+            self.MAP_POSITIION = (self.target_coord[0],self.target_coord[1])
             # calculate the FIX error (in acres)
             self.target_error_val = get_polygon_area(fix_polygon)
             # define sensor FIX description
@@ -2425,6 +2432,7 @@ class App(customtkinter.CTk):
             self.sensor2_coord = convert_mgrs_to_coords(self.sensor2_mgrs_val)
             # # set map position to the middle of sensor 1 and sensor 2
             # self.map_widget.set_position(np.average([self.sensor1_coord[0],self.sensor2_coord[0]]),np.average([self.sensor1_coord[1],self.sensor2_coord[1]]))
+            # self.MAP_POSITIION = (np.average([self.sensor1_coord[0],self.sensor2_coord[0]]),np.average([self.sensor1_coord[1],self.sensor2_coord[1]]))
             # clear sensor 2 distance 
             self.sensor2_distance.configure(text='')
             # calculate sensor 2 minimum distance (in km)
@@ -3060,10 +3068,12 @@ class App(customtkinter.CTk):
             self.search_mgrs.insert(0,search_mgrs)
             search_coord = convert_mgrs_to_coords(search_mgrs)
             self.map_widget.set_position(search_coord[0],search_coord[1])
+            self.MAP_POSITIION = tuple(search_coord)
             self.add_marker_event(search_coord)
         elif check_coord_input(search_mgrs):
             search_coord = correct_coord_input(search_mgrs)
             self.map_widget.set_position(search_coord[0],search_coord[1])
+            self.MAP_POSITIION = tuple(search_coord)
             self.add_marker_event(search_coord)
         else:
             self._show_info("Invalid MGRS input!",icon='warning')
@@ -3124,6 +3134,11 @@ class App(customtkinter.CTk):
             if lat is None or lon is None:
                 self.logger_positioning.warning("No GPS data available. Cannot read GPS receiver.")
                 self._show_info("Cannot read GPS receiver",icon='warning')
+                msgBox = CTkMessagebox(title="Map Position", message='The EUD position could not be determined. Plot last known position?', icon='info',options=['Yes','No'])
+                response = msgBox.get()
+                if response == "Yes":
+                    self.map_widget.set_position(self.MAP_POSITIION[0], self.MAP_POSITIION[1])
+                    self.logger_gui.info(f"Map view adjusted to EUD position at {mgrs_formated} ({lat}, {lon}).")
                 return
         else:
             lat = coord[0]; lon = coord[1]
@@ -3143,6 +3158,7 @@ class App(customtkinter.CTk):
         response = msgBox.get()
         if response == "Yes":
             self.map_widget.set_position(lat, lon)
+            self.MAP_POSITIION = (lat, lon)
             self.logger_gui.info(f"Map view adjusted to EUD position at {mgrs_formated} ({lat}, {lon}).")
 
     def increment_brightness_up(self):
