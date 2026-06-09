@@ -7,6 +7,7 @@
 *.zip
 **/map_tiles
 **/map_dbs
+!/map_dbs/.gitkeep
 **/analytics
 **/ewta_venv
 **/venv_test
