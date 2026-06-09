@@ -11,6 +11,7 @@
     "DIR_RELATIVE_TESTS": "tests",
     "DIR_RELATIVE_ICONS": "icons",
     "DIR_RELATIVE_QUEUE": "src/queue_files",
+    "DIR_RELATIVE_MAP_DB": "map_dbs",
     "DEFAULT_BASE_TILE_URL":"https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=8242f8cd508342868f3d7d29e472aca9",
     "SATELLITE_TILE_URL":"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     "TERRAIN_TILE_URL":"https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=8242f8cd508342868f3d7d29e472aca9",
@@ -45,5 +46,6 @@
     "DEFAULT_MAP_SERVER_PATH":"/Terrain/{z}/{x}/{y}.png",
     "FILENAME_POI_MARKERS":"current_POI_markers.csv",
     "FILENAME_TACTICAL_GRAPHIC_MARKERS":"tactical_graphic_markers.csv",
-    "FILENAME_EWT_MARKERS":"ewt_markers.csv"
+    "FILENAME_EWT_MARKERS":"ewt_markers.csv",
+    "OFFLINE_DB_LABEL":"offline-db://terrain/{z}/{x}/{y}.png"
 }

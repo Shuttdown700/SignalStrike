@@ -6,6 +6,8 @@
 *.dt2
 *.zip
 **/map_tiles
+**/map_dbs
+**/analytics
 **/ewta_venv
 **/venv_test
 **/venv_ewta
@@ -21,5 +23,6 @@ src/queue_files/*
 !src/queue_files/.gitkeep
 dted/*
 !dted/.gitkeep
+!analytics/.gitkeep
 logs_archived/*
 !logs_archived/.gitkeep

@@ -2,6 +2,7 @@
 
 import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 from utilities import read_json
 import customtkinter
 import logging
@@ -11,6 +12,7 @@ from _tkinter import TclError
 customtkinter.set_default_color_theme(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "config_files", "color_theme.json")
 )
+
 class App(customtkinter.CTk):
     """
     Custom Tkinter Application Class for GUI support
@@ -29,6 +31,8 @@ class App(customtkinter.CTk):
     MAP_SERVER_IP = conf["MAP_SERVER_IP"]
     # preset local port that is hosting the map server
     MAP_SERVER_PORT = conf["MAP_SERVER_PORT"]
+    # preset map database
+    OFFLINE_DB_LABEL = conf["OFFLINE_DB_LABEL"]
     # preset intital map position
     MAP_POSITIION = (conf["DEFAULT_INITIAL_LATITUDE"], conf["DEFAULT_INITIAL_LONGITUDE"])
     # preset maximum map zoom level
@@ -107,6 +111,8 @@ class App(customtkinter.CTk):
         self.title(App.APP_NAME)
         # set geometry of GUI display to presets
         self.geometry(str(App.WIDTH) + "x" + str(App.HEIGHT))
+        # set menu font style and font size
+        self.option_add("*Menu.Font", "Arial 18")
         # set minimum allowed size of GUI display as presets
         self.minsize(App.WIDTH, App.HEIGHT)
         # call window delete protocol upon app closing
@@ -123,6 +129,8 @@ class App(customtkinter.CTk):
         self.tile_directory = os.path.join(os.path.dirname(self.src_directory), App.conf["DIR_RELATIVE_MAP_TILES"])
         # define base log directory
         self.log_directory = os.path.join(os.path.dirname(self.src_directory), App.conf["DIR_RELATIVE_LOGS"])
+        # define map DB directory
+        self.map_db_directory = os.path.join(os.path.dirname(self.src_directory), App.conf["DIR_RELATIVE_MAP_DB"])
         # define targeting log directory
         self.log_targeting_directory = os.path.join(os.path.dirname(self.src_directory), App.conf["DIR_RELATIVE_LOGS_TARGETING"])
         # define EUD log file directory
@@ -145,6 +153,8 @@ class App(customtkinter.CTk):
         self.blank_image = ImageTk.PhotoImage(Image.open(os.path.join(self.icon_directory, "empty.png")).resize((40, 40)))
         # set app icon
         self.iconbitmap(os.path.join(self.icon_directory, "app_icon.ico"))
+        # set offline map db
+        self.map_db_path = os.path.join(self.map_db_directory, "OfflineMap.db")
         # define initial POI marker list
         self.POI_marker_list = []
         # define objective list
@@ -646,9 +656,15 @@ class App(customtkinter.CTk):
             pady=(0,0),
             sticky='w')
         # define path-loss coefficient option attributes
+        self.path_loss_coeff_values = ["Free Space",
+                                       "No Foliage",
+                                       "Light Foliage",
+                                       "Moderate Foliage",
+                                       "Dense Foliage",
+                                       "Jungle Foliage"]
         self.option_path_loss_coeff = customtkinter.CTkOptionMenu(
             master=self.frame_left, 
-            values=["Free Space","No Foliage","Light Foliage","Moderate Foliage","Dense Foliage","Jungle Foliage"],
+            values=self.path_loss_coeff_values,
             fg_color='green',
             button_color='green',
             command=self.change_path_loss)
@@ -890,7 +906,9 @@ class App(customtkinter.CTk):
         # define map widget attributes
         self.map_widget = TkinterMapView(
             master=self.frame_right, 
-            corner_radius=0)
+            corner_radius=0,
+            database_path=self.map_db_path,
+            use_database_only=False)
         # assign map widget grid position
         self.map_widget.grid(
             row=1, 
@@ -978,14 +996,17 @@ class App(customtkinter.CTk):
             sticky="w")
 
         # define map option dropdown attributes
+        self.map_dropdown_values = ["Local Terrain Map", 
+                               "Local Satellite Map",
+                               "OpenStreetMap",
+                               "Google Street",
+                               "Google Satellite"
+        ]
+        if os.path.exists(self.map_db_path):
+            self.map_dropdown_values.insert(0, "Offline Map DB")
         self.map_option_menu = customtkinter.CTkOptionMenu(
             master=self.frame_right, 
-            values=["Local Terrain Map", 
-                    "Local Satellite Map", 
-                    "OpenStreetMap", 
-                    "Google Street", 
-                    "Google Satellite"
-                    ],
+            values=self.map_dropdown_values,
             fg_color="green",
             text_color="white",
             command=self.change_map)
@@ -1004,9 +1025,9 @@ class App(customtkinter.CTk):
         # set clear option
         self.clear_option_dropdown.set("Map Clear Options")
         # set map widget default server
-        self.map_option_menu.set("Local Terrain Map")
+        self.map_option_menu.set(self.map_dropdown_values[0])
         # set default path-loss coefficient
-        self.option_path_loss_coeff.set('Dense Foliage')
+        self.option_path_loss_coeff.set(self.path_loss_coeff_values[len(self.path_loss_coeff_values)//2])
         # set default sensor
         self.option_sensor.set('BEAST+')
         # define right-click attributes
@@ -3578,6 +3599,8 @@ class App(customtkinter.CTk):
             self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=App.MAX_ZOOM)
         elif new_map == "Google Satellite":
             self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=App.MAX_ZOOM)
+        elif new_map == "Offline Map DB":
+            self.map_widget.set_tile_server(App.OFFLINE_DB_LABEL, max_zoom=App.MAX_ZOOM)
         self.logger_gui.info(f"Map Server changed to: {new_map}")
 
     def change_path_loss(self, path_loss_description: str) -> None:
@@ -3787,4 +3810,3 @@ class App(customtkinter.CTk):
 if __name__ == "__main__":
     app = App()
     app.mainloop()
-
